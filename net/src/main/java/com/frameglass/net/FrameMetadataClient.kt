@@ -9,6 +9,9 @@ import java.io.File
 
 private const val MAX_CHOICES = 3
 
+/** A lookup by IMDb id names exactly one work. */
+private const val ID_MATCH = 1.0
+
 /** F-M1: alternative titles are spent on this many results per search. */
 private const val ALT_TITLE_RESULTS = 3
 
@@ -24,11 +27,102 @@ internal class FrameMetadataClient(
     private val config: NetConfig,
     private val http: Http,
     private val mappings: AnimeMappings,
-) : MetadataClient {
+) : MetadataClient, ImdbMetadata {
     private val tmdb = TmdbApi(http, config)
     private val aniList = AniListApi(http)
     private val skip = SkipApi(http)
     private val omdb = OmdbApi(http, config)
+
+    override suspend fun omdbMatch(name: ParsedName): NetResult<OmdbOutcome> = soft {
+        when {
+            name.title.isBlank() -> Ok(OmdbOutcome(auto = null, score = 0.0, choices = emptyList()))
+            !omdb.hasKey() -> Failure(Reason.NO_KEY)
+            else -> omdbPlan(name)
+        }
+    }
+
+    /**
+     * With a year, OMDb's single answer for the exact title settles it. Without one that answer is whichever
+     * same-named work is most popular, so a search decides, as it does when the single answer misses. Every step
+     * spends one call of a daily allowance, so the plan stops at the first match the F-M2 rules accept.
+     */
+    private suspend fun omdbPlan(name: ParsedName): NetResult<OmdbOutcome> {
+        val kind = if (name.kind == NameKind.MOVIE) MetaKind.MOVIE else MetaKind.TV
+        val queries = listOf(name.title)
+        val year = name.year
+        var known: OmdbTitle? = null
+        if (year != null) {
+            when (val found = omdb.byTitle(name.title, kind, year)) {
+                is Failure -> if (found.reason != Reason.NOT_FOUND) return found
+                is Ok -> known = found.value.toTitle()?.also { record ->
+                    val score = Scoring.score(queries, listOf(record.title), year, record.year)
+                    if (Scoring.pick(listOf(score)) { it } != null) return Ok(OmdbOutcome(record, score, emptyList()))
+                }
+            }
+        }
+        var pool = emptyList<OmdbCandidate>()
+        for ((passKind, passYear) in omdbPasses(kind, year)) {
+            when (val found = omdb.search(name.title, passKind, passYear)) {
+                is Failure -> if (found.reason != Reason.NOT_FOUND) return found
+                is Ok -> pool = (pool + found.value.mapNotNull { it.candidate(queries, year) })
+                    .sortedByDescending(OmdbCandidate::score)
+                    .distinctBy(OmdbCandidate::imdbId)
+            }
+            val best = Scoring.pick(pool, OmdbCandidate::score) ?: continue
+            known?.takeIf { it.imdbId == best.imdbId }?.let { return Ok(OmdbOutcome(it, best.score, emptyList())) }
+            return when (val record = omdb.byId(best.imdbId)) {
+                is Failure -> record
+                is Ok -> record.value.toTitle()?.let { Ok(OmdbOutcome(it, best.score, emptyList())) }
+                    ?: Failure(Reason.BAD_RESPONSE, "omdb")
+            }
+        }
+        return Ok(OmdbOutcome(auto = null, score = 0.0, choices = pool.take(MAX_CHOICES)))
+    }
+
+    /** The year filter goes first when there is one. A movie may be a series with no episode marks, so it tries series last. */
+    private fun omdbPasses(kind: MetaKind, year: Int?): List<Pair<MetaKind, Int?>> = buildList {
+        if (year != null) add(kind to year)
+        add(kind to null)
+        if (kind == MetaKind.MOVIE) add(MetaKind.TV to null)
+    }
+
+    override suspend fun omdbSearch(query: String): NetResult<List<OmdbCandidate>> = soft {
+        val text = query.trim()
+        if (text.isEmpty()) return@soft Ok(emptyList())
+        omdb.search(text, kind = null, year = null).map { hits ->
+            hits.mapNotNull { it.candidate(listOf(text), null) }.sortedByDescending(OmdbCandidate::score)
+        }
+    }
+
+    override suspend fun omdbTitle(imdbId: String): NetResult<OmdbTitle> = soft {
+        when (val found = omdb.byId(imdbId)) {
+            is Failure -> found
+            is Ok -> found.value.toTitle()?.let { Ok(it) } ?: Failure(Reason.NOT_FOUND, "omdb")
+        }
+    }
+
+    override suspend fun omdbSeason(imdbId: String, season: Int): NetResult<List<OmdbEpisode>> = soft {
+        if (season < 1) Failure(Reason.NOT_FOUND, "omdb season") else omdb.season(imdbId, season)
+    }
+
+    override suspend fun tmdbForImdb(imdbId: String, name: ParsedName): NetResult<MatchOutcome> = soft {
+        if (!tmdb.hasKey()) return@soft Failure(Reason.NO_KEY)
+        when (val found = tmdb.findByImdb(imdbId)) {
+            is Failure -> found
+            is Ok -> {
+                val movie = found.value.movies.firstOrNull()
+                val show = found.value.shows.firstOrNull()
+                val (kind, item) = when {
+                    movie != null && (show == null || name.kind == NameKind.MOVIE) -> MetaKind.MOVIE to movie
+                    show != null -> MetaKind.TV to show
+                    else -> return@soft Failure(Reason.NOT_FOUND, "tmdb find")
+                }
+                val candidate = item.candidate(kind, ID_MATCH)
+                val ids = if (candidate.isAnime) animeIdsOf(candidate, name) else null
+                Ok(MatchOutcome(candidate, emptyList(), ids?.anilist, ids?.mal))
+            }
+        }
+    }
 
     override suspend fun match(name: ParsedName): NetResult<MatchOutcome> = soft {
         when {

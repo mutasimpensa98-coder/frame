@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
@@ -56,6 +58,8 @@ private val ImdbYellow = Color(0xFFF5C518)
 private val ProgressHeight = 3.dp
 private val AvatarSize = 84.dp
 private val CheckSize = 22.dp
+private val ChipHeight = 40.dp
+private val ChipIcon = 18.dp
 private const val UnavailableAlpha = 0.4f
 private const val ActivityMillis = 1600
 private const val ActivitySegment = 0.3f
@@ -292,7 +296,8 @@ fun PosterCard(
 
 /**
  * A 16:9 card with the title on the art, for frames and episodes. It takes the same rating, watched and
- * progress marks as [PosterCard], plus the time-left chip and New episode badge of Continue watching.
+ * progress marks as [PosterCard], plus the time-left chip and New episode badge of Continue watching. A portrait
+ * picture, such as a poster or an upright phone video, is pillarboxed by [WideArt].
  */
 @Composable
 fun LandscapeCard(
@@ -325,7 +330,7 @@ fun LandscapeCard(
                 .then(if (unavailable) Modifier.alpha(UnavailableAlpha) else Modifier)
                 .clip(FrameShapes.Poster),
         ) {
-            CoverImage(imagePath, null, imageModifier.matchParentSize())
+            WideArt(imagePath, imageModifier.matchParentSize())
             Box(Modifier.matchParentSize().background(CardTextScrim))
             if (rating != null) {
                 RatingBadge(rating, Modifier.align(Alignment.TopStart).padding(FrameSpacing.S8))
@@ -470,6 +475,56 @@ fun CastAvatar(
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * A cast member as a name pill, for a cast with no photos at all, such as one from OMDb. A row of empty avatars
+ * would read as missing art.
+ */
+@Composable
+fun CastChip(
+    name: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    character: String? = null,
+) {
+    val colors = FrameTheme.colors
+    PressableGlass(
+        onClick = onClick,
+        modifier = modifier.minimumInteractiveComponentSize(),
+        shape = FrameShapes.Chip,
+        highlight = false,
+    ) {
+        Row(
+            modifier = Modifier
+                .background(colors.elevated, FrameShapes.Chip)
+                .border(0.5.dp, colors.hairline, FrameShapes.Chip)
+                .heightIn(min = ChipHeight)
+                .padding(start = FrameSpacing.S12, end = FrameSpacing.S16),
+            horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S8),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Rounded.Person, null, Modifier.size(ChipIcon), tint = colors.secondaryContent)
+            Text(
+                text = bidiIsolate(name),
+                style = FrameType.Label,
+                color = colors.content,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
+            )
+            if (character != null) {
+                Text(
+                    text = bidiIsolate(character),
+                    style = FrameType.Caption,
+                    color = colors.secondaryContent,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
                 )
             }
         }

@@ -13,7 +13,7 @@ import androidx.room.RoomDatabase
         ScanLog::class, SearchIndex::class, GroupAlias::class, AudioDeviceDelay::class, PlaySession::class,
         ExcludedFolder::class, VaultItem::class, VaultSidecar::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class FrameDb : RoomDatabase() {
@@ -29,7 +29,7 @@ abstract class FrameDb : RoomDatabase() {
         /** Every later schema version adds a tested Migration here. Nothing may ever fall back to a wipe. */
         fun open(context: Context): FrameDb =
             Room.databaseBuilder(context, FrameDb::class.java, NAME)
-                .addMigrations(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3)
+                .addMigrations(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3, Migrations.MIGRATION_3_4)
                 .build()
     }
 }

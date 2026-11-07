@@ -148,11 +148,16 @@ internal class CatchUp(
         }
     }
 
-    /** The ratings that are missing come with no swipe. */
-    fun onOmdbKeySet() {
+    /**
+     * A service switch moved, Online came on, or a key was saved. Parked rows run again under the new switches, and
+     * what waited for the service that just came into use is queued: TMDB data for titles OMDb matched, or the IMDb
+     * ratings that are missing. Each queue call checks the saved settings and key again before it queues anything.
+     */
+    fun onServicesChanged(tmdbOn: Boolean, imdbOn: Boolean) {
         scope.launch {
             runCatching {
-                pipeline.queueMissingImdb()
+                if (tmdbOn) pipeline.queueTmdbReturn()
+                if (imdbOn) pipeline.queueMissingImdb()
                 db.meta().makeAllDue(clock.now())
             }
             metadataLane.kick()

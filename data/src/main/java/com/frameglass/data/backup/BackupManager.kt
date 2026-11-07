@@ -148,7 +148,8 @@ internal class BackupManager(
         val state = MatchState.valueOf(item.matchState)
         val existing = titles.byGroupKey(item.groupKey)
         if (existing != null) {
-            val sameMatch = existing.tmdbId == item.tmdbId
+            // Titles matched through OMDb have no TMDB id, so their IMDb ids tell them apart.
+            val sameMatch = existing.tmdbId == item.tmdbId && (item.tmdbId != null || existing.imdbId == item.imdbId)
             titles.update(
                 existing.copy(
                     tmdbId = item.tmdbId, tmdbIsMovie = item.tmdbIsMovie, anilistId = item.anilistId, malId = item.malId,
@@ -264,12 +265,12 @@ internal class BackupManager(
         }
         val font = doc.settings.subtitleFontPath
         val fontExists = font != null && File(font).exists()
-        settings.update { doc.settings.toAppSettings(fontExists) }
+        settings.update { doc.settings.toAppSettings(fontExists, current = it) }
     }
 
     private suspend fun queue(title: Title, stamp: Long) {
         val job = when {
-            title.tmdbId != null && title.fetchedAt == null -> LookupJob.REFRESH
+            (title.tmdbId != null || title.imdbId != null) && title.fetchedAt == null -> LookupJob.REFRESH
             title.tmdbId == null && title.matchState in REQUEUE_STATES -> LookupJob.MATCH
             else -> return
         }

@@ -136,8 +136,8 @@ internal class PlaybackRepositoryImpl(
         if (p.numbered) labels.withTitle(labels.episode(p.season, p.number), p.episode?.name)
         else CleanName.of(p.best.relPath, p.best.releaseTags)
 
-    /** F-S2: a file with no metadata continues with the next file in its folder. */
-    private fun needsFolderOrder(title: Title?): Boolean = title?.tmdbId == null
+    /** F-S2: a file with no metadata continues with the next file in its folder. An OMDb match is metadata too. */
+    private fun needsFolderOrder(title: Title?): Boolean = title == null || (title.tmdbId == null && title.imdbId == null)
 
     private suspend fun nextInFolder(file: MediaFile): MediaFile? {
         val folder = ParsePaths.folderOf(file.relPath)

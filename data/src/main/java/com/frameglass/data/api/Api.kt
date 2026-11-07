@@ -159,9 +159,11 @@ data class EpisodeRow(
     val progress: Float?,
     val watched: Boolean,
     val available: Boolean,
-    /** Known from TMDB but no file exists. Shown dimmed. */
+    /** Known from TMDB, or from OMDb while TMDB is off, but no file exists. Shown dimmed. */
     val missing: Boolean,
     val play: PlayRef?,
+    /** The episode's IMDb rating. Only a series matched through OMDb has one, and it is null while IMDb is off. */
+    val rating: RatingInfo? = null,
 )
 
 data class PersonView(val personId: Long, val name: String, val photoPath: String?, val titles: List<TitleCard>)
@@ -169,11 +171,14 @@ data class PersonView(val personId: Long, val name: String, val photoPath: Strin
 data class SearchResults(val titles: List<TitleCard>, val people: List<CastMember>, val genres: List<String>)
 
 data class MatchChoice(
+    /** "tmdb:<id>", or "imdb:tt<id>" for OMDb's choices while TMDB is off. */
     val providerId: String,
     val kind: TitleKind,
     val name: String,
     val year: Int?,
+    /** A remote URL. It loads only through Net.callFactory(), and not while its service is switched off. */
     val posterUrl: String?,
+    /** Always null for OMDb's choices. */
     val overview: String?,
 )
 
@@ -309,6 +314,23 @@ data class AppSettings(
     val vaultLockSeconds: Int = 0,
     val neverSleepingHintDone: Boolean = false,
     val onboardingDone: Boolean = false,
+    /**
+     * Service switches for the keys page. Moving one never touches its saved key. Off means no call to that service
+     * and no badge from it: TitleCard.rating, TitleDetail.rating, TitleDetail.imdbRating and EpisodeRow.rating leave
+     * it out, so with TMDB off a card shows the IMDb rating where one exists.
+     *
+     * TMDB off, IMDb on with an OMDb key: new titles match through OMDb, which gives the poster, plot, genres, runtime,
+     * cast names, directors and writers, the IMDb rating, and per episode the title, air date and IMDb rating. OMDb is
+     * English only and has none of these, so they stay null or empty for those titles: TitleDetail.originalName,
+     * backdropPath, logoPath, collectionName and collection, CastMember.photoPath and character, HeroItem.logoPath,
+     * and every episode image (EpisodeRow.imagePath and ContinueItem.imagePath fall back to the video frame or the
+     * poster). HeroItem.backdropPath and TitleDetail.backdropPath are null for any matched title with a poster and no
+     * backdrop, so Hero and Details show the poster whole, not a video frame. Their cast members have negative
+     * personIds. Fix match then offers OMDb's choices, whose providerId starts with "imdb:". Turning TMDB back on
+     * gives those titles full TMDB data, and keeps their progress, favourites, manual covers and manual matches.
+     */
+    val tmdbEnabled: Boolean = true,
+    val imdbEnabled: Boolean = true,
 )
 
 interface SettingsRepository {

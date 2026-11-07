@@ -1,6 +1,6 @@
 # Next
 
-Updated 2026-11-08, after the owner-requests package was built and the four faults of its review were fixed. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
+Updated 2026-11-08, after the TMDB and IMDb switches were built and the six faults of their review were fixed. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
 The history must stay fit to publish. `.gitignore` and `tools/hooks/pre-commit`, set through `core.hooksPath`, keep out what the waiver bans. A new clone needs `git config core.hooksPath tools/hooks`.
 
@@ -8,7 +8,7 @@ Testing stays small: essentials only, and long runs such as the soak only when t
 
 ## 1. State of the phone
 
-The phone runs 1.0.103. The owner-requests package of `STATUS.md`, section "This round", is in the working tree only: not committed, not installed and not seen on any phone. Shipping it is step 1 of section 7.
+The phone runs 1.0.103. The owner-requests package of `STATUS.md` is committed and pushed as `37da6d3`, but no release holds it: `version.properties` is still 103. The TMDB and IMDb switches are in the working tree only: not committed, not installed and not seen on any phone. Shipping both together is step 1 of section 7.
 
 The release build is on the phone, updated in place from the first install, with the library, progress, settings and keys intact. `firstInstallTime` did not change.
 
@@ -70,6 +70,19 @@ Send this to the owner as it stands, and record the answers in `docs/evidence/ph
 32. لو عندك ترجمة تمشي صح في الأول وتتأخر شوي شوي لين آخر الفيلم: هل صحّحها، وكتب إنه صحّح السرعة؟ سكّر الفيديو وافتحه: هل الترجمة الأصلية لسه في القائمة جنب النسخة المصحّحة؟
 33. التأخير اليدوي للترجمة صار يوصل لدقيقة قدّام أو ورا. هل يشتغل زي قبل؟
 
+مفاتيح TMDB وIMDb. جرّبها بعد نفس التحديث:
+
+34. افتح الإعدادات › الميزات المتصلة والمفاتيح. هل فيه مفتاح تشغيل جنب TMDB وجنب «IMDb عبر OMDb»؟ طفّي واحد ورجّعه: هل المفتاح المحفوظ بقى، وما طلب منك تكتبه من جديد؟ وهل تحت كل واحد سطر يشرح شن يصير لما يطفى، بالعربي وبالإنجليزي؟
+35. طفّي TMDB وخلّي IMDb شغّال. هل البطاقات والتفاصيل صارت تعرض تقييم IMDb الأصفر بس، وما عاد فيه تقييم TMDB الأزرق في أي مكان؟ وهل ظهر سطر يقول إن التعرّف على الفيديوهات الجديدة يجري عن طريق IMDb؟
+36. وTMDB طافي، حط في التلفون فيلم جديد في اسمه السنة. هل تعرّف عليه التطبيق، وجاب الغلاف والقصة والتصنيفات وأسماء الممثلين والمدة وتقييم IMDb؟ النص يكون بالإنجليزي، وبدون خلفية عريضة وبدون صور ممثلين.
+37. افتح نفس الفيلم في الواجهة الكبيرة فوق في الرئيسية، وفي صفحة التفاصيل. هل الغلاف ظاهر كامل فوق خلفية ناعمة من ألوانه، مش مقصوص ومش لقطة من الفيديو؟ جرّب الداكن والفاتح والعربي.
+38. وTMDB طافي، حط مسلسل جديد. هل ظهرت أسماء الحلقات وتقييم IMDb جنب كل حلقة؟
+39. افتح «تصحيح المطابقة» وTMDB طافي. هل النتائج جات من IMDb؟ ولو ما لقى شي، هل الرسالة تقول IMDb مش TMDB؟ بعدها طفّي «الميزات المتصلة» وافتحه مرة ثانية: هل الرسالة تقولك تشغّل الميزات المتصلة؟
+40. لو عندك مكتبة كبيرة، طلبات OMDb المجانية تخلص بعد حوالي ألف في اليوم. هل التعرّف وقف وقتها بدون رسالة خطأ، وكمّل وحده بعد الساعة 2 الصبح تقريبًا بتوقيت ليبيا؟
+41. رجّع TMDB شغّال. بعد دقايق، هل الأفلام اللي تعرّف عليها IMDb صار فيها خلفية وشعار وصور ممثلين من TMDB؟ وهل مكان وقوفك والمفضلة والأغلفة والمطابقات اللي اخترتها بإيدك بقوا زي ما هم؟ وهل تقييم IMDb تحت الحلقات اختفى؟
+42. طفّي الاثنين. هل اختفت كل التقييمات، والمكتبة والتشغيل يشتغلوا عادي؟
+43. لو عندك أنمي له أكثر من موسم وكل موسم باسم مختلف: وTMDB طافي، هل كل موسم بقى بطاقة لحاله؟
+
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
@@ -96,6 +109,18 @@ From the owner-requests package, read in the code and never run:
 - **Hero art** is decoded once for every feed Home gets. During the first search that can be every 400 ms or so, for up to 5 heroes.
 - **The OMDb fetch after a new key** waits for a swipe when the network fails.
 
+From the TMDB and IMDb switches, read in the code and never run:
+
+- **OMDb's poster host.** Posters are taken to come from `m.media-amazon.com` `[UNVERIFIED]`. Any other host is blocked, so such a title shows its video frame instead.
+- **OMDb's day.** It is taken to end at midnight UTC `[UNVERIFIED]`. Rows that need OMDb park until 00:10 UTC. If OMDb resets at another time, they either wait longer than needed or spend one call and park again.
+- **Fix match after the limit.** Once OMDb's day is spent and TMDB is off, Fix match is empty until the next day, and its message says to try tomorrow.
+- **The matching line on Home** counts every queued row, including rows parked until OMDb's next day, so it can stay up overnight.
+- **Titles OMDb could not settle** are asked again at most once a week, on a swipe, through `Title.omdbTriedAt`. Fix match always asks.
+- **Online features turned on** now also queues the TMDB return and the missing IMDb ratings. Turning Online off and on again fetches TMDB titles with no IMDb rating once more.
+- **Anime matched through OMDb never merges** on the IMDb id, because every cour shares it. Two cours stay two cards until TMDB is back and the AniList check decides.
+- **TMDB turned back on** costs one TMDB find call per OMDb title, then its full fetch.
+- **Hero and Details show the poster** for every matched title with no backdrop, TMDB titles included, instead of a video frame. A manual cover on an unmatched title keeps the frame.
+
 ## 4. Known limits in this build
 
 - A cut MKV plays to the cut, then shows a friendly message. It cannot seek or resume, and a refused seek shows a message.
@@ -111,6 +136,9 @@ From the owner-requests package, read in the code and never run:
 - Undo of a sync ends when the video reopens, for example after an encoding change or an added file. The original subtitle stays in the list, so choosing it again brings it back, and that starts a new sync with its own Undo.
 - Every subtitle copied in for a video is listed when it opens, including old picks and retimed copies.
 - Clips already matched as anime before this build stay anime until Fix match.
+- A title matched through OMDb has no backdrop, title logo, original title, cast photo, character, episode still or collection, and its text is English. Its cast members have negative ids, so the person page lists them by name only.
+- Only a series matched through OMDb has episode IMDb ratings. They are cleared once TMDB holds the title.
+- Restoring a backup written before the switches keeps the phone's switches as they are.
 - A cue longer than 15 s counts for nothing in sync.
 - The ClipPass rewrite of stored tags and the anime pass need Room, so only `StoredParse.reread` is tested.
 - `PrivateVaultImpl`, `MediaManagerImpl` and `MediaStoreTrash` have no test that runs them, because they need Room and MediaStore on a device. Only their pure parts are tested on the JVM.
@@ -140,12 +168,11 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 
 ## 7. Build next, in order
 
-1. **Ship the owner-requests package.** Write `docs/RELEASE-NOTES.md` in Arabic, commit and push `main`, run `.\fg.ps1 release`, and send the checklist of section 2, items 20 to 33. Watch the first open after the update closely, because schema 3 and both one-time passes run on the owner's library there.
-2. **TMDB and IMDb switches** from `docs/OWNER-REQUESTS.md`. Not started.
-3. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
-4. **F-S4 local intro detection.** Phase 7b.
-5. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2 and 2 to 3, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
-6. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
+1. **Ship the owner-requests package and the switches together.** Write `docs/RELEASE-NOTES.md` in Arabic, commit and push `main`, run `.\fg.ps1 release`, and send the checklist of section 2, items 20 to 43. Watch the first open after the update closely, because schemas 3 and 4 and both one-time passes run on the owner's library there. `fg.ps1 release` was changed in the working tree before this round, outside this item: it now refuses a tree with anything but `version.properties` changed, then commits `version.properties` and pushes `main` by itself. Read that change before its first use.
+2. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
+3. **F-S4 local intro detection.** Phase 7b.
+4. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3 and 3 to 4, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
+5. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
 
 ## 8. Missing project files
 

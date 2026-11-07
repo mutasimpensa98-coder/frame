@@ -54,6 +54,7 @@ import com.frameglass.data.logic.TitleLists
 import com.frameglass.data.logic.VaultRefs
 import com.frameglass.data.logic.Versions
 import com.frameglass.data.logic.WatchRules
+import com.frameglass.data.logic.WideArt
 import com.frameglass.data.logic.card
 import com.frameglass.data.logic.ref
 import com.frameglass.data.meta.Credits
@@ -103,9 +104,11 @@ internal class LibraryRepositoryImpl(
         progress.state,
         db.meta().pendingCount(),
         settings.hasKey(ApiKeyKind.TMDB),
+        settings.hasKey(ApiKeyKind.OMDB),
         settings.settings,
-    ) { state, pending, hasKey, s ->
-        state.copy(matching = if (hasKey && s.onlineFeatures) pending else 0)
+    ) { state, pending, tmdbKey, omdbKey, s ->
+        val serviceOn = (s.tmdbEnabled && tmdbKey) || (s.imdbEnabled && omdbKey)
+        state.copy(matching = if (serviceOn && s.onlineFeatures) pending else 0)
     }.distinctUntilChanged()
 
     override val folders: Flow<List<RootFolderInfo>> = view { FolderBuilder.roots(it) }
@@ -136,7 +139,8 @@ internal class LibraryRepositoryImpl(
             runtimeMinutes = title.runtime,
             genres = info.genres,
             coverPath = info.cover,
-            backdropPath = title.backdropPath ?: title.framePath,
+            backdropPath = WideArt.candidates(title.backdropPath, title.framePath, title.coverPath, title.matchState)
+                .firstOrNull(),
             logoPath = title.logoPath,
             dominantColor = title.dominantColor,
             rating = info.tmdbRating?.let { RatingInfo(RatingSource.TMDB, it) },
@@ -164,7 +168,9 @@ internal class LibraryRepositoryImpl(
 
     override fun episodes(titleId: Long, season: Int): Flow<List<EpisodeRow>> = view { s ->
         val info = s.infos[titleId]
-        if (info == null) emptyList() else EpisodeRows.build(info, season, s.episodes.filter { it.titleId == titleId }, EpisodeRows.today(s.now), labels)
+        if (info == null) emptyList() else EpisodeRows.build(
+            info, season, s.episodes.filter { it.titleId == titleId }, EpisodeRows.today(s.now), labels, s.settings.imdbEnabled,
+        )
     }
 
     override fun search(query: String): Flow<SearchResults> {

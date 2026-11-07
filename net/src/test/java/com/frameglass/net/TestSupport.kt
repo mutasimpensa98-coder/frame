@@ -33,7 +33,9 @@ internal class FakeConfig(
     var openSubtitles: String? = null,
     var subDl: String? = null,
     var subSource: String? = null,
-) : NetConfig {
+    override var tmdbEnabled: Boolean = true,
+    override var imdbEnabled: Boolean = true,
+) : NetConfig, ServiceSwitches {
     override fun key(kind: ApiKey): String? = when (kind) {
         ApiKey.TMDB -> tmdb
         ApiKey.OMDB -> omdb

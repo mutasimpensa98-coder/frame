@@ -32,9 +32,12 @@ data class EpisodeLite(
     val runtime: Int?,
     val airDate: String?,
     val fetchedAt: Long?,
+    val imdbRating: Double? = null,
 )
 
 data class RatingRow(val titleId: Long, val source: RatingSource, val value: Double)
+
+data class UnsettledTitle(val id: Long, val matchState: MatchState, val omdbTriedAt: Long?)
 
 data class GenreLink(val titleId: Long, val name: String)
 

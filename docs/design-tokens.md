@@ -21,6 +21,10 @@ None of these values has been tuned on the phone yet, except that the first buil
 | Edge refraction | 20 dp | Tab bar, sheets, menus |
 | Top bar rim | Bottom edge only, white 8% | Top bar |
 | Tint animation | 200 ms | Contrast tint change |
+| Portrait art | Height over 1.1 × width | A poster or an upright phone video is shown whole, never cropped to a wide frame (`glass/.../PosterArt.kt`) |
+| Poster wash | Decoded at 96 px, blurred at 48 px wide, radius 4 px, 3 passes; canvas veil 0.42 dark, 0.30 light | Field behind a whole poster in Hero and Details. Blurred once on load, so it is not one of the three blurred layers. |
+| Stage poster | Shadow 20 dp, black 55% | The whole poster lifted off its wash |
+| Hero stage | Title logo 56 dp high; fade black 28% at the top to clear at 16%, canvas 90% at 60%, full canvas at the bottom | Hero page that shows a poster |
 
 ## Glass recipes in force
 

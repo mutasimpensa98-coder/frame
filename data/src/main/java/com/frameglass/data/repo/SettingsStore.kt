@@ -16,9 +16,11 @@ import com.frameglass.data.api.ApiKeyKind
 import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.SettingsRepository
 import com.frameglass.data.api.ThemeMode
+import com.frameglass.data.logic.ServiceUse
 import com.frameglass.data.secure.KeyVault
 import com.frameglass.net.ApiKey
 import com.frameglass.net.NetConfig
+import com.frameglass.net.ServiceSwitches
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -60,10 +62,13 @@ private object Prefs {
     val vaultLockSeconds = intPreferencesKey("vaultLockSeconds")
     val neverSleeping = booleanPreferencesKey("neverSleepingHintDone")
     val onboarding = booleanPreferencesKey("onboardingDone")
+    val tmdbEnabled = booleanPreferencesKey("tmdbEnabled")
+    val imdbEnabled = booleanPreferencesKey("imdbEnabled")
     val mediaSignal = stringPreferencesKey("internal.mediaSignal")
     val lastSweepAt = longPreferencesKey("internal.lastSweepAt")
     val clipPassDone = booleanPreferencesKey("internal.clipPassDone")
     val animePassDone = booleanPreferencesKey("internal.animePassDone")
+    val imdbPausedUntil = longPreferencesKey("internal.imdbPausedUntil")
 }
 
 internal class SettingsStore(
@@ -72,13 +77,23 @@ internal class SettingsStore(
 ) : SettingsRepository {
     private val store get() = context.settingsDataStore
 
-    /** Set by the wiring: a new key or Online turned on should start matching. */
+    /** Set by the wiring: Online turned on should start matching. */
     @Volatile
     var onMetadataEnabled: () -> Unit = {}
 
-    /** Set by the wiring: a new OMDb key should bring the IMDb ratings that are missing. */
+    /**
+     * Set by the wiring: a service switch moved, Online came on, or a key was saved. The flags say which service just
+     * came into use under ServiceUse, so what waited for it is queued. A switch never changes a saved key.
+     */
     @Volatile
-    var onOmdbKeySet: () -> Unit = {}
+    var onServicesChanged: (tmdbOn: Boolean, imdbOn: Boolean) -> Unit = { _, _ -> }
+
+    /**
+     * Set by NetConfigImpl. It runs with the saved settings before any other callback, so the queue those callbacks
+     * start routes by the new switches and not by a copy the flow has not delivered yet.
+     */
+    @Volatile
+    var onSaved: (AppSettings) -> Unit = {}
 
     /** Set by the wiring: a setting that changes where the search goes needs a scan. */
     @Volatile
@@ -113,6 +128,8 @@ internal class SettingsStore(
             vaultLockSeconds = p[Prefs.vaultLockSeconds] ?: d.vaultLockSeconds,
             neverSleepingHintDone = p[Prefs.neverSleeping] ?: d.neverSleepingHintDone,
             onboardingDone = p[Prefs.onboarding] ?: d.onboardingDone,
+            tmdbEnabled = p[Prefs.tmdbEnabled] ?: d.tmdbEnabled,
+            imdbEnabled = p[Prefs.imdbEnabled] ?: d.imdbEnabled,
         )
     }
 
@@ -142,6 +159,8 @@ internal class SettingsStore(
         p[Prefs.vaultLockSeconds] = s.vaultLockSeconds
         p[Prefs.neverSleeping] = s.neverSleepingHintDone
         p[Prefs.onboarding] = s.onboardingDone
+        p[Prefs.tmdbEnabled] = s.tmdbEnabled
+        p[Prefs.imdbEnabled] = s.imdbEnabled
     }
 
     suspend fun current(): AppSettings = settings.first()
@@ -149,15 +168,24 @@ internal class SettingsStore(
     override suspend fun update(change: (AppSettings) -> AppSettings) {
         var enabled = false
         var scopeChanged = false
-        store.edit { p ->
+        var switched = false
+        var cameOn = false to false
+        val saved = store.edit { p ->
             val old = read(p)
             val new = change(old)
             enabled = new.onlineFeatures && !old.onlineFeatures
             scopeChanged = new.scanWholePhone != old.scanWholePhone || new.scanHiddenFolders != old.scanHiddenFolders ||
                 new.scanNomediaFolders != old.scanNomediaFolders
+            cameOn = ServiceUse.cameOn(old, new)
+            switched = new.tmdbEnabled != old.tmdbEnabled || new.imdbEnabled != old.imdbEnabled
             write(p, new)
         }
-        if (enabled) onMetadataEnabled()
+        onSaved(read(saved))
+        if (switched || cameOn.first || cameOn.second) {
+            onServicesChanged(cameOn.first, cameOn.second)
+        } else if (enabled) {
+            onMetadataEnabled()
+        }
         if (scopeChanged) onScanScopeChanged()
     }
 
@@ -166,10 +194,12 @@ internal class SettingsStore(
     override suspend fun setKey(kind: ApiKeyKind, value: String?) {
         vault.write(kind.toNet(), value)
         if (value.isNullOrBlank()) return
-        // Subtitle keys work on the next tap, and nothing in the metadata queue waits for them.
+        // Subtitle keys work on the next tap, and nothing in the metadata queue waits for them. A key saved under a
+        // switch that is off, or with Online off, starts nothing: turning it on does that.
+        val s = current()
         when (kind) {
-            ApiKeyKind.TMDB -> onMetadataEnabled()
-            ApiKeyKind.OMDB -> onOmdbKeySet()
+            ApiKeyKind.TMDB -> onServicesChanged(ServiceUse.tmdb(s), false)
+            ApiKeyKind.OMDB -> onServicesChanged(false, ServiceUse.imdb(s))
             else -> Unit
         }
     }
@@ -192,6 +222,13 @@ internal class SettingsStore(
         store.edit { it[Prefs.clipPassDone] = true }
     }
 
+    /** The moment OMDb's daily allowance comes back, or 0 when it is not spent. */
+    suspend fun imdbPausedUntil(): Long = store.data.first()[Prefs.imdbPausedUntil] ?: 0
+
+    suspend fun setImdbPausedUntil(value: Long) {
+        store.edit { it[Prefs.imdbPausedUntil] = value }
+    }
+
     suspend fun animePassDone(): Boolean = store.data.first()[Prefs.animePassDone] == true
 
     suspend fun setAnimePassDone() {
@@ -206,13 +243,14 @@ internal class NetConfigImpl(
     scope: CoroutineScope,
     settings: SettingsStore,
     private val vault: KeyVault,
-) : NetConfig {
+) : NetConfig, ServiceSwitches {
     private val loaded = CompletableDeferred<Unit>()
 
     @Volatile
     private var current: AppSettings? = null
 
     init {
+        settings.onSaved = { current = it }
         scope.launch {
             settings.settings.collect {
                 current = it
@@ -229,4 +267,14 @@ internal class NetConfigImpl(
     override fun key(kind: ApiKey): String? = vault.read(kind)
     override val tmdbBaseUrl: String get() = current?.tmdbBaseUrl ?: AppSettings().tmdbBaseUrl
     override val onlineEnabled: Boolean get() = current?.onlineFeatures == true
+    override val tmdbEnabled: Boolean get() = current?.tmdbEnabled == true
+    override val imdbEnabled: Boolean get() = current?.imdbEnabled == true
+
+    /** TMDB can answer now: Online on, its switch on and a key saved. Matching goes to OMDb otherwise. */
+    val tmdbUsable: Boolean get() = current?.let(::tmdbUsableIn) == true
+    val omdbUsable: Boolean get() = current?.let(::omdbUsableIn) == true
+
+    fun tmdbUsableIn(s: AppSettings): Boolean = ServiceUse.tmdb(s) && key(ApiKey.TMDB) != null
+
+    fun omdbUsableIn(s: AppSettings): Boolean = ServiceUse.imdb(s) && key(ApiKey.OMDB) != null
 }

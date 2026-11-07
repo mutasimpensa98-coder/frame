@@ -57,6 +57,7 @@ internal val NetJson = Json {
  * dl.opensubtitles.com answers 301 to the same path. dl.subdl.com serves its zips with no redirect.
  * SubSource serves downloads from its API host, per subsource.net/api-docs.
  * The custom TMDB base URL is added at check time because it can change in Settings.
+ * OMDb's poster links point at [OMDB_POSTER_HOST]. That host was not read from a live reply [UNVERIFIED].
  */
 internal val ALLOWED_HOSTS: Set<String> = setOf(
     "api.themoviedb.org",
@@ -74,7 +75,20 @@ internal val ALLOWED_HOSTS: Set<String> = setOf(
     "dl.subdl.com",
     "api.subsource.net",
     "www.omdbapi.com",
+    OMDB_POSTER_HOST,
 )
+
+/** Hosts that serve only to reach a TMDB match. The TMDB switch closes all of them, and the custom base URL. */
+private val TMDB_HOSTS: Set<String> = setOf(
+    "api.themoviedb.org",
+    "image.tmdb.org",
+    "graphql.anilist.co",
+    "github.com",
+    "release-assets.githubusercontent.com",
+    "objects.githubusercontent.com",
+)
+
+private val OMDB_HOSTS: Set<String> = setOf("www.omdbapi.com", OMDB_POSTER_HOST)
 
 /** Dropped on a redirect to another host, including hosts on the allow-list. */
 private val CREDENTIAL_HEADERS = listOf("Authorization", "Api-Key", "X-API-Key")
@@ -84,15 +98,22 @@ internal class BlockedRequestException(detail: String) : IOException(detail)
 
 internal class OnlineDisabledException : IOException("online features are off")
 
+/** The message is a short label for [Failure.message]: "tmdb" or "omdb", then "switched off". */
+internal class ServiceOffException(service: String) : IOException("$service switched off")
+
+private val NetConfig.tmdbOn: Boolean get() = (this as? ServiceSwitches)?.tmdbEnabled != false
+private val NetConfig.imdbOn: Boolean get() = (this as? ServiceSwitches)?.imdbEnabled != false
+
 internal class NetPolicy(private val config: () -> NetConfig?) {
     fun check(url: HttpUrl) {
         val current = config() ?: throw BlockedRequestException("not configured")
         if (!current.onlineEnabled) throw OnlineDisabledException()
         if (!url.isHttps) throw BlockedRequestException("cleartext")
         val host = url.host
-        if (host !in ALLOWED_HOSTS && host != tmdbApiRoot(current.tmdbBaseUrl)?.host) {
-            throw BlockedRequestException(host)
-        }
+        val customTmdb = host == tmdbApiRoot(current.tmdbBaseUrl)?.host
+        if (host !in ALLOWED_HOSTS && !customTmdb) throw BlockedRequestException(host)
+        if ((customTmdb || host in TMDB_HOSTS) && !current.tmdbOn) throw ServiceOffException("tmdb")
+        if (host in OMDB_HOSTS && !current.imdbOn) throw ServiceOffException("omdb")
     }
 }
 
@@ -325,6 +346,8 @@ internal class Http(
                 }
             } catch (_: OnlineDisabledException) {
                 return Failure(Reason.OFFLINE_SETTING)
+            } catch (off: ServiceOffException) {
+                return Failure(Reason.OFFLINE_SETTING, off.message)
             } catch (blocked: BlockedRequestException) {
                 return Failure(Reason.BAD_RESPONSE, "blocked ${blocked.message}")
             } catch (_: IOException) {

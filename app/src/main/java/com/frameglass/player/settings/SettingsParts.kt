@@ -174,7 +174,7 @@ internal fun SettingsLink(
     }
 }
 
-/** Title and description on the start side, the value on the end side. */
+/** Title and description on the start side, the value on the end side. [notes] say what the current state means. */
 @Composable
 internal fun SettingRow(
     title: String,
@@ -182,6 +182,7 @@ internal fun SettingRow(
     description: String? = null,
     value: String? = null,
     onClick: (() -> Unit)? = null,
+    notes: List<String> = emptyList(),
     trailing: (@Composable () -> Unit)? = null,
 ) {
     Row(
@@ -203,6 +204,14 @@ internal fun SettingRow(
             )
             if (description != null) {
                 Text(description, style = FrameType.Label, color = FrameColors.SecondaryText)
+            }
+            notes.forEach { note ->
+                Text(
+                    text = note,
+                    style = FrameType.Label,
+                    color = FrameColors.White,
+                    modifier = Modifier.padding(top = FrameSpacing.S4),
+                )
             }
         }
         if (value != null) {

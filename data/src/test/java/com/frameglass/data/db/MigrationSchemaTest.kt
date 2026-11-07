@@ -60,9 +60,46 @@ class MigrationSchemaTest {
 
     @Test
     fun noStatementTouchesAnExistingRow() {
-        (Migrations.STATEMENTS_1_2 + Migrations.STATEMENTS_2_3).forEach { sql ->
-            assertTrue(sql, sql.startsWith("CREATE ") || sql.startsWith("ALTER TABLE `Title` ADD COLUMN"))
+        val addColumn = Regex("""^ALTER TABLE `\w+` ADD COLUMN """)
+        (Migrations.STATEMENTS_1_2 + Migrations.STATEMENTS_2_3 + Migrations.STATEMENTS_3_4).forEach { sql ->
+            assertTrue(sql, sql.startsWith("CREATE ") || addColumn.containsMatchIn(sql))
         }
+    }
+
+    @Test
+    fun stepFourOnlyAddsTheImdbRatingToEpisodeAndTheOmdbStampToTitle() {
+        val old = entities(3)
+        val new = entities(4)
+        assertEquals(old.keys, new.keys)
+        val changed = old.keys.filter { old.getValue(it).createSql(it) != new.getValue(it).createSql(it) }
+        assertEquals(setOf("Episode", "Title"), changed.toSet())
+        assertEquals(columns(old.getValue("Episode")) + "imdbRating", columns(new.getValue("Episode")))
+        assertEquals(columns(old.getValue("Title")) + "omdbTriedAt", columns(new.getValue("Title")))
+        for (table in changed) assertEquals(old.getValue(table).indexSql(table), new.getValue(table).indexSql(table))
+    }
+
+    private fun field(version: Int, table: String, column: String) =
+        entities(version).getValue(table).getValue("fields").jsonArray.map { it.jsonObject }
+            .single { it.getValue("columnName").jsonPrimitive.content == column }
+
+    @Test
+    fun theStepFourColumnsMatchRoomsDefinition() {
+        val rating = field(4, "Episode", "imdbRating")
+        assertEquals("REAL", rating.getValue("affinity").jsonPrimitive.content)
+        assertTrue(rating["notNull"]?.jsonPrimitive?.content != "true")
+        val stamp = field(4, "Title", "omdbTriedAt")
+        assertEquals("INTEGER", stamp.getValue("affinity").jsonPrimitive.content)
+        assertTrue(stamp["notNull"]?.jsonPrimitive?.content != "true")
+        assertEquals(
+            listOf("ALTER TABLE `Episode` ADD COLUMN `imdbRating` REAL", "ALTER TABLE `Title` ADD COLUMN `omdbTriedAt` INTEGER"),
+            Migrations.STATEMENTS_3_4,
+        )
+    }
+
+    @Test
+    fun theMigrationRunsFromThreeToFour() {
+        assertEquals(3, Migrations.MIGRATION_3_4.startVersion)
+        assertEquals(4, Migrations.MIGRATION_3_4.endVersion)
     }
 
     @Test

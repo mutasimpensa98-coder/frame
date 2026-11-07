@@ -143,6 +143,11 @@ data class Title(
     @ColumnInfo(defaultValue = "0") val favorite: Boolean = false,
     /** The language of [name], [overview] and the genres. Null means unknown, so the next open fetches them again. */
     val metaLanguage: String? = null,
+    /**
+     * When OMDb last answered a match for this title without settling it, as NONE_FOUND or NEEDS_CHOICE. Asking again
+     * within ImdbRules.FRESH_MS would get the same answer and spend the daily calls.
+     */
+    val omdbTriedAt: Long? = null,
 )
 
 @Entity(tableName = "Episode", indices = [Index(value = ["titleId", "season", "number"], unique = true)])
@@ -158,6 +163,8 @@ data class Episode(
     val runtime: Int? = null,
     val airDate: String? = null,
     val fetchedAt: Long? = null,
+    /** From OMDb, for a series matched through it. TMDB has no IMDb episode ratings. */
+    val imdbRating: Double? = null,
 )
 
 @Entity(tableName = "WatchState", indices = [Index("titleId")])
@@ -268,7 +275,10 @@ data class AnimeMap(
 
 enum class LookupState { QUEUED, RETRY }
 
-/** MATCH finds a provider id, EPISODES adds new files of a matched title, REFRESH reloads everything. */
+/**
+ * MATCH finds a provider id, EPISODES adds new files of a matched title, REFRESH reloads everything. Which service
+ * answers is decided when the row runs, by MetaRoutes, so a switch that moves while a row waits needs no rewrite.
+ */
 enum class LookupJob { MATCH, EPISODES, REFRESH }
 
 @Entity(tableName = "LookupQueue", indices = [Index("retryAt")])

@@ -38,3 +38,15 @@ The rest of R1 stands: no team-knowledge, no `knowledge_sync.py` or `skills_sync
 ## 2026-11-07: APK on GitHub
 
 The owner asked that each finished version be uploaded as soon as it is ready, so they can download it from GitHub Releases and update the app themselves. `.\fg.ps1 release` publishes it. Releases are not part of git history. Before the repository ever goes public, decide which ones stay, because an APK carries GPL-3.0 duties.
+
+## 2026-11-08: TMDB and IMDb switches
+
+The owner asked for an on/off switch for TMDB and for IMDb on the keys page, each keeping its saved key, and for OMDb to identify new titles by name and year while TMDB is off, with the poster, plot, genres, cast names, runtime and IMDb rating, and episode titles and ratings for series. This changes the brief as follows:
+
+- F-M10 "Never use OMDb posters" no longer holds for a title matched through OMDb. Its poster comes from OMDb's poster host, `m.media-amazon.com`, which joins the allow-list of section 4.9. The IMDb switch blocks that host with `www.omdbapi.com`.
+- F-M10 "Show the TMDB rating by default": with TMDB off, no TMDB rating is shown anywhere, and cards show the IMDb rating where one exists.
+- F-M1 "Search TMDB": while TMDB is off or has no key, OMDb matches instead. R2 still holds: automatic OMDb lookups send only the parsed title, year and kind, IMDb ids and season numbers. Fix match sends what the owner types, as it does to TMDB.
+- F-M5 and F-M14: a title matched through OMDb has no backdrop, title logo, cast photo, character, collection, episode still or Arabic text. Hero and Details show its poster whole instead.
+- F-M11 is TMDB's rule. OMDb data is refreshed on the same clock but never purged by it.
+
+Turning TMDB back on looks up each OMDb title by its IMDb id, and keeps progress, favourites, manual covers and manual matches.

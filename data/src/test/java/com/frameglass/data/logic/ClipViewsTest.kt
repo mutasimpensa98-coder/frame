@@ -612,6 +612,31 @@ class HeroChoiceTest {
     }
 
     @Test
+    fun aMatchedTitleWithAPosterAndNoBackdropShowsThePosterNotAFrame() {
+        val s = snapshot(listOf(film(1, cover = "/c1")), listOf(video(1, 100)))
+        val hero = HomeBuilder.build(s, labels).heroes.single()
+        assertNull(hero.backdropPath)
+        assertEquals("/c1", hero.coverPath)
+    }
+
+    @Test
+    fun aBackdropStillComesFirst() {
+        val s = snapshot(listOf(film(1, backdrop = "/b1", cover = "/c1")), listOf(video(1, 100)))
+        assertEquals("/b1", HomeBuilder.build(s, labels).heroes.single().backdropPath)
+    }
+
+    @Test
+    fun wideArtFallsBackToTheFrameOnlyWithoutAMatchedPoster() {
+        assertEquals(listOf("/f"), WideArt.candidates(null, "/f", null, MatchState.AUTO))
+        assertEquals(emptyList<String>(), WideArt.candidates(null, "/f", "/c", MatchState.AUTO))
+        assertEquals(emptyList<String>(), WideArt.candidates(null, "/f", "/c", MatchState.MANUAL))
+        assertEquals(listOf("/b"), WideArt.candidates("/b", "/f", "/c", MatchState.AUTO))
+        // A cover the owner set on a title nothing matched is not a poster of the work, so the frame stays.
+        assertEquals(listOf("/f"), WideArt.candidates(null, "/f", "/c", MatchState.NONE_FOUND))
+        assertEquals(listOf("/f"), WideArt.candidates(null, "/f", "/c", MatchState.UNMATCHED))
+    }
+
+    @Test
     fun aLastPlayedTitleThatCannotBeAHeroStaysInContinueWatching() {
         val titles = listOf(film(1), film(2, frame = null))
         val watch = listOf(WatchState("t:2", 5, 60_000, false, 500, 2))

@@ -64,6 +64,9 @@
     <string name="app_fix_match">تصحيح المطابقة</string>
     <string name="app_fix_match_hint">ابحث بالعنوان</string>
     <string name="app_fix_match_nothing">لا توجد نتائج. تأكد من مفتاح TMDB في الإعدادات أو جرّب اسمًا آخر.</string>
+    <string name="app_fix_match_nothing_imdb">لا نتائج من ⁦IMDb⁩. جرّب الاسم الإنجليزي، أو أعد المحاولة غدًا إن نفدت طلبات ⁦OMDb⁩ المجانية لهذا اليوم.</string>
+    <string name="app_fix_match_off">البحث يحتاج ⁦TMDB⁩ أو ⁦IMDb⁩. شغّل أحدهما من الإعدادات، في قسم الميزات المتصلة والمفاتيح.</string>
+    <string name="app_fix_match_online_off">البحث يحتاج «الميزات المتصلة». شغّلها من الإعدادات، في قسم الميزات المتصلة والمفاتيح.</string>
     <string name="app_pick_match">اختر العنوان الصحيح</string>
     <string name="app_change_cover">تغيير الغلاف</string>
     <string name="app_remove_from_library">إزالة من المكتبة</string>
@@ -153,7 +156,15 @@
     <string name="app_key_subsource">مفتاح ⁦SubSource⁩</string>
     <string name="app_key_subtitles_hint">اختياري، للبحث عن الترجمات عبر الإنترنت</string>
     <string name="app_key_omdb">مفتاح ⁦OMDb⁩</string>
-    <string name="app_key_omdb_hint">اختياري. يعرض تقييم ⁦IMDb⁩ بجانب تقييم ⁦TMDB⁩.</string>
+    <string name="app_service_omdb">⁦IMDb⁩ عبر ⁦OMDb⁩</string>
+    <string name="app_service_omdb_hint">يعرض تقييمات ⁦IMDb⁩. وحين يكون ⁦TMDB⁩ متوقفًا يتعرّف أيضًا على الفيديوهات الجديدة. يحتاج مفتاح ⁦OMDb⁩ مجانيًا.</string>
+    <string name="app_key_state_added">المفتاح مضاف</string>
+    <string name="app_key_state_none">بلا مفتاح</string>
+    <string name="app_service_needs_key">أضف المفتاح أولًا لتشغيله.</string>
+    <string name="app_service_tmdb_off">عند إيقافه لا اتصال بـ ⁦TMDB⁩ ولا يظهر تقييمه، ويبقى المفتاح محفوظًا. وعندها يتعرّف التطبيق على الفيديوهات الجديدة عن طريق ⁦IMDb⁩ إن كان يعمل: النصوص بالإنجليزية، والصور ملصقات فقط.</string>
+    <string name="app_service_omdb_off">عند إيقافه لا اتصال بـ ⁦OMDb⁩ ولا يظهر تقييم ⁦IMDb⁩، ويبقى المفتاح محفوظًا.</string>
+    <string name="app_service_through_imdb">التعرّف على الفيديوهات الجديدة يجري الآن عن طريق ⁦IMDb⁩.</string>
+    <string name="app_service_nothing">لن يتعرّف التطبيق على الفيديوهات الجديدة حتى تشغّل ⁦TMDB⁩ أو ⁦IMDb⁩.</string>
     <string name="app_key_added">مضاف</string>
     <string name="app_key_none">غير مضاف</string>
     <string name="app_key_placeholder">الصق المفتاح هنا</string>
@@ -207,7 +218,7 @@
     <string name="app_settings_media_hint">اعرف ما يشغل المساحة واحذف الفيديوهات</string>
     <string name="app_settings_private">المجلد الخاص</string>
     <string name="app_settings_private_hint">لا يُفتح إلا بكلمة مرورك أو بصمتك</string>
-    <string name="app_settings_online_hint">مفاتيح ⁦TMDB⁩ والترجمات، وما يخرج من الهاتف</string>
+    <string name="app_settings_online_hint">مفاتيح ⁦TMDB⁩ و⁦IMDb⁩ والترجمات، وما يخرج من الهاتف</string>
     <string name="app_settings_backup_hint">احفظ التقدّم والإعدادات في ملف</string>
     <string name="app_page_online">الاتصال والمفاتيح</string>
     <string name="app_page_backup">النسخ الاحتياطي</string>

@@ -40,4 +40,14 @@ internal object Migrations {
     val MIGRATION_2_3 = object : Migration(2, 3) {
         override fun migrate(db: SupportSQLiteDatabase) = STATEMENTS_2_3.forEach(db::execSQL)
     }
+
+    /** IMDb episode ratings, and when OMDb last failed to settle a title, for matching while TMDB is off. */
+    val STATEMENTS_3_4: List<String> = listOf(
+        "ALTER TABLE `Episode` ADD COLUMN `imdbRating` REAL",
+        "ALTER TABLE `Title` ADD COLUMN `omdbTriedAt` INTEGER",
+    )
+
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) = STATEMENTS_3_4.forEach(db::execSQL)
+    }
 }

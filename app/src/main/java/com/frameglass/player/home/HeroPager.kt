@@ -9,6 +9,8 @@ import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,6 +41,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,12 +57,16 @@ import com.frameglass.glass.CoverImage
 import com.frameglass.glass.EffectsLevel
 import com.frameglass.glass.FrameColors
 import com.frameglass.glass.FrameMotion
+import com.frameglass.glass.FrameSizes
 import com.frameglass.glass.FrameSpacing
 import com.frameglass.glass.FrameTheme
 import com.frameglass.glass.FrameType
+import com.frameglass.glass.PosterWash
+import com.frameglass.glass.StagePoster
 import com.frameglass.glass.WhitePill
 import com.frameglass.glass.coverGlow
 import com.frameglass.glass.rememberEffectsLevel
+import com.frameglass.glass.rememberPortrait
 import com.frameglass.player.R
 import com.frameglass.player.nav.ArtRef
 import com.frameglass.player.nav.LocalNavigator
@@ -68,6 +75,7 @@ import com.frameglass.player.ui.TitleMark
 import com.frameglass.player.ui.kindLabel
 import com.frameglass.player.ui.localNumber
 import com.frameglass.player.ui.metaLine
+import com.frameglass.player.ui.statusInset
 import kotlinx.coroutines.delay
 import kotlin.math.abs
 
@@ -79,6 +87,7 @@ private val DotsBottom = 16.dp
 private val TextBottom = 40.dp
 private val PillMinWidth = 150.dp
 private val LogoHeight = 96.dp
+private val StageLogoHeight = 56.dp
 private const val LogoWidthShare = 0.72f
 private val MetaText = FrameType.Body.copy(fontWeight = FontWeight.W500)
 
@@ -107,6 +116,22 @@ private fun rememberHeroFade(): Brush {
                 1f to canvas,
             )
         }
+    }
+}
+
+// Behind a standing poster the wash is a halo round it, and it has gone into the canvas before the title starts.
+@Composable
+private fun rememberHeroStageFade(): Brush {
+    val colors = FrameTheme.colors
+    return remember(colors) {
+        val canvas = colors.canvas
+        Brush.verticalGradient(
+            0f to Color.Black.copy(alpha = 0.28f),
+            0.16f to Color.Transparent,
+            0.38f to Color.Transparent,
+            0.6f to canvas.copy(alpha = 0.9f),
+            1f to canvas,
+        )
     }
 }
 
@@ -181,6 +206,9 @@ private fun HeroPage(hero: HeroItem) {
     val navigator = LocalNavigator.current
     val art = hero.backdropPath ?: hero.coverPath
     val artKey = remember(hero.titleId) { "hero:${hero.titleId}" }
+    // A poster alone is shown whole: cropped to the hero it would lose its own title and the faces on it.
+    val portrait = rememberPortrait(art)
+    val poster = art.takeIf { portrait == true }
     Box(
         Modifier
             .fillMaxSize()
@@ -191,45 +219,85 @@ private fun HeroPage(hero: HeroItem) {
                 onClick = { navigator.details(hero.titleId, ArtRef(artKey, art)) },
             ),
     ) {
-        Box(Modifier.fillMaxSize().sharedArt(artKey)) {
-            CoverImage(art, null, Modifier.matchParentSize(), RectangleShape)
-            Box(Modifier.matchParentSize().background(rememberHeroFade()))
-            Box(Modifier.matchParentSize().coverGlow(hero.dominantColor))
-        }
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(start = FrameSpacing.S24, end = FrameSpacing.S24, bottom = TextBottom),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(FrameSpacing.S12),
-        ) {
-            TitleMark(
-                logoPath = hero.logoPath,
-                name = hero.name,
-                logoModifier = Modifier.fillMaxWidth(LogoWidthShare).height(LogoHeight),
-            )
-            val kind = if (hero.clip) null else kindLabel(hero.kind)
-            val meta = listOfNotNull(kind, hero.genre, hero.year?.let { localNumber(it) })
-            if (meta.isNotEmpty()) {
-                Text(
-                    text = metaLine(meta),
-                    style = MetaText,
-                    color = FrameColors.White,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+        if (poster == null) {
+            Box(Modifier.fillMaxSize().sharedArt(artKey)) {
+                CoverImage(art, null, Modifier.matchParentSize(), RectangleShape)
+                Box(Modifier.matchParentSize().background(rememberHeroFade()))
+                Box(Modifier.matchParentSize().coverGlow(hero.dominantColor))
             }
-            val play = hero.play
-            WhitePill(
-                text = stringResource(if (hero.resumable) R.string.app_resume else R.string.app_play),
-                onClick = { play?.let(navigator::play) },
-                modifier = Modifier.widthIn(min = PillMinWidth).padding(top = FrameSpacing.S4),
-                icon = Icons.Rounded.PlayArrow,
-                enabled = play != null,
+            HeroText(
+                hero = hero,
+                titleStyle = FrameType.Display,
+                logoHeight = LogoHeight,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(start = FrameSpacing.S24, end = FrameSpacing.S24, bottom = TextBottom),
+            )
+        } else {
+            PosterWash(poster, Modifier.matchParentSize())
+            Box(Modifier.matchParentSize().background(rememberHeroStageFade()))
+            Box(Modifier.matchParentSize().coverGlow(hero.dominantColor))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        start = FrameSpacing.S24,
+                        end = FrameSpacing.S24,
+                        top = statusInset() + FrameSpacing.S16,
+                        bottom = TextBottom,
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(FrameSpacing.S16),
+            ) {
+                // The poster takes whatever height the title block leaves, so a two-line title shrinks it a little.
+                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Box(Modifier.fillMaxHeight().aspectRatio(FrameSizes.PosterRatio, matchHeightConstraintsFirst = true)) {
+                        Box(Modifier.matchParentSize().sharedArt(artKey)) {
+                            StagePoster(poster, Modifier.matchParentSize())
+                        }
+                    }
+                }
+                HeroText(hero = hero, titleStyle = FrameType.TitleLarge, logoHeight = StageLogoHeight)
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeroText(hero: HeroItem, titleStyle: TextStyle, logoHeight: Dp, modifier: Modifier = Modifier) {
+    val navigator = LocalNavigator.current
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(FrameSpacing.S12),
+    ) {
+        TitleMark(
+            logoPath = hero.logoPath,
+            name = hero.name,
+            logoModifier = Modifier.fillMaxWidth(LogoWidthShare).height(logoHeight),
+            style = titleStyle,
+        )
+        val kind = if (hero.clip) null else kindLabel(hero.kind)
+        val meta = listOfNotNull(kind, hero.genre, hero.year?.let { localNumber(it) })
+        if (meta.isNotEmpty()) {
+            Text(
+                text = metaLine(meta),
+                style = MetaText,
+                color = FrameColors.White,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
+        val play = hero.play
+        WhitePill(
+            text = stringResource(if (hero.resumable) R.string.app_resume else R.string.app_play),
+            onClick = { play?.let(navigator::play) },
+            modifier = Modifier.widthIn(min = PillMinWidth).padding(top = FrameSpacing.S4),
+            icon = Icons.Rounded.PlayArrow,
+            enabled = play != null,
+        )
     }
 }
 

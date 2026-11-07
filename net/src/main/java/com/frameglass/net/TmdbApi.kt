@@ -120,6 +120,9 @@ internal class TmdbApi(private val http: Http, private val config: NetConfig) {
     suspend fun season(id: Long, season: Int, language: String): NetResult<List<TmdbEpisode>> =
         get<TmdbSeason>("tv/$id/season/$season", listOf("language" to language)).map(TmdbSeason::episodes)
 
+    suspend fun findByImdb(imdbId: String): NetResult<TmdbFind> =
+        get("find/$imdbId", listOf("external_source" to "imdb_id", "language" to ENGLISH))
+
     /** F-M9 step 4, the fallback once anibridge ranges have no answer. */
     suspend fun absoluteEpisode(show: Long, absolute: Int): NetResult<AnimeEpisodeMap> {
         val order = absoluteOrders[show] ?: when (val fetched = fetchAbsoluteOrder(show)) {
@@ -326,4 +329,10 @@ internal data class TmdbGroupEpisode(
     val order: Int = 0,
     @SerialName("season_number") val season: Int,
     @SerialName("episode_number") val episode: Int,
+)
+
+@Serializable
+internal data class TmdbFind(
+    @SerialName("movie_results") val movies: List<TmdbItem> = emptyList(),
+    @SerialName("tv_results") val shows: List<TmdbItem> = emptyList(),
 )

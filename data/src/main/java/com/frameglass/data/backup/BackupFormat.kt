@@ -48,8 +48,15 @@ internal data class BackupSettings(
     val sendFileHash: Boolean = true,
     val vaultLockSeconds: Int = 0,
     val cinemaMode: Boolean = false,
+    /**
+     * Null in a backup written before the switches existed. Restoring one keeps the switch as it is on the phone, so
+     * a service the owner turned off does not start calling again.
+     */
+    val tmdbEnabled: Boolean? = null,
+    val imdbEnabled: Boolean? = null,
 ) {
-    fun toAppSettings(fontExists: Boolean) = AppSettings(
+    /** [current] is what the phone holds now, for the fields an older backup does not have. */
+    fun toAppSettings(fontExists: Boolean, current: AppSettings) = AppSettings(
         onlineFeatures = onlineFeatures,
         doubleTapSeconds = doubleTapSeconds,
         backgroundAudio = backgroundAudio,
@@ -74,6 +81,8 @@ internal data class BackupSettings(
         vaultLockSeconds = vaultLockSeconds,
         neverSleepingHintDone = neverSleepingHintDone,
         onboardingDone = onboardingDone,
+        tmdbEnabled = tmdbEnabled ?: current.tmdbEnabled,
+        imdbEnabled = imdbEnabled ?: current.imdbEnabled,
     )
 
     companion object {
@@ -82,7 +91,7 @@ internal data class BackupSettings(
             s.subtitleColor, s.subtitleBackground, s.subtitleFontPath, s.subtitleBottomOffset, s.scanHiddenFolders,
             s.scanNomediaFolders, s.showUnavailable, s.tmdbBaseUrl, s.neverSleepingHintDone, s.onboardingDone,
             s.scanWholePhone, s.themeMode.name, s.accent.name, s.coverTint, s.sendReleaseName, s.sendFileHash,
-            s.vaultLockSeconds, s.cinemaMode,
+            s.vaultLockSeconds, s.cinemaMode, s.tmdbEnabled, s.imdbEnabled,
         )
     }
 }

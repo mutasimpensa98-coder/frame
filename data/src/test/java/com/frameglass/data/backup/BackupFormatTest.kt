@@ -28,6 +28,8 @@ class BackupFormatTest {
         tmdbBaseUrl = "https://api.themoviedb.org", neverSleepingHintDone = true, onboardingDone = true,
     )
 
+    private val phone = com.frameglass.data.api.AppSettings()
+
     private val title = BackupTitle(
         id = 5, kind = "SERIES", groupKey = "SERIES|show|-", groupName = "show", localName = "Show", localYear = null,
         tmdbId = 42, tmdbIsMovie = false, anilistId = null, malId = null, imdbId = null, matchState = "MANUAL",
@@ -174,14 +176,14 @@ class BackupFormatTest {
     @Test
     fun aMissingFontDoesNotComeBack() {
         val saved = settings.copy(subtitleFontPath = "/gone.ttf")
-        assertEquals(null, saved.toAppSettings(fontExists = false).subtitleFontPath)
-        assertEquals("/gone.ttf", saved.toAppSettings(fontExists = true).subtitleFontPath)
+        assertEquals(null, saved.toAppSettings(fontExists = false, phone).subtitleFontPath)
+        assertEquals("/gone.ttf", saved.toAppSettings(fontExists = true, phone).subtitleFontPath)
     }
 
     @Test
     fun wholePhoneSearchSurvivesABackup() {
         val off = com.frameglass.data.api.AppSettings(scanWholePhone = false)
-        assertEquals(false, BackupSettings.from(off).toAppSettings(fontExists = false).scanWholePhone)
+        assertEquals(false, BackupSettings.from(off).toAppSettings(fontExists = false, phone).scanWholePhone)
     }
 
     @Test
@@ -226,7 +228,7 @@ class BackupFormatTest {
             sendFileHash = false,
             vaultLockSeconds = 30,
         )
-        val back = BackupSettings.from(chosen).toAppSettings(fontExists = false)
+        val back = BackupSettings.from(chosen).toAppSettings(fontExists = false, phone)
         assertEquals(chosen.themeMode, back.themeMode)
         assertEquals(chosen.accent, back.accent)
         assertEquals(chosen.coverTint, back.coverTint)
@@ -234,6 +236,37 @@ class BackupFormatTest {
         assertEquals(chosen.sendReleaseName, back.sendReleaseName)
         assertEquals(chosen.sendFileHash, back.sendFileHash)
         assertEquals(chosen.vaultLockSeconds, back.vaultLockSeconds)
+    }
+
+    @Test
+    fun theServiceSwitchesRoundTrip() {
+        val chosen = com.frameglass.data.api.AppSettings(tmdbEnabled = false, imdbEnabled = true)
+        val back = BackupSettings.from(chosen).toAppSettings(fontExists = false, phone)
+        assertEquals(false, back.tmdbEnabled)
+        assertEquals(true, back.imdbEnabled)
+    }
+
+    @Test
+    fun aBackupWrittenBeforeTheSwitchesKeepsThePhonesSwitches() {
+        val full = BackupCodec.encode(doc.copy(settings = BackupSettings.from(phone)))
+        val json = full.replace(Regex(""",?\s*"(tmdbEnabled|imdbEnabled)": (true|false|null)"""), "")
+        assertTrue("Enabled" !in json)
+        val saved = BackupCodec.decode(json).settings
+        assertEquals(null, saved.tmdbEnabled)
+        val turnedOff = phone.copy(tmdbEnabled = false, imdbEnabled = false)
+        val back = saved.toAppSettings(fontExists = false, turnedOff)
+        assertFalse(back.tmdbEnabled)
+        assertFalse(back.imdbEnabled)
+        assertTrue(saved.toAppSettings(fontExists = false, phone).let { it.tmdbEnabled && it.imdbEnabled })
+    }
+
+    @Test
+    fun aBackupWithTheSwitchesSetsThemWhateverThePhoneHolds() {
+        val saved = BackupSettings.from(phone.copy(tmdbEnabled = false, imdbEnabled = true))
+        val back = BackupCodec.decode(BackupCodec.encode(doc.copy(settings = saved))).settings
+            .toAppSettings(fontExists = false, phone.copy(imdbEnabled = false))
+        assertFalse(back.tmdbEnabled)
+        assertTrue(back.imdbEnabled)
     }
 
     @Test

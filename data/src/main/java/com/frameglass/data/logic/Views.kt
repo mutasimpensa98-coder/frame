@@ -11,7 +11,10 @@ import com.frameglass.data.api.HomeRow
 import com.frameglass.data.api.HomeRowKind
 import com.frameglass.data.api.LibraryFilter
 import com.frameglass.data.api.LibrarySort
+import com.frameglass.data.api.MatchState
 import com.frameglass.data.api.PlayRef
+import com.frameglass.data.api.RatingInfo
+import com.frameglass.data.api.RatingSource
 import com.frameglass.data.api.RootFolderInfo
 import com.frameglass.data.api.TitleCard
 import com.frameglass.data.api.TitleKind
@@ -82,6 +85,20 @@ internal object TitleLists {
     fun recent(items: List<TitleInfo>): List<TitleInfo> = items.sortedWith(BY_RECENT)
 }
 
+/**
+ * The wide art behind Hero and Details, best first. A matched title with a poster and no backdrop, as every OMDb
+ * match is, gets none, so the screens show its poster whole instead of a frame from the video. [cover] is the
+ * title's own cover, never its frame.
+ */
+internal object WideArt {
+    private val MATCHED = setOf(MatchState.AUTO, MatchState.MANUAL)
+
+    fun candidates(backdrop: String?, frame: String?, cover: String?, state: MatchState): List<String> {
+        val posterInstead = cover != null && state in MATCHED
+        return listOfNotNull(backdrop, frame?.takeUnless { posterInstead })
+    }
+}
+
 /** F-U5, F-U6, F-S1. Clips stay out of the hero and the rows while a real title exists, and get one row of their own. */
 internal object HomeBuilder {
     const val MIN_ROW_TITLES = 4
@@ -127,8 +144,9 @@ internal object HomeBuilder {
         return wideImage(info, onDisk) != null || info.cover?.let(onDisk) == true
     }
 
-    private fun wideImage(info: TitleInfo, onDisk: (String) -> Boolean): String? =
-        listOfNotNull(info.title.backdropPath, info.title.framePath).firstOrNull(onDisk)
+    private fun wideImage(info: TitleInfo, onDisk: (String) -> Boolean): String? = info.title.let {
+        WideArt.candidates(it.backdropPath, it.framePath, it.coverPath, it.matchState).firstOrNull(onDisk)
+    }
 
     private fun hero(info: TitleInfo, onDisk: (String) -> Boolean): HeroItem {
         val playable = heroPlayable(info)
@@ -230,7 +248,16 @@ internal object EpisodeRows {
     private fun released(e: EpisodeLite, today: String): Boolean =
         e.fetchedAt != null && e.airDate != null && e.airDate <= today
 
-    fun build(info: TitleInfo, season: Int, episodes: List<EpisodeLite>, today: String, labels: Labels): List<EpisodeRow> {
+    /** [imdb] is the IMDb switch. Off, no episode shows an IMDb rating. */
+    fun build(
+        info: TitleInfo,
+        season: Int,
+        episodes: List<EpisodeLite>,
+        today: String,
+        labels: Labels,
+        imdb: Boolean = true,
+    ): List<EpisodeRow> {
+        fun ratingOf(e: EpisodeLite?) = e?.imdbRating?.takeIf { imdb }?.let { RatingInfo(RatingSource.IMDB, it) }
         val mine = info.playables.filter { it.season == season }
         if (mine.isEmpty()) return emptyList()
         val listed = episodes.filter { it.season == season }
@@ -239,12 +266,13 @@ internal object EpisodeRows {
         val rows = ArrayList<EpisodeRow>()
         for (p in mine) {
             if (!p.numbered) {
-                rows += row(info, p, 0, null, season, labels)
+                rows += row(info, p, 0, null, season, labels, null)
                 continue
             }
             for (n in p.number..(p.numberEnd ?: p.number)) {
                 covered += n
-                rows += row(info, p, n, byNumber[n] ?: p.episode.takeIf { n == p.number }, season, labels)
+                val episode = byNumber[n] ?: p.episode.takeIf { n == p.number }
+                rows += row(info, p, n, episode, season, labels, ratingOf(episode))
             }
         }
         listed.filter { it.number !in covered && released(it, today) }.forEach { e ->
@@ -260,12 +288,21 @@ internal object EpisodeRows {
                 available = false,
                 missing = true,
                 play = null,
+                rating = ratingOf(e),
             )
         }
         return rows.sortedWith(compareBy({ it.number == 0 }, { it.number }))
     }
 
-    private fun row(info: TitleInfo, p: Playable, number: Int, e: EpisodeLite?, season: Int, labels: Labels): EpisodeRow {
+    private fun row(
+        info: TitleInfo,
+        p: Playable,
+        number: Int,
+        e: EpisodeLite?,
+        season: Int,
+        labels: Labels,
+        rating: RatingInfo?,
+    ): EpisodeRow {
         val file = p.best
         return EpisodeRow(
             season = season,
@@ -279,6 +316,7 @@ internal object EpisodeRows {
             available = p.available,
             missing = false,
             play = if (p.available) p.ref() else null,
+            rating = rating,
         )
     }
 }

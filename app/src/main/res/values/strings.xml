@@ -66,6 +66,9 @@
     <string name="app_fix_match">Fix match</string>
     <string name="app_fix_match_hint">Search by title</string>
     <string name="app_fix_match_nothing">No matches. Check the TMDB key in Settings, or try another name.</string>
+    <string name="app_fix_match_nothing_imdb">No matches from IMDb. Try the English name, or try again tomorrow if today\'s free OMDb calls are used up.</string>
+    <string name="app_fix_match_off">Searching needs TMDB or IMDb. Turn one on in Settings, under Online features and keys.</string>
+    <string name="app_fix_match_online_off">Searching needs Online features. Turn them on in Settings, under Online features and keys.</string>
     <string name="app_pick_match">Choose the right title</string>
     <string name="app_change_cover">Change cover</string>
     <string name="app_remove_from_library">Remove from library</string>
@@ -155,7 +158,16 @@
     <string name="app_key_subsource">SubSource key</string>
     <string name="app_key_subtitles_hint">Optional, for searching subtitles online</string>
     <string name="app_key_omdb">OMDb key</string>
-    <string name="app_key_omdb_hint">Optional. Shows an IMDb rating beside the TMDB one.</string>
+    <string name="app_service_tmdb" translatable="false">TMDB</string>
+    <string name="app_service_omdb">IMDb via OMDb</string>
+    <string name="app_service_omdb_hint">Shows IMDb ratings. While TMDB is off, it also identifies new videos. It needs a free OMDb key.</string>
+    <string name="app_key_state_added">Key added</string>
+    <string name="app_key_state_none">No key</string>
+    <string name="app_service_needs_key">Add the key to turn this on.</string>
+    <string name="app_service_tmdb_off">Off means no calls to TMDB and no TMDB rating, and the key stays saved. New videos are then identified through IMDb if it is on, with English text and posters only.</string>
+    <string name="app_service_omdb_off">Off means no calls to OMDb and no IMDb rating, and the key stays saved.</string>
+    <string name="app_service_through_imdb">New videos are being identified through IMDb now.</string>
+    <string name="app_service_nothing">New videos are not identified until TMDB or IMDb is on.</string>
     <string name="app_key_added">Added</string>
     <string name="app_key_none">Not added</string>
     <string name="app_key_placeholder">Paste the key here</string>
@@ -210,7 +222,7 @@
     <string name="app_settings_media_hint">See what takes up space, and delete videos</string>
     <string name="app_settings_private">Private folder</string>
     <string name="app_settings_private_hint">Opens only with your password or fingerprint</string>
-    <string name="app_settings_online_hint">TMDB and subtitle keys, and what leaves the phone</string>
+    <string name="app_settings_online_hint">TMDB, IMDb and subtitle keys, and what leaves the phone</string>
     <string name="app_settings_backup_hint">Save progress and settings to a file</string>
     <string name="app_page_online">Online and keys</string>
     <string name="app_page_backup">Backup</string>

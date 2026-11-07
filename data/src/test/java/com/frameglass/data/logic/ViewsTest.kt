@@ -391,3 +391,71 @@ class FolderBuilderTest {
         assertNull(entry.play)
     }
 }
+
+class ServiceSwitchViewsTest {
+    private val ratings = listOf(RatingRow(1, RatingSource.TMDB, 7.1), RatingRow(1, RatingSource.IMDB, 8.2))
+
+    private fun infoWith(settings: AppSettings) =
+        snapshot(listOf(row(1, TitleKind.MOVIE)), listOf(movieFile(1)), ratings = ratings, settings = settings).infos.getValue(1)
+
+    @Test
+    fun bothOnShowsTmdbOnTheCard() {
+        val info = infoWith(AppSettings())
+        assertEquals(RatingSource.TMDB, info.rating?.source)
+        assertEquals(8.2, info.imdbRating!!, 1e-9)
+    }
+
+    @Test
+    fun tmdbOffShowsTheImdbRatingInstead() {
+        val info = infoWith(AppSettings(tmdbEnabled = false))
+        assertNull(info.tmdbRating)
+        assertEquals(RatingSource.IMDB, info.rating?.source)
+        assertEquals(8.2, info.rating!!.value, 1e-9)
+    }
+
+    @Test
+    fun imdbOffHidesItsRatingEverywhere() {
+        val info = infoWith(AppSettings(imdbEnabled = false))
+        assertNull(info.imdbRating)
+        assertEquals(RatingSource.TMDB, info.rating?.source)
+    }
+
+    @Test
+    fun bothOffShowsNoBadge() {
+        assertNull(infoWith(AppSettings(tmdbEnabled = false, imdbEnabled = false)).rating)
+    }
+
+    @Test
+    fun topRatedFollowsTheSwitches() {
+        val titles = (1L..3L).map { row(it, TitleKind.MOVIE) }
+        val rated = listOf(RatingRow(1, RatingSource.TMDB, 9.0), RatingRow(2, RatingSource.IMDB, 6.0), RatingRow(3, RatingSource.IMDB, 8.0))
+        val s = snapshot(titles, titles.map { movieFile(it.id) }, ratings = rated, settings = AppSettings(tmdbEnabled = false))
+        val cards = TitleLists.library(s, LibraryFilter.ALL, LibrarySort.RATING)
+        assertEquals(listOf(3L, 2L, 1L), cards.map { it.id })
+        assertNull(cards.last().rating)
+    }
+
+    @Test
+    fun episodeRatingsShowOnlyWhileImdbIsOn() {
+        val title = row(1, TitleKind.SERIES)
+        val rated = EpisodeLite(1, 1, 1, 1, "E1", null, 24, "2020-01-01", 1, imdbRating = 8.4)
+        val missing = EpisodeLite(2, 1, 1, 2, "E2", null, 24, "2020-01-01", 1, imdbRating = 7.9)
+        val files = listOf(file(1, "t:1:s1:e1", season = 1, episode = 1, episodeId = 1))
+        val info = snapshot(listOf(title), files, episodes = listOf(rated, missing)).infos.getValue(1)
+
+        val on = EpisodeRows.build(info, 1, listOf(rated, missing), "2030-01-01", labels, imdb = true)
+        assertEquals(listOf(8.4, 7.9), on.map { it.rating?.value })
+        assertTrue(on.all { it.rating?.source == RatingSource.IMDB })
+        val off = EpisodeRows.build(info, 1, listOf(rated, missing), "2030-01-01", labels, imdb = false)
+        assertTrue(off.all { it.rating == null })
+    }
+
+    @Test
+    fun anOmdbSeriesWithNoStillsFallsBackToTheFrameAndCover() {
+        val title = row(1, TitleKind.SERIES)
+        val noStill = EpisodeLite(1, 1, 1, 1, "E1", null, 24, "2020-01-01", 1, imdbRating = 8.4)
+        val files = listOf(file(1, "t:1:s1:e1", season = 1, episode = 1, episodeId = 1))
+        val info = snapshot(listOf(title), files, episodes = listOf(noStill)).infos.getValue(1)
+        assertEquals("/c1", EpisodeRows.build(info, 1, listOf(noStill), "2030-01-01", labels).single().imagePath)
+    }
+}

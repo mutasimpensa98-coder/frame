@@ -93,7 +93,9 @@ internal class DataServices(context: Context, clock: Clock) : FrameServices {
     private val work = WorkScheduler(context)
 
     val pipeline: MetadataPipeline by lazy {
-        MetadataPipeline(db, client, config, images, ops, index, clock, NetworkCheck(context), AppLanguage(context))
+        MetadataPipeline(
+            db, client, config, settingsStore, images, ops, index, clock, NetworkCheck(context), AppLanguage(context),
+        )
     }
 
     private val clipPass = ClipPass(db, ops, settingsStore)
@@ -150,7 +152,7 @@ internal class DataServices(context: Context, clock: Clock) : FrameServices {
 
     init {
         settingsStore.onMetadataEnabled = { catchUp.onMetadataEnabled() }
-        settingsStore.onOmdbKeySet = { catchUp.onOmdbKeySet() }
+        settingsStore.onServicesChanged = { tmdbOn, imdbOn -> catchUp.onServicesChanged(tmdbOn, imdbOn) }
         settingsStore.onScanScopeChanged = { catchUp.onFoldersChanged() }
         watchChanges(context)
     }

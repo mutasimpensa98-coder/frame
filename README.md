@@ -33,6 +33,8 @@ A video library and player for Android, with a glass interface and full Arabic s
 - قسم «تابع المشاهدة» مع شريط تقدم لكل فيديو.
 - المفضلة، وإخفاء العناوين، واستبعاد المجلدات، ومقاطع الهاتف العشوائية في قسم مستقل.
 - السحب لتحت يحدّث الملفات والبيانات والتقييمات معاً.
+- وضع السينما: الرئيسية والمكتبة للأفلام والمسلسلات والأنمي فقط.
+- مفتاح تشغيل لكل من TMDB وIMDb، وعند إيقاف TMDB يتعرف التطبيق على العناوين من IMDb.
 
 ### المشغل
 
@@ -43,6 +45,7 @@ A video library and player for Android, with a glass interface and full Arabic s
 - نافذة عائمة عند الخروج من التطبيق.
 - تخطي المقدمة والملخص، والانتقال للحلقة التالية.
 - بحث عن الترجمة داخل المشغل عبر OpenSubtitles وSubDL وSubSource.
+- مزامنة تلقائية للترجمة على الجهاز نفسه، مع إصلاح فرق سرعة الإطارات وزر تراجع.
 
 ### الخصوصية والتخزين
 
@@ -57,11 +60,6 @@ A video library and player for Android, with a glass interface and full Arabic s
 - داكن وفاتح وحسب الهاتف، مع ستة ألوان مميزة.
 - العربية والإنجليزية، مع واجهة كاملة من اليمين إلى اليسار، ولغة مستقلة عن لغة الهاتف.
 - إعدادات مفصلة ومرتبة بالأيقونات.
-
-### قيد البناء
-
-- وضع السينما: يعرض الأفلام والمسلسلات فقط.
-- مزامنة تلقائية للترجمة على الجهاز، بدون إرسال أي شيء خارجه.
 
 ### التثبيت والتحديث
 
@@ -85,6 +83,8 @@ Frame Glass gathers every video on the phone into one library by itself. It show
 - Continue watching, with a progress bar on each video.
 - Favourites, hidden titles, excluded folders, and personal clips kept in their own section.
 - Swipe down to refresh files, details and ratings together.
+- Cinema mode: Home and Library show only films, series and anime.
+- An on/off switch for TMDB and for IMDb. With TMDB off, titles are identified through IMDb.
 
 ### Player
 
@@ -95,6 +95,7 @@ Frame Glass gathers every video on the phone into one library by itself. It show
 - Picture-in-picture when leaving the app.
 - Skip intro and recap, and go on to the next episode.
 - Online subtitle search through OpenSubtitles, SubDL and SubSource.
+- Automatic subtitle sync on the device, with a frame-rate fix and Undo.
 
 ### Privacy and storage
 
@@ -109,11 +110,6 @@ Frame Glass gathers every video on the phone into one library by itself. It show
 - Dark, light or follow the phone, with six accent colours.
 - Arabic and English, with a full right-to-left interface and a language independent of the phone.
 - Detailed Settings, organised with icons.
-
-### In progress
-
-- Cinema mode, which shows only films and series.
-- Automatic subtitle sync on the device, with nothing leaving the phone.
 
 ### Install and update
 

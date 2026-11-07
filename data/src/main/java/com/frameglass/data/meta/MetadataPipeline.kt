@@ -28,22 +28,31 @@ import com.frameglass.data.db.TitlePerson
 import com.frameglass.data.logic.CachePolicy
 import com.frameglass.data.logic.ClipRules
 import com.frameglass.data.logic.Clock
+import com.frameglass.data.logic.ImdbRules
 import com.frameglass.data.logic.MetaLanguage
+import com.frameglass.data.logic.MetaRoute
+import com.frameglass.data.logic.MetaRoutes
 import com.frameglass.data.logic.ParsePaths
 import com.frameglass.data.logic.RetryPolicy
 import com.frameglass.data.logic.SegmentRules
 import com.frameglass.data.repo.NetConfigImpl
+import com.frameglass.data.repo.SettingsStore
 import com.frameglass.data.scan.CoverColors
 import com.frameglass.data.scan.ImageStore
-import com.frameglass.net.ApiKey
 import com.frameglass.net.EpisodeMeta
+import com.frameglass.net.ImdbMetadata
 import com.frameglass.net.MatchCandidate
 import com.frameglass.net.MatchOutcome
 import com.frameglass.net.MetaKind
 import com.frameglass.net.MetadataClient
 import com.frameglass.net.NetResult
+import com.frameglass.net.OMDB_DAILY_LIMIT
+import com.frameglass.net.OmdbCandidate
+import com.frameglass.net.OmdbEpisode
+import com.frameglass.net.OmdbTitle
 import com.frameglass.net.PersonMeta
 import com.frameglass.net.TitleMeta
+import com.frameglass.net.isDailyLimit
 import com.frameglass.parser.NameKind
 import com.frameglass.parser.NameParser
 import com.frameglass.parser.ParsedName
@@ -102,11 +111,15 @@ internal data class SegmentTarget(val episodeId: Long, val season: Int, val numb
  * Works through LookupQueue one title at a time. Each finished step is saved, so a stop anywhere loses at
  * most the title in hand. Manual choices are re-read inside the write transaction, so a background job
  * cannot overwrite a match or cover the owner set while its request was in flight.
+ *
+ * TMDB answers while it is usable. Otherwise OMDb matches and fills titles, on a daily allowance: once OMDb says the
+ * day is spent, nothing more goes to it until the next day, and the rows that need it wait in the queue till then.
  */
 internal class MetadataPipeline(
     private val db: FrameDb,
     private val clientProvider: Lazy<MetadataClient>,
     private val config: NetConfigImpl,
+    private val settings: SettingsStore,
     private val images: ImageStore,
     private val ops: TitleOps,
     private val index: SearchIndexer,
@@ -116,8 +129,14 @@ internal class MetadataPipeline(
 ) {
     private val lock = Mutex()
     private val client get() = clientProvider.value
+
+    /** The one client implements it. Were it ever missing, nothing would go to OMDb. */
+    private val imdb get() = client as? ImdbMetadata
     private val titles get() = db.titles()
     private val meta get() = db.meta()
+
+    @Volatile
+    private var imdbPausedUntil: Long? = null
 
     /**
      * Returns how long to wait before the next run, or null when nothing can run later. No key or Online off
@@ -125,7 +144,8 @@ internal class MetadataPipeline(
      */
     suspend fun drain(budgetMs: Long = BUDGET_MS): Long? = lock.withLock {
         config.awaitLoaded()
-        if (!config.onlineEnabled || config.key(ApiKey.TMDB) == null) return@withLock null
+        if (!config.tmdbUsable && !config.omdbUsable) return@withLock null
+        resumeImdbIfDue()
         val deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(budgetMs)
         while (System.nanoTime() < deadline) {
             currentCoroutineContext().ensureActive()
@@ -141,11 +161,33 @@ internal class MetadataPipeline(
         config.awaitLoaded()
         val now = clock.now()
         meta.matchedFetchedBefore(now - REFRESH_GAP_MS).forEach { queueFetch(it, now) }
-        meta.notFoundTitles().forEach { queueOnce(it, LookupJob.MATCH, now) }
+        meta.omdbOnlyFetchedBefore(now - ImdbRules.FRESH_MS).forEach { queueFetch(it, now) }
+        // While only OMDb can match, a title it could not settle this week would spend calls on the same answer.
+        val tmdb = config.tmdbUsable
+        meta.notFoundTitles()
+            .filter { tmdb || !ImdbRules.omdbGaveUp(it.matchState, it.omdbTriedAt, now) }
+            .forEach { queueOnce(it.id, LookupJob.MATCH, now) }
     }
 
-    /** A new OMDb key: matched titles with no IMDb rating fetch again, however recently they were fetched. */
+    /**
+     * TMDB is on again, or has a key now. Titles matched through OMDb look for their TMDB record, and what waited for
+     * TMDB is queued: titles never fetched, episode files with no data, and titles OMDb could not settle. The settings
+     * are read from the store, because the switch that brought this was saved a moment ago.
+     */
+    suspend fun queueTmdbReturn() {
+        config.awaitLoaded()
+        if (!config.tmdbUsableIn(settings.current())) return
+        val now = clock.now()
+        meta.omdbOnlyFetchedBefore(Long.MAX_VALUE).forEach { queueFetch(it, now) }
+        meta.matchedNeverFetched().forEach { queueFetch(it, now) }
+        meta.matchedWithEpisodesWaiting().forEach { queueOnce(it, LookupJob.EPISODES, now) }
+        meta.unsettledTitles().forEach { queueOnce(it, LookupJob.MATCH, now) }
+    }
+
+    /** OMDb is usable now: matched titles with no IMDb rating fetch again, however recently they were fetched. */
     suspend fun queueMissingImdb() {
+        config.awaitLoaded()
+        if (!config.omdbUsableIn(settings.current())) return
         val now = clock.now()
         meta.matchedWithoutImdb().forEach { queueFetch(it, now) }
     }
@@ -156,6 +198,9 @@ internal class MetadataPipeline(
      * many titles still wait.
      */
     suspend fun queueLanguageRefresh(): Int {
+        config.awaitLoaded()
+        // Only TMDB speaks the app's language. OMDb has English alone.
+        if (!config.tmdbUsable) return 0
         val now = clock.now()
         val stale = meta.matchedNotIn(language.current())
         stale.forEach { queueFetch(it, now) }
@@ -181,17 +226,29 @@ internal class MetadataPipeline(
             meta.deleteQueue(row.titleId)
             return false
         }
-        val failure = when (row.job) {
-            LookupJob.MATCH -> when {
-                title.tmdbId != null -> fetch(title)
+        val gaveUp = ImdbRules.omdbGaveUp(title.matchState, title.omdbTriedAt, clock.now())
+        val route = MetaRoutes.of(row.job, title.tmdbId, title.imdbId, config.tmdbUsable, config.omdbUsable, gaveUp)
+        if (route == MetaRoute.WAIT) return true
+        if (route.omdb && imdbPaused()) {
+            meta.upsertQueue(row.copy(state = LookupState.RETRY, retryAt = pausedUntil()))
+            return false
+        }
+        val failure = when (route) {
+            MetaRoute.TMDB_FETCH -> fetch(title)
+            MetaRoute.TMDB_EPISODES -> episodes(title)
+            MetaRoute.TMDB_MATCH, MetaRoute.OMDB_MATCH -> when {
                 staysLocal(title) -> {
                     titles.setMatchState(title.id, MatchState.UNMATCHED)
                     null
                 }
-                else -> match(title)
+                route == MetaRoute.TMDB_MATCH -> match(title)
+                else -> matchOmdb(title)
             }
-            LookupJob.EPISODES -> episodes(title)
-            LookupJob.REFRESH -> fetch(title)
+            MetaRoute.TMDB_UPGRADE -> upgrade(title)
+            MetaRoute.OMDB_FETCH -> fetchOmdb(title)
+            MetaRoute.OMDB_EPISODES -> omdbEpisodes(title, waitingOnly = true)
+            MetaRoute.IMDB_RATING -> imdbRating(title.id, title.imdbId, clock.now())
+            MetaRoute.DROP, MetaRoute.WAIT -> null
         }
         if (failure == null) {
             meta.deleteQueue(row.titleId)
@@ -202,6 +259,11 @@ internal class MetadataPipeline(
 
     private suspend fun onFailure(row: LookupQueue, failure: NetResult.Failure): Boolean {
         val now = clock.now()
+        if (failure.isDailyLimit()) {
+            // Other rows still run, and those that need OMDb are parked to the same time without a call.
+            meta.upsertQueue(row.copy(state = LookupState.RETRY, retryAt = pauseImdb()))
+            return false
+        }
         return when (failure.reason) {
             NetResult.Reason.OFFLINE_SETTING, NetResult.Reason.NO_KEY -> true
             NetResult.Reason.RATE_LIMIT -> {
@@ -228,7 +290,7 @@ internal class MetadataPipeline(
     private suspend fun isPrivateOnly(titleId: Long): Boolean =
         db.vault().countOfTitle(titleId) > 0 && db.scan().filesOfTitle(titleId).isEmpty()
 
-    /** Every automatic lookup passes here, so no clip reaches TMDB, whatever queued it. */
+    /** Every automatic lookup passes here, so no clip reaches TMDB or OMDb, whatever queued it. */
     private suspend fun staysLocal(title: Title): Boolean {
         if (title.manualMatch) return false
         val files = db.scan().filesOfTitle(title.id)
@@ -260,12 +322,16 @@ internal class MetadataPipeline(
         }
         val target = ops.attachMatch(title.id, auto, outcome.anilistId, outcome.malId) ?: return null
         if (target.id != title.id) {
-            // A merge removed this title and its queue row, so the survivor needs a row of its own.
-            val job = if (target.fetchedAt == null) LookupJob.REFRESH else LookupJob.EPISODES
-            meta.upsertQueue(LookupQueue(target.id, LookupState.QUEUED, 0, clock.now(), job))
+            queueSurvivor(target)
             return null
         }
         return fetch(target)
+    }
+
+    /** A merge removed the title in hand and its queue row, so the survivor needs a row of its own. */
+    private suspend fun queueSurvivor(target: Title) {
+        val job = if (target.fetchedAt == null) LookupJob.REFRESH else LookupJob.EPISODES
+        meta.upsertQueue(LookupQueue(target.id, LookupState.QUEUED, 0, clock.now(), job))
     }
 
     private suspend fun episodeCount(titleId: Long): Int =
@@ -394,14 +460,205 @@ internal class MetadataPipeline(
             meta.upsertCollection(CollectionEntity(collectionId, collectionName))
         }
         details.tmdbRating?.let { meta.upsertRating(Rating(id, RatingSource.TMDB, it, null, stamp)) }
+        // The cast OMDb named before TMDB took over.
+        meta.deleteUnusedOmdbPersons()
         updated
     }
 
     private suspend fun saveImdb(title: Title, details: TitleMeta, stamp: Long) {
-        val imdbId = details.imdbId ?: return
-        if (config.key(ApiKey.OMDB) == null) return
-        val result = client.imdbRating(imdbId)
-        if (result is NetResult.Ok) meta.upsertRating(Rating(title.id, RatingSource.IMDB, result.value, null, stamp))
+        if (config.omdbUsable) imdbRating(title.id, details.imdbId, stamp)
+    }
+
+    /** A failure matters only to a queue row whose whole job this is. A rating fetched this week costs no call. */
+    private suspend fun imdbRating(titleId: Long, imdbId: String?, now: Long): NetResult.Failure? {
+        if (imdbId == null) return null
+        if (ImdbRules.fresh(meta.ratingFetchedAt(titleId, RatingSource.IMDB), now)) return null
+        if (imdbPaused()) return DAILY_LIMIT
+        return when (val result = client.imdbRating(imdbId)) {
+            is NetResult.Ok -> {
+                meta.upsertRating(Rating(titleId, RatingSource.IMDB, result.value, null, now))
+                null
+            }
+            is NetResult.Failure -> when {
+                result.isDailyLimit() -> {
+                    pauseImdb()
+                    result
+                }
+                result.reason == NetResult.Reason.NOT_FOUND -> null
+                else -> result
+            }
+        }
+    }
+
+    private suspend fun pausedUntil(): Long = imdbPausedUntil ?: settings.imdbPausedUntil().also { imdbPausedUntil = it }
+
+    private suspend fun imdbPaused(): Boolean = clock.now() < pausedUntil()
+
+    private suspend fun pauseImdb(): Long {
+        val until = ImdbRules.resumeAt(clock.now())
+        imdbPausedUntil = until
+        settings.setImdbPausedUntil(until)
+        return until
+    }
+
+    /** OMDb's new day. Ratings skipped while it was spent come again. Parked rows are due by their own time. */
+    private suspend fun resumeImdbIfDue() {
+        val until = pausedUntil()
+        if (until == 0L || clock.now() < until) return
+        imdbPausedUntil = 0
+        settings.setImdbPausedUntil(0)
+        val now = clock.now()
+        meta.imdbIdWithoutRating().forEach { queueFetch(it, now) }
+    }
+
+    /** OMDb matching, while TMDB is off or has no key. */
+    private suspend fun matchOmdb(title: Title): NetResult.Failure? {
+        val source = imdb ?: return null
+        val outcome = when (val result = source.omdbMatch(parsedFor(title))) {
+            is NetResult.Ok -> result.value
+            is NetResult.Failure -> {
+                if (result.reason != NetResult.Reason.NOT_FOUND) return result
+                return omdbUnsettled(title.id, MatchState.NONE_FOUND)
+            }
+        }
+        val auto = outcome.auto
+            ?: return omdbUnsettled(title.id, if (outcome.choices.isEmpty()) MatchState.NONE_FOUND else MatchState.NEEDS_CHOICE)
+        if (auto.kind == MetaKind.MOVIE && episodeCount(title.id) > 1) return omdbUnsettled(title.id, MatchState.NEEDS_CHOICE)
+        val target = ops.attachImdbMatch(title.id, auto.imdbId, auto.kind, outcome.score) ?: return null
+        if (target.id != title.id) {
+            queueSurvivor(target)
+            return null
+        }
+        return storeOmdb(target, auto)
+    }
+
+    /** Stamped, so a swipe or a queued row does not spend OMDb calls on the same answer for a week. */
+    private suspend fun omdbUnsettled(titleId: Long, state: MatchState): NetResult.Failure? {
+        db.withTransaction {
+            titles.setMatchState(titleId, state)
+            titles.setOmdbTried(titleId, clock.now())
+        }
+        return null
+    }
+
+    /** A title matched through OMDb, now that TMDB answers. One TMDB call by its IMDb id. */
+    private suspend fun upgrade(title: Title): NetResult.Failure? {
+        val imdbId = title.imdbId ?: return null
+        val source = imdb ?: return null
+        // The OMDb match settled movie or series, so TMDB's answer is read the same way.
+        val name = parsedFor(title).copy(kind = if (title.kind == TitleKind.MOVIE) NameKind.MOVIE else NameKind.EPISODE)
+        val outcome = when (val result = source.tmdbForImdb(imdbId, name)) {
+            is NetResult.Ok -> result.value
+            is NetResult.Failure -> {
+                if (result.reason != NetResult.Reason.NOT_FOUND) return result
+                // TMDB has no record of it, so it stays an OMDb match and its OMDb data stays current.
+                return if (config.omdbUsable && !imdbPaused()) fetchOmdb(title) else null
+            }
+        }
+        val auto = outcome.auto ?: return null
+        if (auto.kind == MetaKind.MOVIE && episodeCount(title.id) > 1) return null
+        val target = ops.attachTmdbForImdb(title.id, auto, outcome.anilistId, outcome.malId) ?: return null
+        if (target.id != title.id) {
+            queueSurvivor(target)
+            return null
+        }
+        return fetch(target)
+    }
+
+    private suspend fun fetchOmdb(title: Title): NetResult.Failure? {
+        val imdbId = title.imdbId ?: return null
+        if (ImdbRules.fresh(title.fetchedAt, clock.now())) return omdbEpisodes(title, waitingOnly = true)
+        val source = imdb ?: return null
+        val record = when (val result = source.omdbTitle(imdbId)) {
+            is NetResult.Ok -> result.value
+            is NetResult.Failure -> return if (result.reason == NetResult.Reason.NOT_FOUND) null else result
+        }
+        return storeOmdb(title, record)
+    }
+
+    /** OMDb has no backdrop, logo, cast photo, character or collection, so those are left as they are. */
+    private suspend fun storeOmdb(title: Title, record: OmdbTitle): NetResult.Failure? {
+        val stamp = clock.now()
+        // A poster that fails comes with the next refresh. Retrying the title for it would spend OMDb calls.
+        val poster = if (title.manualCover) {
+            null
+        } else {
+            firstImage(record.posterUrls, File(images.titleDir(title.id), "poster-$stamp.jpg"))
+        }
+        val colors = poster?.let(CoverColors::fromFile)
+        val stored = db.withTransaction {
+            val fresh = titles.title(title.id) ?: return@withTransaction null
+            // Fix match, or a TMDB match, may have changed the target while this request was in flight.
+            if (!ImdbRules.omdbOnly(fresh.tmdbId, fresh.imdbId) || fresh.imdbId != record.imdbId) return@withTransaction null
+            val name = record.title.ifBlank { fresh.name }
+            val updated = fresh.copy(
+                name = name,
+                year = record.year ?: fresh.year,
+                overview = record.overview ?: fresh.overview,
+                runtime = record.runtimeMinutes ?: fresh.runtime,
+                coverPath = if (fresh.manualCover) fresh.coverPath else poster ?: fresh.coverPath,
+                dominantColor = if (fresh.manualCover) fresh.dominantColor else colors?.dominant ?: fresh.dominantColor,
+                coverLuma = if (fresh.manualCover) fresh.coverLuma else colors?.luma ?: fresh.coverLuma,
+                fetchedAt = stamp,
+                metaLanguage = ImdbRules.LANGUAGE,
+                sortKey = Keys.normalize(name),
+                creditsJson = Credits.encode(record.crew.take(MAX_CREW).map { CreditJson(it.job, it.name) }),
+            )
+            titles.update(updated)
+            val id = updated.id
+            meta.deleteTitleGenres(id)
+            for (genre in record.genres) {
+                val genreId = meta.genreByName(genre)?.id ?: meta.insertGenre(Genre(name = genre))
+                meta.upsertTitleGenre(TitleGenre(id, genreId))
+            }
+            meta.deleteTitlePersons(id)
+            record.cast.take(MAX_CAST).forEachIndexed { order, actor ->
+                val personId = ImdbRules.personId(actor)
+                meta.upsertPerson(Person(personId, actor, Keys.normalize(actor)))
+                meta.upsertTitlePerson(TitlePerson(id, personId, null, order, null))
+            }
+            meta.deleteUnusedOmdbPersons()
+            record.imdbRating?.let { meta.upsertRating(Rating(id, RatingSource.IMDB, it, record.imdbVotes, stamp)) }
+            updated
+        } ?: return null
+        index.index(stored.id)
+        prune(stored.id)
+        return if (stored.kind == TitleKind.MOVIE) null else omdbEpisodes(stored, waitingOnly = false)
+    }
+
+    private suspend fun firstImage(urls: List<String>, target: File): String? {
+        for (url in urls) if (client.download(url, target) is NetResult.Ok) return target.path
+        return null
+    }
+
+    /** One call per season. [waitingOnly] asks only for seasons where a file has no episode data yet. */
+    private suspend fun omdbEpisodes(title: Title, waitingOnly: Boolean): NetResult.Failure? {
+        val imdbId = title.imdbId ?: return null
+        if (title.kind == TitleKind.MOVIE) return null
+        val source = imdb ?: return null
+        val seasons = if (waitingOnly) titles.seasonsWaiting(title.id) else titles.ownedSeasons(title.id)
+        for (season in seasons.filter { it > 0 }.sorted()) {
+            if (imdbPaused()) return DAILY_LIMIT
+            when (val result = source.omdbSeason(imdbId, season)) {
+                is NetResult.Ok -> saveOmdbSeason(title.id, result.value)
+                is NetResult.Failure -> if (result.reason != NetResult.Reason.NOT_FOUND) return result
+            }
+        }
+        return null
+    }
+
+    private suspend fun saveOmdbSeason(titleId: Long, list: List<OmdbEpisode>) {
+        val stamp = clock.now()
+        for (item in list) {
+            val existing = titles.episode(titleId, item.season, item.number)
+            val row = (existing ?: Episode(titleId = titleId, season = item.season, number = item.number)).copy(
+                name = item.title ?: existing?.name,
+                airDate = item.airDate ?: existing?.airDate,
+                imdbRating = item.imdbRating ?: existing?.imdbRating,
+                fetchedAt = stamp,
+            )
+            if (existing == null) titles.insertEpisode(row) else titles.updateEpisode(row)
+        }
     }
 
     private suspend fun prune(titleId: Long) {
@@ -492,6 +749,8 @@ internal class MetadataPipeline(
                 stillPath = still,
                 runtime = item.runtimeMinutes ?: existing?.runtime,
                 airDate = item.airDate ?: existing?.airDate,
+                // An OMDb rating left from before TMDB held the title would never be refreshed again.
+                imdbRating = null,
                 fetchedAt = stamp,
             )
             if (existing == null) titles.insertEpisode(row) else titles.updateEpisode(row)
@@ -531,6 +790,7 @@ internal class MetadataPipeline(
         config.awaitLoaded()
         val title = titles.title(titleId) ?: return emptyList()
         val typed = query?.trim()?.ifEmpty { null }
+        if (!config.tmdbUsable) return if (config.omdbUsable) omdbChoices(title, typed) else emptyList()
         val candidates = if (typed == null && title.matchState == MatchState.NEEDS_CHOICE) {
             (client.match(parsedFor(title)) as? NetResult.Ok)?.value?.choices.orEmpty()
         } else {
@@ -539,8 +799,47 @@ internal class MetadataPipeline(
         return candidates.map(::choice)
     }
 
+    /** Fix match while TMDB is off. Empty while OMDb's day is spent. */
+    private suspend fun omdbChoices(title: Title, typed: String?): List<MatchChoice> {
+        val source = imdb ?: return emptyList()
+        if (imdbPaused()) return emptyList()
+        val result: NetResult<List<OmdbCandidate>> = if (typed == null && title.matchState == MatchState.NEEDS_CHOICE) {
+            when (val found = source.omdbMatch(parsedFor(title))) {
+                is NetResult.Ok -> {
+                    val auto = found.value.auto?.let {
+                        OmdbCandidate(it.imdbId, it.kind, it.title, it.year, it.posterUrls.lastOrNull(), found.value.score)
+                    }
+                    NetResult.Ok(found.value.choices.ifEmpty { listOfNotNull(auto) })
+                }
+                is NetResult.Failure -> found
+            }
+        } else {
+            source.omdbSearch(typed ?: title.localName)
+        }
+        return when (result) {
+            is NetResult.Ok -> result.value.map { omdbChoice(it, title.kind) }
+            is NetResult.Failure -> {
+                if (result.isDailyLimit()) pauseImdb()
+                emptyList()
+            }
+        }
+    }
+
+    private fun omdbChoice(candidate: OmdbCandidate, current: TitleKind) = MatchChoice(
+        providerId = IMDB_PREFIX + candidate.imdbId,
+        kind = when {
+            candidate.kind == MetaKind.MOVIE -> TitleKind.MOVIE
+            current == TitleKind.ANIME -> TitleKind.ANIME
+            else -> TitleKind.SERIES
+        },
+        name = candidate.title,
+        year = candidate.year,
+        posterUrl = candidate.posterUrl,
+        overview = null,
+    )
+
     private fun choice(candidate: MatchCandidate) = MatchChoice(
-        providerId = PROVIDER_PREFIX + candidate.tmdbId,
+        providerId = TMDB_PREFIX + candidate.tmdbId,
         kind = when {
             candidate.kind == MetaKind.MOVIE -> TitleKind.MOVIE
             candidate.isAnime -> TitleKind.ANIME
@@ -553,12 +852,18 @@ internal class MetadataPipeline(
     )
 
     suspend fun applyChoice(titleId: Long, choice: MatchChoice) {
-        val tmdbId = choice.providerId.removePrefix(PROVIDER_PREFIX).toLongOrNull() ?: return
-        ops.applyManual(titleId, choice.kind, tmdbId)
+        val id = choice.providerId
+        when {
+            id.startsWith(TMDB_PREFIX) -> id.removePrefix(TMDB_PREFIX).toLongOrNull()?.let { ops.applyManual(titleId, choice.kind, it) }
+            id.startsWith(IMDB_PREFIX) -> id.removePrefix(IMDB_PREFIX).takeIf(ImdbRules.IMDB_ID::matches)
+                ?.let { ops.applyManualImdb(titleId, choice.kind, it) }
+        }
     }
 
     private companion object {
-        const val PROVIDER_PREFIX = "tmdb:"
+        const val TMDB_PREFIX = "tmdb:"
+        const val IMDB_PREFIX = "imdb:"
+        val DAILY_LIMIT = NetResult.Failure(NetResult.Reason.RATE_LIMIT, OMDB_DAILY_LIMIT)
         const val MAX_CAST = 20
         const val MAX_CREW = 6
         val BUDGET_MS = TimeUnit.MINUTES.toMillis(8)
@@ -585,6 +890,11 @@ internal class CacheSweeper(
         val now = clock.now()
         val meta = db.meta()
         for (title in meta.titlesFetchedBefore(CachePolicy.refreshCutoff(now))) {
+            // F-M11 is TMDB's rule. A title matched only through OMDb refreshes on the same clock and is never purged.
+            if (ImdbRules.omdbOnly(title.tmdbId, title.imdbId)) {
+                if (CachePolicy.decide(title.fetchedAt, now) != CachePolicy.Action.KEEP) queueRefresh(title.id, now)
+                continue
+            }
             when (CachePolicy.decide(title.fetchedAt, now)) {
                 CachePolicy.Action.PURGE -> purgeTitle(title)
                 CachePolicy.Action.REFRESH -> queueRefresh(title.id, now)
@@ -594,13 +904,13 @@ internal class CacheSweeper(
         val cutoff = CachePolicy.purgeCutoff(now)
         meta.episodesFetchedBefore(cutoff).forEach { clearEpisode(it) }
         for (person in meta.personsFetchedBefore(cutoff)) removePerson(person)
-        meta.deleteRatingsBefore(cutoff)
+        meta.deleteTmdbRatingsBefore(cutoff)
     }
 
-    /** For the day the TMDB licence ends. */
+    /** For the day the TMDB licence ends. What came from OMDb stays. */
     suspend fun purgeAll() {
-        db.titles().allTitles().filter { it.fetchedAt != null }.forEach { purgeTitle(it) }
-        db.meta().allPersons().forEach { removePerson(it) }
+        db.titles().allTitles().filter { it.fetchedAt != null && !ImdbRules.omdbOnly(it.tmdbId, it.imdbId) }.forEach { purgeTitle(it) }
+        db.meta().allPersons().filter { it.id > 0 }.forEach { removePerson(it) }
     }
 
     private suspend fun removePerson(person: Person) {
@@ -626,7 +936,10 @@ internal class CacheSweeper(
     private suspend fun clearEpisode(episode: Episode) {
         images.delete(episode.stillPath)
         db.titles().updateEpisode(
-            episode.copy(name = null, overview = null, stillPath = null, runtime = null, airDate = null, fetchedAt = null),
+            episode.copy(
+                name = null, overview = null, stillPath = null, runtime = null, airDate = null, fetchedAt = null,
+                imdbRating = null,
+            ),
         )
     }
 
@@ -659,7 +972,10 @@ internal class CacheSweeper(
             meta.deleteRatings(title.id)
             titles.episodes(title.id).forEach {
                 titles.updateEpisode(
-                    it.copy(name = null, overview = null, stillPath = null, runtime = null, airDate = null, fetchedAt = null),
+                    it.copy(
+                        name = null, overview = null, stillPath = null, runtime = null, airDate = null, fetchedAt = null,
+                        imdbRating = null,
+                    ),
                 )
             }
         }

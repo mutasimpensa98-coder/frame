@@ -1,10 +1,11 @@
 # Status
 
-Updated 2026-11-08, after the owner-requests package was built, reviewed and its four review faults fixed. R9 applies.
+Updated 2026-11-08, after the TMDB and IMDb switches were built, reviewed and their six review faults fixed. R9 applies.
 
 ## Read this first
 
-- **The owner-requests package is built and unit tested, and nobody has seen it on a phone.** The phone runs 1.0.103 without it, and nothing of it is committed. It holds schema 3, two one-time passes over the owner's rows, Cinema mode, automatic subtitle sync, the hero rules, the refetch on a language change and the Details top bar. The migration and the passes have run only on the JVM and on desktop SQLite. The section "This round" below lists each item.
+- **The TMDB and IMDb switches are built and unit tested, and nobody has seen them on a phone.** They are in the working tree only, not committed. They hold schema 4, OMDb as a second metadata source while TMDB is off, and the whole poster in Hero and Details. The section "This round: TMDB and IMDb switches" lists each item.
+- **The owner-requests package is committed and pushed as `37da6d3`, and nobody has seen it on a phone.** No release holds it: `version.properties` is still 103, and the phone runs 1.0.103. It holds schema 3, two one-time passes over the owner's rows, Cinema mode, automatic subtitle sync, the hero rules, the refetch on a language change and the Details top bar. The migration and the passes have run only on the JVM and on desktop SQLite. The section "Previous round" below lists each item.
 - **The improvement package has run on the phone,** and the update kept the library, progress, settings and keys. `NEXT.md` section 1 lists what was seen and what was not. Screenshots of those checks stay in `D:\FrameGlass\shots`, because some show the owner's real videos. The tables below still describe filed evidence only.
 - **The last filed phone evidence is the first app build,** 18:19 to 18:22. Later phone checks are recorded in `NEXT.md` section 1 and in `phase-0-results.md`.
 - **Delete has not run on the phone, and the private folder ran only on the test copy.** Test delete with a clip the owner does not need.
@@ -30,22 +31,22 @@ Phase 0 matrix, on the round 2 `qa` build (`evidence/phase-0/matrix.csv`): 50 of
 
 ## Build and tests
 
-Run on this PC on 2026-11-08 with `--rerun-tasks --no-build-cache`: 815 tasks, all executed, none from a cache. Log: `D:\FrameGlass\logs\build-integrate-faults-full.log`.
+Run on this PC on 2026-11-08, after the six review faults of the switches were fixed, with `--rerun-tasks --no-build-cache`: 815 tasks, all executed, none from a cache. Log: `D:\FrameGlass\logs\build-integrate2-full.log`.
 
 | Check | Result |
 |---|---|
 | `assembleQa`, `assembleRelease` | Pass, R8 included. |
-| Unit tests | 1,040 run, 1,039 passed, 0 failed, 1 skipped: parser 161, data 413, net 308, engine 67, player 37, app 36, glass 18. |
+| Unit tests | 1,122 run, 1,121 passed, 0 failed, 1 skipped: parser 161, data 453, net 329, engine 67, player 37, app 45, glass 30. |
 | Skipped test | `AnimeIndexTest.theRealFileParses` needs a local copy of the mappings file. |
 | No tests at all | `:qa`, `:third_party:ass-media`. |
-| Android lint | `lintRelease` on `:app`, `:player`, `:data`, `:glass`, `:engine`, `:net`, `:qa`: 0 errors, 17 warnings (app 8, qa 5, player 4), `MissingTranslation` 0. |
-| `tools/check_update.py` | Pass: 2 steps (1 to 2, 2 to 3), 25 tables, 21 saved rows kept. This is desktop SQLite, not Android. |
+| Android lint | `lintRelease` on `:app`, `:player`, `:data`, `:glass`, `:engine`, `:net`, `:qa`: 0 errors, 17 warnings (app 8, qa 5, player 4), the same 17 as before, `MissingTranslation` 0. `:third_party:ass-media` is not in this set: its own lint stops on 7 `UnsafeOptInUsageError` errors in the upstream code, which this round did not touch. |
+| `tools/check_update.py` | Pass: 3 steps (1 to 2, 2 to 3, 3 to 4), 25 tables, 21 saved rows kept. This is desktop SQLite, not Android. |
 | `.\fg.ps1 build` | Pass: signature, 16 KB alignment, size, `lib/` listing. Local only: nothing was installed or published. |
-| Release APK | 23,090,660 bytes (22.0 MiB), budget 60 MB, only `lib/arm64-v8a`. Not installed and not saved as a release. |
-| `qa` APK | 23,123,464 bytes (22.1 MiB), same certificate. |
+| Release APK | 23,179,780 bytes (22.1 MiB), budget 60 MB, only `lib/arm64-v8a`. Not installed and not saved as a release. |
+| `qa` APK | 23,212,584 bytes (22.1 MiB), same certificate. |
 | Certificate SHA-256 | `6517fbf832436c7cb106855c03d8b8b1d94816517b2f4328279fb9a051354d67` |
-| Permissions in the release APK | The list in section 4.10 plus `USE_BIOMETRIC`. `USE_FINGERPRINT` is removed. |
-| Not run | `MigrationTestHelper`. Schema 1 to 2 passed on the phone through the in-place update. Schema 2 to 3 has not run on Android. |
+| Permissions in the release APK | The list in section 4.10 plus `USE_BIOMETRIC`. `USE_FINGERPRINT` is removed. No manifest changed in this round, and the list was not read again. |
+| Not run | `MigrationTestHelper`. Schema 1 to 2 passed on the phone through the in-place update. Schemas 2 to 3 and 3 to 4 have not run on Android. |
 
 R8 and `androidx.biometric`: no failure and no new keep rule. `BiometricFragment`, `FingerprintDialogFragment` and `BiometricViewModel` keep their no-argument constructors through the fragment and lifecycle consumer rules, confirmed in `seeds.txt`. `BiometricPrompt` itself has not been shown.
 
@@ -102,8 +103,8 @@ Three gaps were found and fixed in the whole-phone search round, with tests:
 | F-L2 | Folders | BUILT | Part: one folder added (`07`, `09`) | Now only for extra places, per the waiver. Remove not seen. |
 | F-L3 | Unavailable | UNIT TESTED | Not seen | `TitleListsTest`, `FolderBuilderTest`. USB unplug not run. |
 | F-L4 | Automatic scan | BUILT | Part: one added folder (`08`, `09`) | Whole-phone search came after that run. Path rules are unit tested. `Scanner`, `MediaIndex` and `CatchUp` have never run. |
-| F-L5 | Backup and restore | UNIT TESTED | Not seen | `BackupFormatTest` covers the format, favourites and excluded folders. Private items stay out by id. Dump, wipe and restore not run. |
-| F-L6 | Migrations | UNIT TESTED | Part: 1 to 2 kept the library through the 1.0.103 update | Schema version 3 adds the nullable `Title.metaLanguage`. `MigrationSchemaTest` and `tools/check_update.py` replay 1 to 2 to 3 on desktop SQLite. `MigrationTestHelper` not run. 2 to 3 has not run on Android. |
+| F-L5 | Backup and restore | UNIT TESTED | Not seen | `BackupFormatTest` covers the format, favourites, excluded folders and the service switches. A backup from before the switches keeps the phone's switches. Private items stay out by id. Dump, wipe and restore not run. |
+| F-L6 | Migrations | UNIT TESTED | Part: 1 to 2 kept the library through the 1.0.103 update | Schema 3 adds the nullable `Title.metaLanguage`. Schema 4 adds the nullable `Episode.imdbRating` and `Title.omdbTriedAt`, two `ADD COLUMN` statements. `MigrationSchemaTest` and `tools/check_update.py` replay 1 to 2 to 3 to 4 on desktop SQLite. `MigrationTestHelper` not run. 2 to 3 and 3 to 4 have not run on Android. |
 | F-L7 | Instant add | BUILT | Part: cards with local frames (`09`) | Matching after the add not seen. |
 | F-L8 | Parser | UNIT TESTED | Not seen | All golden rows pass. The owner's 200 labelled names are not done, and `tools/name_report.py` does not exist. |
 | F-L9 | Versions | UNIT TESTED | Not seen | `VersionsTest`, `EpisodeRowsTest`. The picker itself has no test. |
@@ -119,14 +120,14 @@ No real TMDB, AniList, AniSkip or OMDb call has been made from the app. The test
 |---|---|---|---|---|
 | F-M1 | Search | UNIT TESTED | Not seen | `TmdbMatchTest`. |
 | F-M2 | Confidence | UNIT TESTED | Not seen | `ScoringTest`. Thresholds not tuned, that is Gate 3. |
-| F-M3 | Fix match | BUILT | Not seen | Menu and sheet exist. No test. |
+| F-M3 | Fix match | BUILT | Not seen | Menu and sheet exist. While TMDB is off it offers OMDb's choices, and the empty message names the service that answered, or Online features when that is off. Only the message choice has a test, `ServicesTest`. |
 | F-M4 | Manual wins | BUILT | Not seen | Guards in `TitleOps` and `MetadataPipeline`. No test. |
 | F-M5 | Saved offline | UNIT TESTED | Not seen | `TmdbDetailsTest` for fields and sizes. Saving to disk has no test. |
 | F-M6 | Offline queue | BUILT | Not seen | `RetryPolicyTest` covers the delays only. |
 | F-M7 | Frame fallback | UNIT TESTED | Part: frames on cards (`09`) | `FramePickerTest`. |
 | F-M8 | Key handling | UNIT TESTED | Part: key step (`02`) | `BlobCipherTest`, `TmdbMatchTest`. AndroidKeyStore path not run. |
 | F-M9 | Anime flow | UNIT TESTED | Not seen | `AnimeFlowTest`, `AnimeMappingsTest`. Uses `mappings.min.json`, the brief's last option, because no zstd library is pinned. |
-| F-M10 | Ratings | UNIT TESTED | Not seen | `TitleListsTest`, `TmdbDetailsTest`. The owner asked for the badge, and it has never been seen. |
+| F-M10 | Ratings | UNIT TESTED | Not seen | `TitleListsTest`, `TmdbDetailsTest`, and `ViewsTest` for the switches: a service that is off gives no badge, so with TMDB off cards show IMDb. OMDb posters are allowed by the 2026-11-08 waiver. The owner asked for the badge, and it has never been seen. |
 | F-M11 | TMDB cache rule | UNIT TESTED | Not seen | `CachePolicyTest`. `CacheSweeper` has no test, and the Gate 3 fake clock test is not written. |
 | F-M12 | About | BUILT | Not seen | TMDB logo stored unmodified, per the app report. Not seen. |
 | F-M13 | No AI with TMDB data | BUILT | Not seen | The app has no AI feature. |
@@ -221,9 +222,9 @@ Glass over video is off: `VideoBlurHook.ENABLED` is false until step 0.7 is meas
 | F-T6 | Sleep timer | BUILT | Not seen | |
 | F-T7 | Anime4K | NOT BUILT (allowed) | Not seen | Needs mpv, Phase 8. |
 
-## This round: the owner-requests package
+## Previous round: the owner-requests package
 
-Built after 1.0.103. Not committed, not installed, and not seen on a phone, in either theme or in Arabic.
+Built after 1.0.103 and committed as `37da6d3`. Not released, not installed, and not seen on a phone, in either theme or in Arabic.
 
 | Request | Status | Notes |
 |---|---|---|
@@ -236,7 +237,7 @@ Built after 1.0.103. Not committed, not installed, and not seen on a phone, in e
 | Automatic subtitle sync | UNIT TESTED | `SyncAlignerTest`, `SubtitleCuesTest`, `SyncPlanTest`, `SpeechDetectorTest`, `SyncPipelineTest`, `SyncTextTest`. Synthetic films only: 1,600 wrong-subtitle runs gave no false fix. Decode speed, the speech detector on real film audio, the thresholds and playback impact are unmeasured. Manual delay now reaches ±60 s. |
 | Back closes the long-press menu | BUILT | Sheets and menus register Back only while open. |
 | About mark in the light theme | BUILT | Tinted. |
-| TMDB and IMDb switches | NOT STARTED | Still in `OWNER-REQUESTS.md`. |
+| TMDB and IMDb switches | UNIT TESTED | Built in the next round, below. |
 
 Four faults from the review of this package were fixed, each with a JVM test of its pure part:
 
@@ -248,6 +249,37 @@ Four faults from the review of this package were fixed, each with a JVM test of 
 | The anime pass left the old release tags, such as a round-bracket name at the start, so demoted rows never counted as plain numbers and went to TMDB on every swipe. | `ClipPass` reads each file again, and `TitleOps.settleAsSeries` writes its tags and anime number in the same transaction, before the keys are rebuilt. The Room path has no test; `StoredParse.reread` has. |
 
 `Api.kt` gained `AppSettings.cinemaMode`, `HomeFeed.cinemaEmpty`, `HomeFeed.MAX_AUTOMATIC_ROWS` and `HeroItem.continueItem`, all with defaults beside the fixed contract.
+
+## This round: TMDB and IMDb switches
+
+From `OWNER-REQUESTS.md`, now removed there. Not committed, not installed, and not seen on a phone, in either theme or in Arabic. No real TMDB or OMDb call has been made: the tests use a fake server.
+
+| Item | Status | Notes |
+|---|---|---|
+| A switch for TMDB and for IMDb via OMDb | UNIT TESTED | `ServicesTest`. Settings › Online features and keys, next to "Key added / No key". A switch never touches its key. With no key it is disabled and says to add the key. Each row says in English and Arabic what off means, and a line says when IMDb identifies new videos. |
+| Off means no calls | UNIT TESTED | `ServiceSwitchTest`. The one HTTP client blocks TMDB, its images, the custom TMDB address, AniList and anibridge, or OMDb and its poster host, Coil's requests included. Saved keys are never touched. |
+| Off means no badge | UNIT TESTED | `ViewsTest`. Cards, Details, Top rated and episode rows leave out a service that is off, so with TMDB off a card shows the IMDb rating. |
+| OMDb matches new titles while TMDB is off | UNIT TESTED | `OmdbMatchTest` for the calls and scoring, `MetaRoutesTest` for which service answers each queued row. Clips and private titles are checked before any lookup. The queue itself runs on Room and has no test. |
+| What OMDb brings | UNIT TESTED | `OmdbMatchTest`. Poster, plot, genres, runtime, cast names, directors and writers, the IMDb rating, and per season the episode titles, air dates and IMDb ratings. No backdrop, logo, original title, cast photo, character, still, collection or Arabic text. Its cast have negative person ids. |
+| The free daily limit | UNIT TESTED | `ImdbRulesTest`. Once OMDb says the day is spent, the rows that need it park until 00:10 UTC with no call. OMDb's reset time is `[UNVERIFIED]`. A title OMDb could not settle is asked again at most once a week, through `Title.omdbTriedAt`. |
+| TMDB turned back on | BUILT | Each OMDb title is looked up on TMDB by its IMDb id, then fetched in full. Progress, favourites, manual covers and manual matches stay. No test runs this path. |
+| Whole poster in Hero and Details | UNIT TESTED | `PosterArtTest` for the shape and the wash, `HeroChoiceTest` for `WideArt`. Any matched title with a poster and no backdrop gets no wide art from `:data`, so the screens show its poster whole on a blurred wash. Episode rows and Continue cards pillarbox a tall picture, and a cast with no photos shows as name chips. |
+| Backups | UNIT TESTED | `BackupFormatTest`. Both switches are saved. A backup from before them keeps the phone's switches. |
+
+Six faults from the review of this round were fixed, each with a JVM test of its pure part:
+
+| Fault | Fix |
+|---|---|
+| Every swipe queued every NONE_FOUND title again. With TMDB off, each spent 1 to 4 OMDb calls for the answer OMDb had already given, so a few swipes over 150 unfound titles could spend the day. | `Title.omdbTriedAt`, new in schema 4, stamps an answer that settles nothing. While TMDB is not usable a swipe skips titles OMDb tried this week, and `MetaRoutes` drops such a row whoever queued it (`ImdbRules.omdbGaveUp`). TMDB still retries them. |
+| Saving a TMDB key queued the TMDB return even with its switch off, and with IMDb on those rows went to OMDb, which had already failed on them. The cached settings could also lag a switch just turned on, so TMDB's rows could go to OMDb and be dropped. | The flags follow `ServiceUse`: Online and the switch, for a key as for a switch. `queueTmdbReturn` and `queueMissingImdb` check the saved settings and the key before they queue. `SettingsStore.onSaved` hands every saved value to `NetConfigImpl` before any callback runs, as `KeyVault` does for keys. Online turned on now counts as both services coming on. |
+| An OMDb match merged a new anime title into another cour, because every cour shares one IMDb id. Episode numbers overlapped and progress mixed, and TMDB could not undo it. | `ImdbRules.mergesOnImdb`: no merge for anime, a title with an AniList id, a manual match, or an IMDb id with two holders already. The IMDb id is attached, and the TMDB upgrade decides with its AniList check. |
+| Restoring a backup from before the switches turned both on, so a service the owner had turned off started calling again. | The switches are nullable in `BackupSettings`, and a missing one keeps the phone's value. |
+| IMDb episode ratings stayed after TMDB took a title, frozen. | Cleared when a title gains a TMDB id (`attachMatch`, `attachTmdbForImdb`, `applyManual`), by every TMDB season save, and by the purge. |
+| Fix match said to turn on TMDB or IMDb when the block was Online features. | `Identifier.OFFLINE` with its own message, in English and Arabic. |
+
+Beyond the review: `:data` gave Hero and Details the video frame as backdrop for an OMDb title, so the poster the owner asked for showed only with no frame. `WideArt` fixed that, as the row above says. TMDB titles with no backdrop now show their poster too. A manual cover on an unmatched title keeps the frame.
+
+`Api.kt` gained `AppSettings.tmdbEnabled`, `AppSettings.imdbEnabled` and `EpisodeRow.rating`, all with defaults beside the fixed contract. The new net calls are in `net/.../NetExtras.kt`, beside `NetApi.kt`.
 
 ## Owner requests with no feature ID
 

@@ -203,6 +203,20 @@ interface TitleDao {
     @Query("SELECT * FROM Title WHERE tmdbId = :tmdbId AND tmdbIsMovie = :isMovie AND id != :exclude ORDER BY id LIMIT 1")
     suspend fun byTmdb(tmdbId: Long, isMovie: Boolean, exclude: Long): Title?
 
+    /** A title TMDB matched comes first, because it holds more than OMDb can give. */
+    @Query("SELECT * FROM Title WHERE imdbId = :imdbId AND id != :exclude ORDER BY (tmdbId IS NULL), id LIMIT 1")
+    suspend fun byImdb(imdbId: String, exclude: Long): Title?
+
+    @Query("SELECT COUNT(*) FROM Title WHERE imdbId = :imdbId AND id != :exclude")
+    suspend fun countByImdb(imdbId: String, exclude: Long): Int
+
+    @Query("UPDATE Title SET omdbTriedAt = :at WHERE id = :id")
+    suspend fun setOmdbTried(id: Long, at: Long)
+
+    /** OMDb's episode ratings belong to an OMDb match. Once TMDB holds the title they would never be refreshed. */
+    @Query("UPDATE Episode SET imdbRating = NULL WHERE titleId = :titleId AND imdbRating IS NOT NULL")
+    suspend fun clearEpisodeImdbRatings(titleId: Long)
+
     @Insert
     suspend fun insert(title: Title): Long
 
@@ -249,10 +263,13 @@ interface TitleDao {
     )
     suspend fun hiddenRows(): List<TitleRow>
 
-    @Query("SELECT id, titleId, season, number, name, stillPath, runtime, airDate, fetchedAt FROM Episode")
+    @Query("SELECT id, titleId, season, number, name, stillPath, runtime, airDate, fetchedAt, imdbRating FROM Episode")
     suspend fun episodeRows(): List<EpisodeLite>
 
-    @Query("SELECT id, titleId, season, number, name, stillPath, runtime, airDate, fetchedAt FROM Episode WHERE titleId = :titleId")
+    @Query(
+        "SELECT id, titleId, season, number, name, stillPath, runtime, airDate, fetchedAt, imdbRating FROM Episode " +
+            "WHERE titleId = :titleId",
+    )
     suspend fun episodeRows(titleId: Long): List<EpisodeLite>
 
     @Query("SELECT * FROM Episode WHERE titleId = :titleId")
@@ -281,6 +298,13 @@ interface TitleDao {
 
     @Query("SELECT DISTINCT e.season FROM Episode e JOIN MediaFile f ON f.episodeId = e.id WHERE e.titleId = :titleId")
     suspend fun ownedSeasons(titleId: Long): List<Int>
+
+    /** Seasons where a file waits for its episode data, so new files cost one call per season. */
+    @Query(
+        "SELECT DISTINCT e.season FROM Episode e JOIN MediaFile f ON f.episodeId = e.id " +
+            "WHERE e.titleId = :titleId AND e.fetchedAt IS NULL",
+    )
+    suspend fun seasonsWaiting(titleId: Long): List<Int>
 
     @Upsert
     suspend fun upsertAlias(alias: GroupAlias)
@@ -394,6 +418,34 @@ interface MetaDao {
     @Query("SELECT id FROM Title WHERE removed = 0 AND tmdbId IS NOT NULL AND (fetchedAt IS NULL OR fetchedAt <= :before)")
     suspend fun matchedFetchedBefore(before: Long): List<Long>
 
+    /** Titles matched only through OMDb, which hold an IMDb id and no TMDB id, as ImdbRules.omdbOnly says. */
+    @Query(
+        "SELECT t.id FROM Title t WHERE t.removed = 0 AND t.tmdbId IS NULL AND t.imdbId IS NOT NULL " +
+            "AND (t.fetchedAt IS NULL OR t.fetchedAt <= :before) AND EXISTS (SELECT 1 FROM MediaFile f WHERE f.titleId = t.id)",
+    )
+    suspend fun omdbOnlyFetchedBefore(before: Long): List<Long>
+
+    /** TMDB is back, so these fill in what waited for it. */
+    @Query(
+        "SELECT t.id FROM Title t WHERE t.removed = 0 AND t.tmdbId IS NOT NULL AND t.fetchedAt IS NULL " +
+            "AND EXISTS (SELECT 1 FROM MediaFile f WHERE f.titleId = t.id)",
+    )
+    suspend fun matchedNeverFetched(): List<Long>
+
+    @Query(
+        "SELECT DISTINCT t.id FROM Title t JOIN Episode e ON e.titleId = t.id JOIN MediaFile f ON f.episodeId = e.id " +
+            "WHERE t.removed = 0 AND t.tmdbId IS NOT NULL AND t.tmdbIsMovie IS NOT 1 AND e.fetchedAt IS NULL",
+    )
+    suspend fun matchedWithEpisodesWaiting(): List<Long>
+
+    /** The ratings skipped while OMDb's day was spent. */
+    @Query(
+        "SELECT t.id FROM Title t WHERE t.removed = 0 AND t.tmdbId IS NOT NULL AND t.imdbId IS NOT NULL " +
+            "AND EXISTS (SELECT 1 FROM MediaFile f WHERE f.titleId = t.id) " +
+            "AND NOT EXISTS (SELECT 1 FROM Rating r WHERE r.titleId = t.id AND r.source = 'IMDB')",
+    )
+    suspend fun imdbIdWithoutRating(): List<Long>
+
     /** A new OMDb key fetches these again. A title with no file left waits until it has one. */
     @Query(
         "SELECT t.id FROM Title t WHERE t.removed = 0 AND t.tmdbId IS NOT NULL " +
@@ -411,13 +463,24 @@ interface MetaDao {
     suspend fun matchedNotIn(language: String): List<Long>
 
     /** A swipe to refresh searches for these again. Clips are UNMATCHED, so they stay out. */
-    @Query("SELECT id FROM Title WHERE removed = 0 AND tmdbId IS NULL AND matchState = 'NONE_FOUND'")
-    suspend fun notFoundTitles(): List<Long>
+    @Query("SELECT id, matchState, omdbTriedAt FROM Title WHERE removed = 0 AND tmdbId IS NULL AND matchState = 'NONE_FOUND'")
+    suspend fun notFoundTitles(): List<UnsettledTitle>
+
+    /** TMDB is back, so it gets a try at what OMDb could not settle. Clips are UNMATCHED, so they stay out. */
+    @Query(
+        "SELECT id FROM Title WHERE removed = 0 AND tmdbId IS NULL AND imdbId IS NULL " +
+            "AND matchState IN ('NONE_FOUND', 'NEEDS_CHOICE')",
+    )
+    suspend fun unsettledTitles(): List<Long>
 
     @Query("SELECT * FROM Title WHERE fetchedAt IS NOT NULL AND fetchedAt <= :before")
     suspend fun titlesFetchedBefore(before: Long): List<Title>
 
-    @Query("SELECT * FROM Episode WHERE fetchedAt IS NOT NULL AND fetchedAt <= :before")
+    /** F-M11 is TMDB's rule, so episodes of a title matched only through OMDb stay out. */
+    @Query(
+        "SELECT e.* FROM Episode e JOIN Title t ON t.id = e.titleId WHERE e.fetchedAt IS NOT NULL AND e.fetchedAt <= :before " +
+            "AND NOT (t.tmdbId IS NULL AND t.imdbId IS NOT NULL)",
+    )
     suspend fun episodesFetchedBefore(before: Long): List<Episode>
 
     @Query("SELECT * FROM Person WHERE fetchedAt IS NOT NULL AND fetchedAt <= :before")
@@ -426,8 +489,12 @@ interface MetaDao {
     @Query("SELECT * FROM Rating WHERE fetchedAt <= :before")
     suspend fun ratingsFetchedBefore(before: Long): List<Rating>
 
-    @Query("DELETE FROM Rating WHERE fetchedAt <= :before")
-    suspend fun deleteRatingsBefore(before: Long)
+    /** F-M11 is TMDB's rule. An IMDb rating is not TMDB content. */
+    @Query("DELETE FROM Rating WHERE source = 'TMDB' AND fetchedAt <= :before")
+    suspend fun deleteTmdbRatingsBefore(before: Long)
+
+    @Query("SELECT fetchedAt FROM Rating WHERE titleId = :titleId AND source = :source")
+    suspend fun ratingFetchedAt(titleId: Long, source: RatingSource): Long?
 
     @Upsert
     suspend fun upsertPerson(person: Person)
@@ -440,6 +507,10 @@ interface MetaDao {
 
     @Query("DELETE FROM Person WHERE id = :id")
     suspend fun deletePerson(id: Long)
+
+    /** OMDb's cast, under ImdbRules.personId, once no title names them. */
+    @Query("DELETE FROM Person WHERE id < 0 AND id NOT IN (SELECT personId FROM TitlePerson)")
+    suspend fun deleteUnusedOmdbPersons()
 
     @Upsert
     suspend fun upsertTitlePerson(row: TitlePerson)

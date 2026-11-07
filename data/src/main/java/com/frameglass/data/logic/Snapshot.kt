@@ -192,8 +192,9 @@ internal class Snapshot(
     private val episodesByTitle by lazy { episodes.groupBy { it.titleId } }
 
     private fun build(rows: List<TitleRow>): Map<Long, TitleInfo> {
-        val tmdb = ratings.filter { it.source == RatingSource.TMDB }.associate { it.titleId to it.value }
-        val imdb = ratings.filter { it.source == RatingSource.IMDB }.associate { it.titleId to it.value }
+        // A service the owner switched off shows no badge anywhere, so the other one stands in on cards.
+        val tmdb = ratingsOf(RatingSource.TMDB, settings.tmdbEnabled)
+        val imdb = ratingsOf(RatingSource.IMDB, settings.imdbEnabled)
         val genres = genreLinks.groupBy({ it.titleId }, { it.name })
         return rows.mapNotNull { row ->
             val titleFiles = filesByTitle[row.id] ?: return@mapNotNull null
@@ -209,6 +210,9 @@ internal class Snapshot(
             )
         }.toMap()
     }
+
+    private fun ratingsOf(source: RatingSource, enabled: Boolean): Map<Long, Double> =
+        if (enabled) ratings.filter { it.source == source }.associate { it.titleId to it.value } else emptyMap()
 
     fun absolutePath(file: MediaFile): String? = volumesById[file.volumeUuid]?.lastPath?.let { "$it/${file.relPath}" }
 

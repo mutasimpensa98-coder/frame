@@ -95,13 +95,16 @@ fun CoverImage(
         if (loading) {
             Skeleton(Modifier.matchParentSize(), RectangleShape)
         }
-        if (request != null) {
+        if (request != null && path != null) {
             AsyncImage(
                 model = request,
                 contentDescription = contentDescription,
                 modifier = Modifier.matchParentSize(),
                 contentScale = contentScale,
                 onState = { state ->
+                    if (state is AsyncImagePainter.State.Success) {
+                        ArtShapes.record(path, state.result.image.width, state.result.image.height)
+                    }
                     if (state is AsyncImagePainter.State.Success || state is AsyncImagePainter.State.Error) {
                         loading = false
                     }

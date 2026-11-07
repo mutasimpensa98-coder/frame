@@ -31,7 +31,6 @@ import com.frameglass.data.api.EpisodeRow
 import com.frameglass.data.api.FileVersion
 import com.frameglass.data.api.frameServices
 import com.frameglass.data.api.versions
-import com.frameglass.glass.CoverImage
 import com.frameglass.glass.FrameColors
 import com.frameglass.glass.FrameShapes
 import com.frameglass.glass.FrameSizes
@@ -39,20 +38,26 @@ import com.frameglass.glass.FrameSpacing
 import com.frameglass.glass.FrameType
 import com.frameglass.glass.PressableGlass
 import com.frameglass.glass.ProgressLine
+import com.frameglass.glass.RatingBadge
+import com.frameglass.glass.WideArt
 import com.frameglass.glass.bidiIsolate
 import com.frameglass.player.R
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.ui.FactChip
 import com.frameglass.player.ui.durationLabel
 import com.frameglass.player.ui.fileSizeLabel
+import com.frameglass.player.ui.toCard
 
 private val StillWidth = 148.dp
 private const val DimmedAlpha = 0.42f
 
-/** F-U9: a 16:9 still, label, title, duration and progress. The whole row plays. */
+/**
+ * F-U9: a 16:9 still, label, title, duration and progress. The whole row plays. With no still, as for every
+ * episode matched through OMDb that has no file, the series [poster] stands in, pillarboxed.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun EpisodeListRow(row: EpisodeRow, onLongPress: () -> Unit) {
+internal fun EpisodeListRow(row: EpisodeRow, poster: String?, onLongPress: () -> Unit) {
     val navigator = LocalNavigator.current
     val library = LocalContext.current.frameServices.library
     val playable = row.play?.playableKey
@@ -75,7 +80,7 @@ internal fun EpisodeListRow(row: EpisodeRow, onLongPress: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(Modifier.width(StillWidth).aspectRatio(FrameSizes.LandscapeRatio)) {
-                CoverImage(row.imagePath, null, Modifier.matchParentSize())
+                WideArt(row.imagePath, Modifier.matchParentSize(), fallback = poster)
                 row.progress?.let {
                     ProgressLine(
                         progress = it,
@@ -109,6 +114,7 @@ internal fun EpisodeListRow(row: EpisodeRow, onLongPress: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S4),
                     itemVerticalAlignment = Alignment.CenterVertically,
                 ) {
+                    row.rating?.let { RatingBadge(it.toCard()) }
                     val minutes = ((row.durationMs + 30_000L) / 60_000L).toInt()
                     if (minutes > 0) {
                         Text(

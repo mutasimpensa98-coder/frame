@@ -17,6 +17,7 @@ import com.frameglass.data.db.WatchState
 import com.frameglass.data.logic.Clock
 import com.frameglass.data.logic.GroupCandidate
 import com.frameglass.data.logic.GroupKeys
+import com.frameglass.data.logic.ImdbRules
 import com.frameglass.data.logic.PlayableKeys
 import com.frameglass.data.logic.SearchText
 import com.frameglass.data.logic.SegmentRules
@@ -149,7 +150,8 @@ internal class TitleResolver(
 
     /** New files of a matched title need their episode data. */
     suspend fun queueEpisodes(title: Title) {
-        if (title.tmdbId == null || title.tmdbIsMovie == true) return
+        val omdbSeries = ImdbRules.omdbOnly(title.tmdbId, title.imdbId) && title.kind != TitleKind.MOVIE
+        if (!omdbSeries && (title.tmdbId == null || title.tmdbIsMovie == true)) return
         val meta = db.meta()
         if (meta.queued(title.id) == null) {
             meta.upsertQueue(LookupQueue(title.id, LookupState.QUEUED, 0, clock.now(), LookupJob.EPISODES))
@@ -201,6 +203,7 @@ internal class TitleOps(
                 matchConfidence = candidate.score,
             )
             titles.update(updated)
+            titles.clearEpisodeImdbRatings(updated.id)
             updated
         }
 
@@ -240,6 +243,130 @@ internal class TitleOps(
                     collectionId = if (sameTarget) current.collectionId else null,
                 ),
             )
+            titles.clearEpisodeImdbRatings(titleId)
+            meta.upsertQueue(LookupQueue(titleId, LookupState.QUEUED, 0, clock.now(), LookupJob.REFRESH))
+            index.index(titleId)
+        }
+    }
+
+    /**
+     * An automatic match through OMDb. Titles on one IMDb id merge as they do on one TMDB id, unless
+     * ImdbRules.mergesOnImdb says the id cannot tell the works apart, and a title TMDB already matched survives,
+     * because it holds more. Returns the title that now holds the match.
+     */
+    suspend fun attachImdbMatch(titleId: Long, imdbId: String, kind: MetaKind, score: Double): Title? =
+        db.withTransaction {
+            val titles = db.titles()
+            val title = titles.title(titleId) ?: return@withTransaction null
+            if (title.manualMatch || title.tmdbId != null) return@withTransaction title
+            var target = title
+            val other = titles.byImdb(imdbId, title.id)
+            val merges = other != null && ImdbRules.mergesOnImdb(
+                kind = title.kind,
+                otherKind = other.kind,
+                otherAnilistId = other.anilistId,
+                otherManual = other.manualMatch,
+                holders = titles.countByImdb(imdbId, title.id),
+            )
+            if (other != null && merges) {
+                val survivor = if (other.tmdbId != null || other.id < title.id) other else title
+                val loser = if (survivor === other) title else other
+                merge(loser.id, survivor.id)
+                target = titles.title(survivor.id) ?: return@withTransaction null
+                if (target.tmdbId != null) return@withTransaction target
+            }
+            val newKind = kindFor(kind, isAnime = false, current = target.kind)
+            rekey(target, newKind)
+            val updated = (titles.title(target.id) ?: target).copy(
+                kind = newKind,
+                imdbId = imdbId,
+                matchState = MatchState.AUTO,
+                matchConfidence = score,
+            )
+            titles.update(updated)
+            updated
+        }
+
+    /**
+     * TMDB's record of the IMDb id a title was matched to through OMDb. An automatic match merges as any TMDB match
+     * does. The owner's own choice names the same work, so it gains the TMDB id and stays a manual match.
+     */
+    suspend fun attachTmdbForImdb(titleId: Long, candidate: MatchCandidate, anilistId: Long?, malId: Long?): Title? =
+        db.withTransaction {
+            val titles = db.titles()
+            val title = titles.title(titleId) ?: return@withTransaction null
+            if (title.tmdbId != null) return@withTransaction title
+            if (!title.manualMatch) return@withTransaction attachMatch(titleId, candidate, anilistId, malId)
+            val kind = kindFor(candidate.kind, candidate.isAnime, title.kind)
+            rekey(title, kind)
+            val updated = (titles.title(titleId) ?: title).copy(
+                kind = kind,
+                tmdbId = candidate.tmdbId,
+                tmdbIsMovie = candidate.kind == MetaKind.MOVIE,
+                anilistId = anilistId ?: title.anilistId,
+                malId = malId ?: title.malId,
+                fetchedAt = null,
+                metaLanguage = null,
+            )
+            titles.update(updated)
+            titles.clearEpisodeImdbRatings(titleId)
+            updated
+        }
+
+    /**
+     * Fix match to an OMDb choice, while TMDB is off. OMDb has no backdrop, logo or original title to replace those
+     * of another work, so they go now, with the rest of what belonged to the old match.
+     */
+    suspend fun applyManualImdb(titleId: Long, kind: TitleKind, imdbId: String) {
+        db.withTransaction {
+            val titles = db.titles()
+            val meta = db.meta()
+            val title = titles.title(titleId) ?: return@withTransaction
+            rekey(title, kind)
+            val current = titles.title(titleId) ?: title
+            val sameTarget = title.tmdbId == null && title.imdbId == imdbId
+            if (!sameTarget) {
+                meta.deleteTitlePersons(titleId)
+                meta.deleteTitleGenres(titleId)
+                meta.deleteRatings(titleId)
+                meta.deleteSegmentsExcept(titleId, SegmentRules.MANUAL)
+                rebuildEpisodes(titleId, kind)
+            }
+            val cleared = if (sameTarget) {
+                current
+            } else {
+                current.copy(
+                    name = current.localName,
+                    originalName = null,
+                    year = current.localYear,
+                    overview = null,
+                    runtime = null,
+                    anilistId = null,
+                    malId = null,
+                    coverPath = if (current.manualCover) current.coverPath else null,
+                    backdropPath = null,
+                    logoPath = null,
+                    dominantColor = if (current.manualCover) current.dominantColor else null,
+                    coverLuma = if (current.manualCover) current.coverLuma else null,
+                    sortKey = Keys.normalize(current.localName),
+                    creditsJson = null,
+                )
+            }
+            titles.update(
+                cleared.copy(
+                    kind = kind,
+                    tmdbId = null,
+                    tmdbIsMovie = null,
+                    imdbId = imdbId,
+                    manualMatch = true,
+                    matchState = MatchState.MANUAL,
+                    matchConfidence = 1.0,
+                    fetchedAt = null,
+                    metaLanguage = null,
+                    collectionId = null,
+                ),
+            )
+            meta.deleteUnusedOmdbPersons()
             meta.upsertQueue(LookupQueue(titleId, LookupState.QUEUED, 0, clock.now(), LookupJob.REFRESH))
             index.index(titleId)
         }
@@ -250,7 +377,7 @@ internal class TitleOps(
     suspend fun settleAsSeries(titleId: Long, reread: List<MediaFile> = emptyList()) {
         db.withTransaction {
             val title = db.titles().title(titleId) ?: return@withTransaction
-            if (title.kind != TitleKind.ANIME || title.tmdbId != null || title.manualMatch) return@withTransaction
+            if (title.kind != TitleKind.ANIME || title.tmdbId != null || title.imdbId != null || title.manualMatch) return@withTransaction
             val scan = db.scan()
             for (file in reread) if (file.titleId == titleId) scan.setReading(file.rowId, file.releaseTags, file.parsedAbsolute)
             rekey(title, TitleKind.SERIES)

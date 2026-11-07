@@ -54,7 +54,7 @@ internal class ClipPass(
         for (file in scan.allFiles()) {
             if (file.nameKind == NameKinds.CLIP) continue
             val title = titles[file.titleId] ?: continue
-            if (title.tmdbId != null || title.manualMatch || title.manualCover) continue
+            if (title.tmdbId != null || title.imdbId != null || title.manualMatch || title.manualCover) continue
             val parsed = parse(file, roots)
             if (parsed?.clipLike == true) ops.makeClip(file, parsed, ParsePaths.baseName(file.relPath))
         }
@@ -64,7 +64,7 @@ internal class ClipPass(
         val scan = db.scan()
         val roots = scan.roots()
         for (title in db.titles().allTitles()) {
-            if (title.kind != TitleKind.ANIME || title.tmdbId != null || title.manualMatch) continue
+            if (title.kind != TitleKind.ANIME || title.tmdbId != null || title.imdbId != null || title.manualMatch) continue
             val files = scan.filesOfTitle(title.id)
             val parsed = files.map { parse(it, roots) }
             if (files.isEmpty() || parsed.any { it?.animeHint == true }) continue

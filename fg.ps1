@@ -134,10 +134,19 @@ switch ($Command) {
         Save-Release $a | Out-Null
     }
     'release' {
+        # The release tag must point at the exact code in the APK, so everything else is committed first.
+        $dirty = Text { & git status --porcelain } | Where-Object { $_ -and $_ -notmatch 'version\.properties$' }
+        if ($dirty) { Fail 'commit and push the code first, the release tag points at main' }
         Native { & python -I tools\check_update.py } 'update check'
         Next-Version
         $a = Build-Apk 'release'
-        Publish-Apk (Save-Release $a)
+        $saved = Save-Release $a
+        $env:GIT_TERMINAL_PROMPT = '0'
+        $env:GCM_INTERACTIVE = 'never'
+        $v = ConvertFrom-StringData (Get-Content "$PSScriptRoot\version.properties" -Raw)
+        Native { & git commit -q -m "Version $($v.versionName).$($v.versionCode)" -m 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>' -- version.properties } 'git commit'
+        Native { & git push -q origin main } 'git push'
+        Publish-Apk $saved
     }
     'upload' {
         $newest = Get-ChildItem 'D:\FrameGlass\releases' -Filter 'Frame Glass *.apk' | Sort-Object LastWriteTime | Select-Object -Last 1

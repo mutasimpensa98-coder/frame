@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -58,6 +61,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
@@ -67,10 +71,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.frameglass.data.api.CastMember
 import com.frameglass.data.api.EpisodeRow
 import com.frameglass.data.api.FileFacts
 import com.frameglass.data.api.FileVersion
@@ -83,6 +89,7 @@ import com.frameglass.data.api.WatchTarget
 import com.frameglass.data.api.frameServices
 import com.frameglass.data.api.versions
 import com.frameglass.glass.CastAvatar
+import com.frameglass.glass.CastChip
 import com.frameglass.glass.CoverImage
 import com.frameglass.glass.FilterChips
 import com.frameglass.glass.FrameColors
@@ -98,14 +105,17 @@ import com.frameglass.glass.GlassRow
 import com.frameglass.glass.GlassSheetState
 import com.frameglass.glass.GlassSource
 import com.frameglass.glass.OutlinePill
+import com.frameglass.glass.PosterWash
 import com.frameglass.glass.RatingBadge
 import com.frameglass.glass.SectionHeader
+import com.frameglass.glass.StagePoster
 import com.frameglass.glass.TopGlassBar
 import com.frameglass.glass.WhitePill
 import com.frameglass.glass.bidiIsolate
 import com.frameglass.glass.coverGlow
 import com.frameglass.glass.glassSheetOrigin
 import com.frameglass.glass.rememberGlassSheetState
+import com.frameglass.glass.rememberPortrait
 import com.frameglass.player.R
 import com.frameglass.player.library.BackButton
 import com.frameglass.player.nav.LocalNavigator
@@ -138,6 +148,10 @@ private val BlockGap = FrameSpacing.S16
 private val SectionGap = FrameSpacing.S24
 private val MetaText = FrameType.Body.copy(fontWeight = FontWeight.W600)
 private const val PlayPillShare = 1.25f
+
+// A poster standing in for the art: under half the width, and short enough that Play stays above the fold.
+private const val PosterWidthShare = 0.46f
+private const val PosterHeightShare = 0.34f
 private const val FactLabelShare = 0.36f
 private const val FactValueShare = 0.64f
 private const val FolderLines = 3
@@ -173,6 +187,22 @@ private fun rememberArtFade(): Brush {
     }
 }
 
+// The poster sits on its wash with the title below it, so the wash is gone into the canvas before the title.
+@Composable
+private fun rememberStageFade(): Brush {
+    val colors = FrameTheme.colors
+    return remember(colors) {
+        val canvas = colors.canvas
+        Brush.verticalGradient(
+            0f to Color.Black.copy(alpha = 0.24f),
+            0.2f to Color.Transparent,
+            0.55f to Color.Transparent,
+            0.8f to canvas.copy(alpha = if (colors.isLight) 0.94f else 0.9f),
+            1f to canvas,
+        )
+    }
+}
+
 private val CreditJobs = mapOf(
     "Director" to R.string.app_job_director,
     "Writer" to R.string.app_job_writer,
@@ -187,6 +217,9 @@ private val CreditJobs = mapOf(
  */
 internal fun scrolledPastArt(firstIndex: Int, firstOffset: Int, artPx: Float, barPx: Float, collapsePx: Float): Float =
     if (firstIndex > 0) Float.MAX_VALUE else (firstOffset - (artPx - barPx - collapsePx)).coerceAtLeast(0f)
+
+/** A cast with no photo at all, as OMDb gives, reads better as names than as a row of empty circles. */
+internal fun castAsNames(cast: List<CastMember>): Boolean = cast.isNotEmpty() && cast.none { it.photoPath != null }
 
 /** F-U7 and F-U9: the movie and series page of images 03 and 10. */
 @Composable
@@ -219,12 +252,18 @@ internal fun DetailsScreen(route: Route.Details) {
 
     BoxWithConstraints(Modifier.fillMaxSize().background(FrameColors.Canvas)) {
         val artHeight = maxHeight * ArtShare
+        val posterHeight = min(maxWidth * PosterWidthShare / FrameSizes.PosterRatio, maxHeight * PosterHeightShare)
         val density = LocalDensity.current
         val artPx = with(density) { artHeight.toPx() }
         val barPx = with(density) { (statusInset() + FrameSizes.TopBarHeight).toPx() }
         val collapsePx = with(density) { FrameSizes.TopBarCollapse.toPx() }
+        // The poster header grows with its content, so the bar follows the header as measured.
+        var headerPx by remember { mutableFloatStateOf(0f) }
         val scrolled = remember(list, artPx, barPx, collapsePx) {
-            { scrolledPastArt(list.firstVisibleItemIndex, list.firstVisibleItemScrollOffset, artPx, barPx, collapsePx) }
+            {
+                val header = headerPx.takeIf { it > 0f } ?: artPx
+                scrolledPastArt(list.firstVisibleItemIndex, list.firstVisibleItemScrollOffset, header, barPx, collapsePx)
+            }
         }
         // The icons turn with the glass: light ones over the art, the theme's once the bar has come in.
         val overArt by remember(scrolled, collapsePx) { derivedStateOf { scrolled() < collapsePx / 2f } }
@@ -236,7 +275,13 @@ internal fun DetailsScreen(route: Route.Details) {
                 contentPadding = PaddingValues(bottom = navigationInset() + FrameSpacing.S32),
             ) {
                 item(key = "art") {
-                    ArtHeader(route, current, artHeight)
+                    ArtHeader(
+                        route = route,
+                        detail = current,
+                        height = artHeight,
+                        posterHeight = posterHeight,
+                        modifier = Modifier.onSizeChanged { headerPx = it.height.toFloat() },
+                    )
                 }
                 if (current != null) {
                     item(key = "actions") {
@@ -256,7 +301,9 @@ internal fun DetailsScreen(route: Route.Details) {
                         }
                     }
                     if (current.cast.isNotEmpty()) {
-                        item(key = "cast") { CastRow(current) }
+                        item(key = "cast") {
+                            if (castAsNames(current.cast)) CastNames(current) else CastRow(current)
+                        }
                     }
                     if (current.files.isNotEmpty()) {
                         val open = fileOpen ?: (current.littleMetadata() && current.files.size <= OpenFileCount)
@@ -281,6 +328,7 @@ internal fun DetailsScreen(route: Route.Details) {
                         ) { _, row ->
                             EpisodeListRow(
                                 row = row,
+                                poster = current.coverPath,
                                 onLongPress = {
                                     pickedEpisode = row
                                     episodeSheet.open()
@@ -310,11 +358,22 @@ internal fun DetailsScreen(route: Route.Details) {
 }
 
 @Composable
-private fun ArtHeader(route: Route.Details, detail: TitleDetail?, height: Dp) {
+private fun ArtHeader(
+    route: Route.Details,
+    detail: TitleDetail?,
+    height: Dp,
+    posterHeight: Dp,
+    modifier: Modifier = Modifier,
+) {
     // The route's path keeps the first frame steady. With no backdrop, the live cover shows a change at once.
     val cover = if (detail?.backdropPath == null) detail?.coverPath ?: route.art.path else route.art.path ?: detail.coverPath
     val backdrop = detail?.backdropPath?.takeIf { it != cover }
-    Box(Modifier.fillMaxWidth().height(height)) {
+    val portrait = rememberPortrait(cover)
+    if (backdrop == null && cover != null && portrait == true) {
+        PosterHeader(route, detail, cover, height, posterHeight, modifier)
+        return
+    }
+    Box(modifier.fillMaxWidth().height(height)) {
         Box(Modifier.matchParentSize().sharedArt(route.art.key)) {
             CoverImage(cover, null, Modifier.matchParentSize(), RectangleShape)
             // The cover flies in first, then the textless backdrop fades over it.
@@ -346,19 +405,76 @@ private fun ArtHeader(route: Route.Details, detail: TitleDetail?, height: Dp) {
                     name = detail.name,
                     logoModifier = Modifier.fillMaxWidth(LogoWidthShare).height(LogoHeight),
                 )
-                if (detail.genres.isNotEmpty()) {
-                    Text(
-                        text = metaLine(detail.genres.take(3)),
-                        style = FrameType.Body,
-                        color = FrameColors.SecondaryText,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                GenreLine(detail)
             }
         }
     }
+}
+
+/**
+ * A portrait cover with no backdrop, as for a title matched through OMDb before it has a frame: the poster stands
+ * whole on a wash of its own colours with the title under it, so nothing is cropped into a wide strip.
+ */
+@Composable
+private fun PosterHeader(
+    route: Route.Details,
+    detail: TitleDetail?,
+    cover: String,
+    minHeight: Dp,
+    posterHeight: Dp,
+    modifier: Modifier,
+) {
+    Box(modifier.fillMaxWidth().heightIn(min = minHeight)) {
+        PosterWash(cover, Modifier.matchParentSize())
+        Box(Modifier.matchParentSize().background(rememberStageFade()))
+        Box(Modifier.matchParentSize().coverGlow(detail?.dominantColor))
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(
+                    start = FrameSpacing.S24,
+                    end = FrameSpacing.S24,
+                    top = statusInset() + FrameSizes.TopBarHeight,
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(FrameSpacing.S8),
+        ) {
+            Box(
+                Modifier
+                    .padding(bottom = FrameSpacing.S8)
+                    .height(posterHeight)
+                    .aspectRatio(FrameSizes.PosterRatio),
+            ) {
+                Box(Modifier.matchParentSize().sharedArt(route.art.key)) {
+                    StagePoster(cover, Modifier.matchParentSize())
+                }
+            }
+            if (detail != null) {
+                // The poster carries its own title art, so the typeset title steps down a size under it.
+                TitleMark(
+                    logoPath = detail.logoPath,
+                    name = detail.name,
+                    logoModifier = Modifier.fillMaxWidth(LogoWidthShare).height(LogoHeight),
+                    style = FrameType.TitleLarge,
+                )
+                GenreLine(detail)
+            }
+        }
+    }
+}
+
+@Composable
+private fun GenreLine(detail: TitleDetail) {
+    if (detail.genres.isEmpty()) return
+    Text(
+        text = metaLine(detail.genres.take(3)),
+        style = FrameType.Body,
+        color = FrameColors.SecondaryText,
+        textAlign = TextAlign.Center,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
 }
 
 @Composable
@@ -717,6 +833,31 @@ private fun CastRow(detail: TitleDetail) {
                 CastAvatar(
                     name = person.name,
                     photoPath = person.photoPath,
+                    onClick = { navigator.push(Route.Person(person.personId)) },
+                    character = person.character?.takeIf { it.isNotBlank() },
+                )
+            }
+        }
+    }
+}
+
+/** The cast as tappable names, for a cast with no photos. Each still opens that person's titles (F-U8). */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CastNames(detail: TitleDetail) {
+    val navigator = LocalNavigator.current
+    Column(
+        modifier = Modifier.padding(top = SectionGap),
+        verticalArrangement = Arrangement.spacedBy(FrameSpacing.S8),
+    ) {
+        SectionHeader(stringResource(R.string.app_cast))
+        FlowRow(
+            modifier = Modifier.padding(horizontal = SideMargin),
+            horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S8),
+        ) {
+            detail.cast.forEach { person ->
+                CastChip(
+                    name = person.name,
                     onClick = { navigator.push(Route.Person(person.personId)) },
                     character = person.character?.takeIf { it.isNotBlank() },
                 )

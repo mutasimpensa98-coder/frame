@@ -49,21 +49,27 @@ import com.frameglass.glass.Skeleton
 import com.frameglass.glass.WhitePill
 import com.frameglass.glass.bidiIsolate
 import com.frameglass.player.R
+import com.frameglass.player.model.Identifier
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.ui.FrameTextField
 import com.frameglass.player.ui.fileSizeLabel
 import com.frameglass.player.ui.kindLabel
 import com.frameglass.player.ui.localNumber
 import com.frameglass.player.ui.metaLine
+import com.frameglass.player.ui.rememberServiceState
 import kotlinx.coroutines.launch
 
 private val ChoicePosterWidth = 64.dp
 
-/** F-M3: search TMDB again and apply a choice, which then counts as a manual match. */
+/**
+ * F-M3: search again and apply a choice, which then counts as a manual match. The search goes to TMDB, or to
+ * OMDb while TMDB is off, so the empty message names the service that answered.
+ */
 @Composable
 internal fun FixMatchSheet(state: GlassSheetState, titleId: Long, name: String) {
     val library = LocalContext.current.frameServices.library
     val scope = rememberCoroutineScope()
+    val services = rememberServiceState()
     GlassSheet(state, title = stringResource(R.string.app_fix_match)) {
         var text by rememberSaveable(titleId) { mutableStateOf(name) }
         var searched by remember { mutableStateOf<String?>(null) }
@@ -84,7 +90,14 @@ internal fun FixMatchSheet(state: GlassSheetState, titleId: Long, name: String) 
                 Skeleton(Modifier.fillMaxWidth().aspectRatio(5f), FrameShapes.Poster)
             }
             found.isEmpty() -> Text(
-                text = stringResource(R.string.app_fix_match_nothing),
+                text = stringResource(
+                    when (services?.identifier) {
+                        Identifier.IMDB -> R.string.app_fix_match_nothing_imdb
+                        Identifier.NONE -> R.string.app_fix_match_off
+                        Identifier.OFFLINE -> R.string.app_fix_match_online_off
+                        Identifier.TMDB, null -> R.string.app_fix_match_nothing
+                    },
+                ),
                 style = FrameType.Body,
                 color = FrameColors.SecondaryText,
                 modifier = Modifier.padding(FrameSpacing.S12),
