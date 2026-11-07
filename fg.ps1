@@ -1,6 +1,8 @@
 # Frame Glass build tool. Windows PowerShell 5.1 compatible.
 #   .\fg.ps1 ship      check the update, raise the version, build, verify, update the app on the phone, compile, launch
-#   .\fg.ps1 qa        same for the qa build type
+#   .\fg.ps1 release   same checks with no phone: raise the version, build, save the APK, publish a GitHub Release
+#   .\fg.ps1 upload    publish the newest saved APK as a GitHub Release
+#   .\fg.ps1 qa        same as ship for the qa build type
 #   .\fg.ps1 build     build and verify only
 #   .\fg.ps1 phone     reconnect adb and print phone facts
 #   .\fg.ps1 doctor    check every tool version
@@ -78,6 +80,16 @@ function Save-Release([string]$File) {
     $target = "D:\FrameGlass\releases\Frame Glass $($v.versionName).$($v.versionCode).apk"
     Copy-Item -LiteralPath $File -Destination $target
     Write-Host "saved $target"
+    return $target
+}
+
+# Publishes an APK as a GitHub Release on main, with docs/RELEASE-NOTES.md as its text. Push main first.
+function Publish-Apk([string]$File) {
+    $name = [IO.Path]::GetFileNameWithoutExtension($File)
+    $version = $name -replace '^Frame Glass ', ''
+    $repo = 'mutasimpensa98-coder/frame-glass'
+    Native { & gh.exe release create "v$version" "$File#$name.apk" --repo $repo --target main --title $name --notes-file docs\RELEASE-NOTES.md --latest } 'gh release'
+    Write-Host "uploaded https://github.com/$repo/releases/tag/v$version"
 }
 
 # firstInstallTime changes only on a fresh install, so it proves an update kept the app's data.
@@ -119,7 +131,18 @@ switch ($Command) {
         Next-Version
         $a = Build-Apk 'release'
         Install-Apk $a $Pkg
-        Save-Release $a
+        Save-Release $a | Out-Null
+    }
+    'release' {
+        Native { & python -I tools\check_update.py } 'update check'
+        Next-Version
+        $a = Build-Apk 'release'
+        Publish-Apk (Save-Release $a)
+    }
+    'upload' {
+        $newest = Get-ChildItem 'D:\FrameGlass\releases' -Filter 'Frame Glass *.apk' | Sort-Object LastWriteTime | Select-Object -Last 1
+        if (-not $newest) { Fail 'no APK in D:\FrameGlass\releases' }
+        Publish-Apk $newest.FullName
     }
     'qa' {
         $a = Build-Apk 'qa'

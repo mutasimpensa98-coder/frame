@@ -16,7 +16,7 @@ Tracked files never quote the owner's real file or folder names, even in a bug r
 
 ## Updates on the phone (owner rule, 2026-11-07)
 
-Every update goes over the app already on the phone, through `.\fg.ps1 ship`. The owner's library, watch progress, settings and keys must survive it.
+Every update goes over the app already on the phone. The owner's library, watch progress, settings and keys must survive it. When a version is ready, update `docs/RELEASE-NOTES.md` in Arabic, commit and push `main`, then run `.\fg.ps1 release`: it publishes a GitHub Release with the APK, and the owner installs it themselves. `.\fg.ps1 ship` is for when the owner asks for a direct install over USB.
 
 - Never uninstall or clear `com.frameglass.player`, even when an install fails. Find the cause.
 - Keep the application ID and the signing key in `D:\FrameGlass\secrets`.

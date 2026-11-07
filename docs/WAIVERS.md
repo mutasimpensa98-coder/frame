@@ -34,3 +34,7 @@ The owner asked to upload the project to their own GitHub account and leave it t
 Because it may go public later, the history stays clean from the first commit: no signing material, API keys, device serials, phone screenshots, the owner's video names, Nuvio reference images or test media.
 
 The rest of R1 stands: no team-knowledge, no `knowledge_sync.py` or `skills_sync.py`, no lessons inbox, no skill, no hosted page or Artifact.
+
+## 2026-11-07: APK on GitHub
+
+The owner asked that each finished version be uploaded as soon as it is ready, so they can download it from GitHub Releases and update the app themselves. `.\fg.ps1 release` publishes it. Releases are not part of git history. Before the repository ever goes public, decide which ones stay, because an APK carries GPL-3.0 duties.
