@@ -384,6 +384,14 @@ interface MetaDao {
     @Query("UPDATE LookupQueue SET retryAt = :now WHERE retryAt > :now")
     suspend fun makeAllDue(now: Long)
 
+    /** A swipe to refresh fetches these again. */
+    @Query("SELECT id FROM Title WHERE removed = 0 AND tmdbId IS NOT NULL AND (fetchedAt IS NULL OR fetchedAt <= :before)")
+    suspend fun matchedFetchedBefore(before: Long): List<Long>
+
+    /** A swipe to refresh searches for these again. Clips are UNMATCHED, so they stay out. */
+    @Query("SELECT id FROM Title WHERE removed = 0 AND tmdbId IS NULL AND matchState = 'NONE_FOUND'")
+    suspend fun notFoundTitles(): List<Long>
+
     @Query("SELECT * FROM Title WHERE fetchedAt IS NOT NULL AND fetchedAt <= :before")
     suspend fun titlesFetchedBefore(before: Long): List<Title>
 

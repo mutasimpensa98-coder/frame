@@ -1,12 +1,12 @@
 # Status
 
-Updated 2026-11-07, at the end of the improvement package. R9 applies.
+Updated 2026-11-07, after the phone check and the first upload. R9 applies.
 
 ## Read this first
 
-- **Nothing in the improvement package has run on the phone.** No agent used adb. That covers themes, language, favourites, the long-press menu, file facts, Media Manager, delete, the private folder, BiometricPrompt, online subtitle search, the new player sheets, swipe to refresh and the schema 2 migration.
-- **The last phone evidence on record is the first app build,** 18:19 to 18:22. Everything after it is unproven there, including whole-phone search, clip sorting, the Videos row and chip, Recently added, the new Home scan state, the sheet tint and the player fixes.
-- **Delete and the private folder move real files, and neither has ever run on Android.** Their pure logic has tests. `PrivateVaultImpl`, `MediaManagerImpl` and `MediaStoreTrash` have none, because they need Room and MediaStore. Test with a throwaway clip first, as `NEXT.md` says.
+- **The improvement package has run on the phone,** and the update kept the library, progress, settings and keys. `NEXT.md` section 1 lists what was seen and what was not. Screenshots of those checks stay in `D:\FrameGlass\shots`, because some show the owner's real videos. The tables below still describe filed evidence only.
+- **The last filed phone evidence is the first app build,** 18:19 to 18:22. Later phone checks are recorded in `NEXT.md` section 1 and in `phase-0-results.md`.
+- **Delete has not run on the phone, and the private folder ran only on the test copy.** Test delete with a clip the owner does not need.
 - `VERIFIED ON PHONE` is used only when the phone showed the whole row. A row the phone showed in part stays `BUILT` or `UNIT TESTED`, and the Phone column says what was seen.
 - `UNIT TESTED` means JVM tests cover the row's main logic. It proves nothing on the phone.
 - `BUILT` means the code is in the APK and no test covers the row's main path.
@@ -44,7 +44,7 @@ Run on this PC on 2026-11-07 with `--rerun-tasks --no-build-cache`: 799 tasks, a
 | `qa` APK | 23,046,700 bytes (22.0 MiB), same certificate, 16 KB alignment passes. |
 | Certificate SHA-256 | `6517fbf832436c7cb106855c03d8b8b1d94816517b2f4328279fb9a051354d67` |
 | Permissions in the release APK | The list in section 4.10 plus `USE_BIOMETRIC`. `USE_FINGERPRINT` is removed. |
-| Not run | adb, install, `.\fg.ps1 ship`, `MigrationTestHelper`, and every check on the phone. |
+| Not run | `MigrationTestHelper`. The schema change did pass on the phone, through the in-place update. |
 
 R8 and `androidx.biometric`: no failure and no new keep rule. `BiometricFragment`, `FingerprintDialogFragment` and `BiometricViewModel` keep their no-argument constructors through the fragment and lifecycle consumer rules, confirmed in `seeds.txt`. `BiometricPrompt` itself has not been shown.
 

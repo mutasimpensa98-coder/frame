@@ -33,7 +33,6 @@ dependencies {
     api(libs.nextlib.mediainfo)
     api(project(":third_party:ass-media"))
     api(libs.ass.kt)
-    implementation(libs.core.ktx)
     implementation(libs.coroutines.android)
     testImplementation(libs.junit)
 }

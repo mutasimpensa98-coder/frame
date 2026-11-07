@@ -122,6 +122,18 @@ internal class MetadataPipeline(
         meta.earliestRetry()?.let { (it - clock.now()).coerceAtLeast(MIN_RERUN_MS) }
     }
 
+    /** A swipe to refresh: titles fetched a while ago come again, and titles with no match search again. */
+    suspend fun queueRefresh() {
+        config.awaitLoaded()
+        val now = clock.now()
+        meta.matchedFetchedBefore(now - REFRESH_GAP_MS).forEach { queueOnce(it, LookupJob.REFRESH, now) }
+        meta.notFoundTitles().forEach { queueOnce(it, LookupJob.MATCH, now) }
+    }
+
+    private suspend fun queueOnce(titleId: Long, job: LookupJob, now: Long) {
+        if (meta.queued(titleId) == null) meta.upsertQueue(LookupQueue(titleId, LookupState.QUEUED, 0, now, job))
+    }
+
     /** Returns true when the whole queue should stop for now. */
     private suspend fun process(row: LookupQueue): Boolean {
         val title = titles.title(row.titleId)
@@ -504,6 +516,9 @@ internal class MetadataPipeline(
         const val MAX_CREW = 6
         val BUDGET_MS = TimeUnit.MINUTES.toMillis(8)
         val RATE_LIMIT_WAIT_MS = TimeUnit.MINUTES.toMillis(1)
+
+        /** Swiping twice in a row must not download every cover twice. */
+        val REFRESH_GAP_MS = TimeUnit.MINUTES.toMillis(10)
         val MIN_RERUN_MS = TimeUnit.MINUTES.toMillis(1)
     }
 }

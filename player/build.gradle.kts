@@ -32,7 +32,6 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":glass"))
     implementation(libs.activity.compose)
-    implementation(libs.lifecycle.runtime.compose)
     implementation(libs.core.ktx)
     implementation(libs.coroutines.android)
     testImplementation(libs.junit)

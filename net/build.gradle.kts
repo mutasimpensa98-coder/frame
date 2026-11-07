@@ -28,6 +28,5 @@ dependencies {
     api(libs.okhttp)
     implementation(libs.serialization.json)
     implementation(libs.coroutines.android)
-    implementation(libs.core.ktx)
     testImplementation(libs.junit)
 }

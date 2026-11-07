@@ -73,15 +73,12 @@ android {
 }
 
 dependencies {
-    implementation(project(":engine"))
     implementation(project(":player"))
     implementation(project(":data"))
     implementation(project(":glass"))
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)
     implementation(libs.coil.okhttp)
-    implementation(libs.okhttp)
-    implementation(libs.work.runtime)
     implementation(libs.biometric)
     add("qaImplementation", project(":qa"))
     implementation(platform(libs.compose.bom))

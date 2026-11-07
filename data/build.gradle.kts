@@ -40,7 +40,6 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.serialization.json)
     implementation(libs.coroutines.android)
-    implementation(libs.core.ktx)
     implementation(libs.palette)
     testImplementation(libs.junit)
 }

@@ -188,6 +188,9 @@ interface LibraryRepository {
     suspend fun addFolder(path: String)
     suspend fun removeFolder(path: String)
     suspend fun rescan()
+
+    /** A swipe to refresh: scan the files, then fetch art, text and ratings again for what is due. */
+    suspend fun refreshAll() = rescan()
     suspend fun setManualCover(titleId: Long, image: Uri)
     suspend fun matchChoices(titleId: Long, query: String? = null): List<MatchChoice>
     suspend fun applyMatch(titleId: Long, choice: MatchChoice)

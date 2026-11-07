@@ -1,6 +1,6 @@
 # Owner requests waiting for the next build
 
-- IMDb ratings: titles matched before the OMDb key was added never fetch one, so the yellow badge stays hidden. Fetch them when the key is added. The blue TMDB badge is done.
+- IMDb ratings: fetch them as soon as the OMDb key is added, without waiting for a swipe to refresh. The blue TMDB badge is done.
 - After the app language changes, fetch titles, genres and plots again in that language.
 - Home hero: skip items with no image, and never show a broken file as a hero.
 - Anime filter: real personal clips with short plain names land in Anime. Fix the hint, or require a match.

@@ -1,20 +1,28 @@
 # Next
 
-Updated 2026-11-07, at the end of the improvement package. Read `STATUS.md` first. R1 applies to all of this as changed by the GitHub waiver of 2026-11-07 in `WAIVERS.md`: one private repository under the owner's account is allowed, and everything else stands: no team-knowledge, no lessons inbox.
+Updated 2026-11-07, after the phone check, the cleanup and the first upload. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
-The project had no git commit when this was written, so nothing has been pushed. `origin` appeared in `.git/config` at 21:15, after that waiver was recorded at 21:08. This round did not add it.
+The history must stay fit to publish. `.gitignore` and `tools/hooks/pre-commit`, set through `core.hooksPath`, keep out what the waiver bans. A new clone needs `git config core.hooksPath tools/hooks`.
 
-**Before the first commit:** `.gitignore` does not yet cover what the waiver keeps out of the history. A plain `git add .` would take the 12 phone screenshots in `docs/evidence/phase-1/first-build/`, the 195 files in `docs/evidence/phase-0/raw/` and `docs/device/`. Check those for device serials and the owner's file names, and check `third_party/` and `tools/` for keys or test media. Add the ignores first, because a clean history cannot be fixed after a push.
+Testing stays small: essentials only, and long runs such as the soak only when the owner asks.
 
-## 1. Put this build on the phone
+## 1. State of the phone
 
-Nothing below was done in this round. Agents were told not to use adb.
+The release build is on the phone, updated in place from the first install, with the library, progress, settings and keys intact. `firstInstallTime` did not change.
 
-1. Connect the phone by wireless adb, then run `.\fg.ps1 ship`. This is the first update that changes the schema, version 1 to 2. `tools/check_update.py` passes on desktop SQLite with 21 saved rows kept, but `MIGRATION_1_2` has never run on Android. After the install, confirm that the library, watch progress, settings and keys are all still there. If the open fails, find the cause. Never uninstall.
-2. Run `.\fg.ps1 qa`, then `python tools/matrix.py rerun`, with the screen kept on. It redoes the rows that failed or were cut off. A full `matrix.py run` moves `raw` to `raw-<time>`, so use `rerun`.
-3. Before moving anything real into the private folder, test with a throwaway clip: move in, play, kill the app, reopen, move out, then compare the file with the original.
-4. Before deleting anything real, delete a throwaway clip and confirm that it reaches the phone's trash and can be restored from there.
-5. Save screenshots of the new flows under `docs/evidence/phase-1/`, then update `STATUS.md`.
+Seen on the phone: the Settings pages, Media Manager sizes, themes, accents, language, long press, hide and restore, the player subtitle sheet and the blue TMDB badge.
+
+Seen on the test copy, which is now removed: favourites and the private folder. Move in, locked after a forced stop, wrong password refused, playback with the name hidden, move out, and all 4 files came back byte-identical at their old paths.
+
+Not seen yet:
+
+1. Fingerprint unlock. It needs the owner's finger.
+2. Delete to the phone's trash. The test clips were pushed by adb and have no MediaStore row, so the app called the delete permanent and it was cancelled. Try a real clip the owner does not need.
+3. Online subtitle search. It needs a subtitle key.
+4. The general swipe to refresh in 1.0.103. It scans, fetches art, text and ratings again for titles older than 10 minutes, retries titles with no match, and waits up to 8 s before the rest carries on in the background. The owner was using the phone, so it has not been seen.
+5. The yellow IMDb badge. The general refresh should fetch ratings for titles matched before the OMDb key was added.
+
+The 2 demo folders on the phone are already empty. The owner still has to delete `Movies/FrameGlassTest` from My Files, and empty `D:\FrameGlass\_to-delete`. Test clips on the PC went there, so a matrix run first needs `tools/make_testmedia.py`, `python tools/matrix.py push` and `.\fg.ps1 qa`.
 
 ## 2. Owner checklist for this round
 

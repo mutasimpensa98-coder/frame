@@ -30,7 +30,7 @@ import com.frameglass.glass.GlassKind
 import com.frameglass.glass.GlassSurface
 import com.frameglass.player.R
 
-/** Swipe down to scan again. A small chip then says how many videos arrived. Wraps one scrolling list. */
+/** Swipe down to refresh everything. A small chip then says it is done, and how many videos arrived. Wraps one scrolling list. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RefreshBox(

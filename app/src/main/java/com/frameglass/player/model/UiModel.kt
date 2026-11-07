@@ -99,13 +99,13 @@ internal class UiModel(private val services: FrameServices, private val scope: C
     private suspend fun videoCount(): Int =
         withTimeoutOrNull(CountWaitMillis) { services.media.summary.first().videoCount } ?: 0
 
-    /** rescan() returns nothing, so the count is the library before and after it. */
+    /** A general refresh. It returns nothing, so the new-video count is the library before and after it. */
     fun refresh() {
         if (!refreshingNow.compareAndSet(expect = false, update = true)) return
         scope.launch {
             newCount.value = null
             val before = videoCount()
-            runCatching { library.rescan() }
+            runCatching { library.refreshAll() }
             delay(SnapshotSettleMillis)
             val found = (videoCount() - before).coerceAtLeast(0)
             refreshingNow.value = false

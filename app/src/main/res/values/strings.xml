@@ -259,7 +259,7 @@
     <string name="app_fact_folder">Folder</string>
     <string name="app_fact_modified">Modified</string>
 
-    <string name="app_refresh_none">No new videos</string>
+    <string name="app_refresh_none">Library refreshed</string>
 
     <string name="app_media_used_free">%1$s used, %2$s free</string>
     <string name="app_media_legend_videos">Videos</string>

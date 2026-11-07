@@ -139,6 +139,8 @@ internal class CatchUp(
 
     fun onNewRows() = framesLane.kick()
 
+    fun continueMetadata() = metadataLane.kick()
+
     fun onMetadataEnabled() {
         scope.launch {
             runCatching { db.meta().makeAllDue(clock.now()) }

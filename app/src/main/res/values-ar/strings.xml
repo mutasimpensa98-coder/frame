@@ -251,7 +251,7 @@
     <string name="app_fact_folder">المجلد</string>
     <string name="app_fact_modified">آخر تعديل</string>
 
-    <string name="app_refresh_none">لا توجد فيديوهات جديدة</string>
+    <string name="app_refresh_none">تم تحديث المكتبة</string>
 
     <string name="app_media_used_free">المستخدم %1$s، والمتاح %2$s</string>
     <string name="app_media_legend_videos">الفيديوهات</string>

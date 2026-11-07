@@ -75,6 +75,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
 
+private const val REFRESH_WAIT_MS = 8_000L
+
 internal class LibraryRepositoryImpl(
     private val context: Context,
     private val db: FrameDb,
@@ -238,6 +240,14 @@ internal class LibraryRepositoryImpl(
     }
 
     override suspend fun rescan() = withContext(Dispatchers.IO) { catchUp.scanNow() }
+
+    override suspend fun refreshAll() = withContext(Dispatchers.IO) {
+        catchUp.scanNow()
+        pipeline.queueRefresh()
+        // The swipe waits for the first results. Anything left carries on in the background.
+        runCatching { pipeline.drain(REFRESH_WAIT_MS) }
+        catchUp.continueMetadata()
+    }
 
     override suspend fun setManualCover(titleId: Long, image: Uri) = withContext(Dispatchers.IO) {
         val target = images.coverFile(titleId, clock.now())
