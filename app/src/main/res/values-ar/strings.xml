@@ -1,0 +1,530 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_tab_home">الرئيسية</string>
+    <string name="app_tab_search">البحث</string>
+    <string name="app_tab_library">المكتبة</string>
+    <string name="app_tab_settings">الإعدادات</string>
+
+    <string name="app_continue_watching">تابع المشاهدة</string>
+    <string name="app_top_rated">الأعلى تقييمًا في مكتبتك</string>
+    <string name="app_collection">سلسلة الأفلام</string>
+    <string name="app_section_videos">مقاطع</string>
+    <string name="app_home_empty">لم نجد فيديوهات على هذا الهاتف</string>
+    <string name="app_home_empty_places">أضف مكانًا ليبحث فيه Frame Glass عن الفيديوهات</string>
+    <string name="app_home_no_access">اسمح بالوصول إلى ملفاتك ليجد Frame Glass فيديوهاتك</string>
+    <string name="app_home_scanning">جارٍ البحث عن الفيديوهات…</string>
+    <string name="app_home_search_again">ابحث مرة أخرى</string>
+
+    <string name="app_add_place">إضافة مكان</string>
+    <string name="app_add_place_hint">يبحث Frame Glass في الهاتف كله تلقائيًا. أضف من هنا أماكن أخرى مثل قرص ⁦USB⁩.</string>
+    <string name="app_add_this_folder">إضافة هذا المجلد</string>
+    <string name="app_folder_added">موجود في مكتبتك</string>
+    <string name="app_folder_up">مستوى واحد للأعلى</string>
+    <string name="app_folder_storage">كل وحدات التخزين</string>
+    <string name="app_folder_no_subfolders">لا توجد مجلدات داخل هذا المجلد.</string>
+    <string name="app_folder_empty">لا يوجد ما يُعرض في هذا المجلد.</string>
+    <string name="app_folder_remove">إزالة %1$s</string>
+    <string name="app_files_needed">يحتاج Frame Glass إلى الوصول إلى كل الملفات ليقرأ فيديوهاتك وملفات الترجمة المجاورة لها. لا يخرج أي شيء من الهاتف.</string>
+    <string name="app_files_allow">السماح بالوصول</string>
+
+    <string name="app_resume">متابعة</string>
+    <string name="app_play">تشغيل</string>
+    <string name="app_play_episode">تشغيل %1$s</string>
+    <string name="app_unavailable">غير متوفر</string>
+    <string name="app_watched">تمت مشاهدته</string>
+    <string name="app_kind_movie">فيلم</string>
+    <string name="app_kind_series">مسلسل</string>
+    <string name="app_kind_anime">أنمي</string>
+    <string name="app_duration_join">%1$s و%2$s</string>
+    <string name="app_list_separator">"، "</string>
+    <string name="app_credit_label">%1$s:</string>
+    <string name="app_job_director">إخراج</string>
+    <string name="app_job_writer">كتابة</string>
+    <string name="app_job_screenplay">سيناريو</string>
+    <string name="app_job_story">قصة</string>
+    <string name="app_job_creator">ابتكار</string>
+    <string name="app_show_more">عرض المزيد</string>
+    <string name="app_show_less">عرض أقل</string>
+    <string name="app_cast">طاقم التمثيل</string>
+    <string name="app_seasons">المواسم</string>
+    <string name="app_season_number">الموسم %1$s</string>
+    <string name="app_specials">حلقات خاصة</string>
+    <string name="app_more">خيارات أخرى</string>
+    <string name="app_back">رجوع</string>
+    <string name="app_mark_watched">تحديد كمُشاهَد</string>
+    <string name="app_mark_unwatched">تحديد كغير مُشاهَد</string>
+    <string name="app_mark_season_watched">تحديد الموسم كمُشاهَد</string>
+    <string name="app_mark_season_unwatched">تحديد الموسم كغير مُشاهَد</string>
+    <string name="app_choose_version">اختيار النسخة</string>
+    <string name="app_fix_match">تصحيح المطابقة</string>
+    <string name="app_fix_match_hint">ابحث بالعنوان</string>
+    <string name="app_fix_match_nothing">لا توجد نتائج. تأكد من مفتاح TMDB في الإعدادات أو جرّب اسمًا آخر.</string>
+    <string name="app_pick_match">اختر العنوان الصحيح</string>
+    <string name="app_change_cover">تغيير الغلاف</string>
+    <string name="app_remove_from_library">إزالة من المكتبة</string>
+    <string name="app_remove_title">إزالة من المكتبة؟</string>
+    <string name="app_remove_body">تبقى ملفاتك على الهاتف، ويُحفظ تقدّم المشاهدة والمطابقة. أضف مجلده بالزر + لاستعادة هذا العنوان.</string>
+    <string name="app_remove">إزالة</string>
+    <string name="app_cancel">إلغاء</string>
+    <string name="app_resolution">%1$sp</string>
+    <string name="app_episode_missing">غير موجودة في مكتبتك</string>
+    <string name="app_chip_new">جديد</string>
+    <string name="app_chip_sub">ترجمة</string>
+
+    <string name="app_filter_all">الكل</string>
+    <string name="app_filter_movies">أفلام</string>
+    <string name="app_filter_series">مسلسلات</string>
+    <string name="app_filter_anime">أنمي</string>
+    <string name="app_filter_folders">مجلدات</string>
+    <string name="app_sort_recent">أُضيف مؤخرًا</string>
+    <string name="app_sort_name">الاسم</string>
+    <string name="app_sort_rating">التقييم</string>
+    <string name="app_view_grid">عرض كشبكة</string>
+    <string name="app_view_list">عرض كقائمة</string>
+    <string name="app_library_empty">لا توجد عناوين هنا بعد.</string>
+    <string name="app_library_no_folders">لا توجد مجلدات فيها فيديوهات بعد.</string>
+
+    <string name="app_search_title">ابحث في مكتبتك</string>
+    <string name="app_search_hint">العناوين والممثلون والأنواع</string>
+    <string name="app_search_placeholder">بحث</string>
+    <string name="app_search_clear">مسح البحث</string>
+    <string name="app_search_nothing">لا توجد نتائج</string>
+    <string name="app_search_people">الأشخاص</string>
+    <string name="app_search_titles">العناوين</string>
+
+    <string name="app_settings_library">المكتبة</string>
+    <string name="app_settings_playback">التشغيل</string>
+    <string name="app_settings_subtitles">الترجمة</string>
+    <string name="app_settings_online">الميزات المتصلة والمفاتيح</string>
+    <string name="app_settings_imdb">اختياري: تقييمات IMDb</string>
+    <string name="app_settings_backup">النسخ الاحتياطي والاستعادة</string>
+    <string name="app_settings_about">حول التطبيق</string>
+
+    <string name="app_scan_whole_phone">البحث في الهاتف كله</string>
+    <string name="app_scan_whole_phone_hint">يجد كل الفيديوهات تلقائيًا. أوقفه ليقتصر الفحص على الأماكن التي تضيفها.</string>
+    <string name="app_scan_now">افحص الآن</string>
+    <string name="app_scan_hint">تظهر الفيديوهات الجديدة تلقائيًا أيضًا عند فتح التطبيق.</string>
+    <string name="app_show_unavailable">إظهار العناوين غير المتوفرة</string>
+    <string name="app_show_unavailable_hint">عناوين على وحدة التخزين الداخلية اختفت ملفاتها</string>
+    <string name="app_scan_hidden">تضمين المجلدات المخفية</string>
+    <string name="app_scan_nomedia">تضمين مجلدات ⁦.nomedia⁩</string>
+
+    <string name="app_double_tap">التخطي باللمس المزدوج</string>
+    <string name="app_auto_next">تشغيل الحلقة التالية تلقائيًا</string>
+    <string name="app_background_audio">الصوت في الخلفية</string>
+    <string name="app_background_audio_hint">يستمر التشغيل بعد الخروج من المشغّل</string>
+    <string name="app_night_audio">الصوت الليلي</string>
+    <string name="app_night_audio_hint">يخفض الأصوات العالية ويرفع صوت الحوار</string>
+
+    <string name="app_subtitle_size">الحجم</string>
+    <string name="app_percent">%1$d%%</string>
+    <string name="app_subtitle_colour">اللون</string>
+    <string name="app_colour_white">أبيض</string>
+    <string name="app_colour_yellow">أصفر</string>
+    <string name="app_colour_cyan">سماوي</string>
+    <string name="app_colour_green">أخضر</string>
+    <string name="app_subtitle_position">الموضع</string>
+    <string name="app_position_bottom">في الأسفل</string>
+    <string name="app_subtitle_background">خلفية النص</string>
+    <string name="app_subtitle_font">الخط</string>
+    <string name="app_subtitle_font_hint">لترجمات ⁦SRT⁩، وخطًا بديلًا لترجمات ⁦ASS⁩</string>
+    <string name="app_subtitle_font_bad">هذا الملف ليس خط ⁦TTF⁩ أو ⁦OTF⁩ صالحًا</string>
+    <string name="app_subtitle_font_default">الافتراضي</string>
+    <string name="app_subtitle_font_pick">اختيار ملف خط</string>
+
+    <string name="app_online">الميزات المتصلة</string>
+    <string name="app_online_hint">أوقفها لمنع كل اتصال بالإنترنت. تبقى المكتبة والتشغيل كما هما.</string>
+    <string name="app_key_tmdb">مفتاح ⁦TMDB⁩</string>
+    <string name="app_key_tmdb_hint">يضيف الأغلفة والقصص وطاقم التمثيل والتقييمات. بدونه يعمل Frame Glass مشغلًا محليًا كاملًا.</string>
+    <string name="app_tmdb_server">عنوان ⁦TMDB⁩</string>
+    <string name="app_tmdb_server_hint">غيّره فقط إذا كان لديك خادم وسيط خاص.</string>
+    <string name="app_tmdb_server_default">الافتراضي</string>
+    <string name="app_tmdb_server_reset">العودة إلى الافتراضي</string>
+    <string name="app_key_opensubtitles">مفتاح ⁦OpenSubtitles⁩</string>
+    <string name="app_key_subdl">مفتاح ⁦SubDL⁩</string>
+    <string name="app_key_subsource">مفتاح ⁦SubSource⁩</string>
+    <string name="app_key_subtitles_hint">اختياري، للبحث عن الترجمات عبر الإنترنت</string>
+    <string name="app_key_omdb">مفتاح ⁦OMDb⁩</string>
+    <string name="app_key_omdb_hint">اختياري. يعرض تقييم ⁦IMDb⁩ بجانب تقييم ⁦TMDB⁩.</string>
+    <string name="app_key_added">مضاف</string>
+    <string name="app_key_none">غير مضاف</string>
+    <string name="app_key_placeholder">الصق المفتاح هنا</string>
+    <string name="app_key_remove">إزالة المفتاح</string>
+    <string name="app_save">حفظ</string>
+
+    <string name="app_backup">إنشاء نسخة احتياطية</string>
+    <string name="app_backup_hint">يحفظ التقدّم والمطابقات والأغلفة المخصصة والإعدادات في ملف ⁦zip⁩. لا تُحفظ المفاتيح.</string>
+    <string name="app_backup_done">حُفظت النسخة الاحتياطية</string>
+    <string name="app_backup_failed">تعذّر حفظ النسخة الاحتياطية</string>
+    <string name="app_restore">استعادة</string>
+    <string name="app_restore_hint">يستبدل هذه البيانات من ملف نسخة احتياطية، بعد أخذ نسخة أمان أولًا.</string>
+    <string name="app_restore_done">تمت الاستعادة</string>
+    <string name="app_restore_failed">تعذّرت استعادة هذا الملف</string>
+
+    <string name="app_about_hint">إشعار ⁦TMDB⁩ والتراخيص</string>
+    <string name="app_about_title">حول التطبيق</string>
+    <string name="app_version">الإصدار %1$s</string>
+    <string name="app_tmdb_notice_translation">يستخدم هذا التطبيق خدمة TMDB وواجهاتها البرمجية، لكن TMDB لا تؤيده ولا تعتمده ولا توافق عليه بأي شكل.</string>
+    <string name="app_tmdb_logo">شعار ⁦TMDB⁩</string>
+    <string name="app_imdb_statement">هذا التطبيق غير مرتبط بـ ⁦IMDb⁩.</string>
+    <string name="app_licences">التراخيص</string>
+    <string name="app_licence_gpl">NextLib مع FFmpeg</string>
+    <string name="app_licence_mit">ass-media وخرائط anibridge</string>
+    <string name="app_licence_apache">AndroidX وMedia3 وKotlin وOkHttp وCoil وHaze</string>
+    <string name="app_licence_ofl">Alexandria وIBM Plex Sans Arabic وNoto Naskh Arabic</string>
+
+    <string name="app_onboarding_files_title">اسمح بالوصول إلى ملفاتك</string>
+    <string name="app_onboarding_files_body">بعدها يبحث Frame Glass في الهاتف عن فيديوهاتك وملفات الترجمة المجاورة لها. لا يخرج أي شيء من الهاتف.</string>
+    <string name="app_onboarding_key_title">أضف مفتاح ⁦TMDB⁩</string>
+    <string name="app_onboarding_key_body">خطوة اختيارية تجلب الأغلفة والقصص وطاقم التمثيل. يمكنك إضافته لاحقًا من الإعدادات.</string>
+    <string name="app_onboarding_sleep_title">أبقِ التطبيق نشطًا</string>
+    <string name="app_onboarding_sleep_body">قد يضع نظام سامسونج التطبيقات غير المستخدمة في وضع السكون. من الإعدادات افتح البطارية، ثم حدود الاستخدام في الخلفية، وأضف Frame Glass إلى التطبيقات التي لا تدخل في وضع السكون أبدًا.</string>
+    <string name="app_onboarding_sleep_open">فتح إعدادات البطارية</string>
+    <string name="app_onboarding_finish">إنهاء</string>
+    <string name="app_onboarding_later">لاحقًا</string>
+    <string name="app_onboarding_skip">تخطي</string>
+
+    <string name="app_settings_group_general">عام</string>
+    <string name="app_settings_group_watching">المشاهدة</string>
+    <string name="app_settings_group_storage">التخزين</string>
+    <string name="app_settings_group_app">التطبيق</string>
+    <string name="app_settings_appearance">المظهر</string>
+    <string name="app_settings_appearance_hint">السمة واللون المميّز ولون الغلاف</string>
+    <string name="app_settings_language">اللغة</string>
+    <string name="app_settings_language_hint">لغة الهاتف أو العربية أو الإنجليزية</string>
+    <string name="app_settings_library_hint">البحث والمجلدات المستبعدة والعناوين المخفية</string>
+    <string name="app_settings_playback_hint">اللمس المزدوج والحلقة التالية والصوت</string>
+    <string name="app_settings_subtitles_hint">الحجم واللون والموضع والخط</string>
+    <string name="app_settings_media">مدير الوسائط</string>
+    <string name="app_settings_media_hint">اعرف ما يشغل المساحة واحذف الفيديوهات</string>
+    <string name="app_settings_private">المجلد الخاص</string>
+    <string name="app_settings_private_hint">لا يُفتح إلا بكلمة مرورك أو بصمتك</string>
+    <string name="app_settings_online_hint">مفاتيح ⁦TMDB⁩ والترجمات، وما يخرج من الهاتف</string>
+    <string name="app_settings_backup_hint">احفظ التقدّم والإعدادات في ملف</string>
+    <string name="app_page_online">الاتصال والمفاتيح</string>
+    <string name="app_page_backup">النسخ الاحتياطي</string>
+
+    <string name="app_appearance_preview">معاينة</string>
+    <string name="app_appearance_theme">السمة</string>
+    <string name="app_appearance_accent">اللون المميّز</string>
+    <string name="app_appearance_art">الأغلفة</string>
+    <string name="app_cover_tint">لون الغلاف</string>
+    <string name="app_cover_tint_hint">ينشر لونًا هادئًا من الغلاف خلف صفحة التفاصيل وأعلى الرئيسية</string>
+    <string name="app_preview_title">فيلم الليلة</string>
+    <string name="app_preview_genre">دراما</string>
+
+    <string name="app_language_section">لغة التطبيق</string>
+    <string name="app_language_system">حسب الهاتف</string>
+    <string name="app_language_system_hint">يستخدم اللغة المضبوطة على الهاتف</string>
+
+    <string name="app_library_section_search">البحث عن الفيديوهات</string>
+    <string name="app_library_section_show">ما يظهر في المكتبة</string>
+    <string name="app_excluded_title">المجلدات المستبعدة</string>
+    <string name="app_excluded_add">استبعاد مجلد</string>
+    <string name="app_excluded_add_hint">تخرج فيديوهاته من المكتبة ولا يشمله الفحص. تبقى الملفات على الهاتف.</string>
+    <string name="app_excluded_pick">استبعاد هذا المجلد</string>
+    <string name="app_excluded_already">مستبعد بالفعل</string>
+    <string name="app_excluded_remove">إلغاء استبعاد %1$s</string>
+    <string name="app_hidden_title">العناوين المخفية</string>
+    <string name="app_hidden_empty">لا توجد عناوين مخفية</string>
+    <string name="app_hidden_restore">استعادة</string>
+
+    <string name="app_menu_favorite_add">إضافة إلى المفضلة</string>
+    <string name="app_menu_favorite_remove">إزالة من المفضلة</string>
+    <string name="app_menu_hide">إخفاء</string>
+    <string name="app_menu_hide_hint">يمكنك إرجاعه من الإعدادات، ثم المكتبة</string>
+    <string name="app_menu_exclude">استبعاد هذا المجلد</string>
+    <string name="app_menu_private">نقل إلى المجلد الخاص</string>
+    <string name="app_menu_delete">حذف</string>
+
+    <string name="app_filter_favorites">المفضلة</string>
+    <string name="app_favorites_empty">لم تحفظ شيئًا بعد. اضغط «حفظ» في صفحة العنوان، أو اضغط مطوّلًا على بطاقته.</string>
+    <string name="app_saved">محفوظ</string>
+
+    <string name="app_file_section">الملف</string>
+    <string name="app_files_section">الملفات</string>
+    <string name="app_fact_size">الحجم</string>
+    <string name="app_fact_duration">المدة</string>
+    <string name="app_fact_resolution">الدقة</string>
+    <string name="app_fact_video">الفيديو</string>
+    <string name="app_fact_audio">الصوت</string>
+    <string name="app_fact_folder">المجلد</string>
+    <string name="app_fact_modified">آخر تعديل</string>
+
+    <string name="app_refresh_none">لا توجد فيديوهات جديدة</string>
+
+    <string name="app_media_used_free">المستخدم %1$s، والمتاح %2$s</string>
+    <string name="app_media_legend_videos">الفيديوهات</string>
+    <string name="app_media_legend_other">ملفات أخرى</string>
+    <string name="app_media_legend_free">متاح</string>
+    <string name="app_media_tab_largest">أكبر الفيديوهات</string>
+    <string name="app_media_tab_clips">مقاطع</string>
+    <string name="app_media_empty">لا يوجد شيء هنا</string>
+    <string name="app_media_select">تحديد</string>
+    <string name="app_media_select_done">إلغاء التحديد</string>
+    <string name="app_media_open_title">فتح العنوان</string>
+    <string name="app_media_open_folder">فتح المجلد</string>
+
+    <string name="app_delete_title_plain">حذف</string>
+    <string name="app_delete_files">الفيديوهات</string>
+    <string name="app_delete_size">المساحة التي تتحرر</string>
+    <string name="app_delete_trash_space">تعود مساحتها حين يُفرغ الهاتف سلة المهملات.</string>
+    <string name="app_delete_sidecars">احذف ملفات الترجمة أيضًا</string>
+    <string name="app_delete_keeps">يبقى تقدّم المشاهدة والمطابقة محفوظين.</string>
+    <string name="app_delete_running">جارٍ الحذف…</string>
+    <string name="app_delete_done_title">انتهى الحذف</string>
+    <string name="app_delete_done_freed">تحررت مساحة %1$s</string>
+    <string name="app_delete_done_nothing">لم يُحذف شيء.</string>
+    <string name="app_ok">حسنًا</string>
+
+    <string name="app_move_in_title">النقل إلى المجلد الخاص</string>
+    <string name="app_move_out_title">النقل من المجلد الخاص</string>
+    <string name="app_move_done_title">انتهى النقل</string>
+    <string name="app_move_failed_title">تعذّر النقل</string>
+    <string name="app_move_failed">لم يكتمل النقل. بقيت فيديوهاتك في مكانها.</string>
+    <string name="app_move_leave_hint">يمكنك مغادرة هذه الشاشة، فالنقل يستمر.</string>
+    <string name="app_move_nothing">لم يُنقل شيء.</string>
+
+    <string name="app_online_subtitles">الترجمات عبر الإنترنت</string>
+    <string name="app_send_release">إرسال اسم الإصدار</string>
+    <string name="app_send_release_hint">عند ضغطك على البحث عن ترجمة فقط، ليجد ترجمة تناسب هذه النسخة.</string>
+    <string name="app_send_hash">إرسال بصمة الملف</string>
+    <string name="app_send_hash_hint">عند ضغطك على البحث عن ترجمة فقط، ومعها حجم الملف، إلى ⁦OpenSubtitles⁩. الفيديو نفسه لا يخرج من الهاتف أبدًا.</string>
+
+    <string name="app_playback_section">المشغّل</string>
+    <string name="app_subtitle_section">مظهر الترجمة</string>
+
+    <string name="app_private_intro">الفيديوهات التي تنقلها إلى هنا تختفي من المكتبة والبحث ومدير الوسائط، ولا تُفتح هذه الصفحة إلا بكلمة مرورك أو بصمتك.</string>
+    <string name="app_private_uninstall_warning">إلغاء تثبيت Frame Glass يحذف المجلد الخاص وكل ما فيه.</string>
+    <string name="app_private_not_encrypted">هذا ليس تشفيرًا إضافيًا. تُحفظ الفيديوهات في تخزين التطبيق الخاص، بعيدًا عن التطبيقات الأخرى والمعرض.</string>
+    <string name="app_private_new_password">كلمة المرور الجديدة</string>
+    <string name="app_private_repeat_password">أعد كتابة كلمة المرور</string>
+    <string name="app_private_password_differ">كلمتا المرور غير متطابقتين</string>
+    <string name="app_private_create">إنشاء كلمة المرور</string>
+    <string name="app_private_code_title">احفظ رمز الاسترداد</string>
+    <string name="app_private_code_warning">يظهر هذا الرمز مرة واحدة فقط. من دونه لا يمكن إعادة تعيين كلمة مرور منسية، ويبقى المجلد الخاص مغلقًا.</string>
+    <string name="app_private_code_hint">اكتبه واحفظه في مكان آمن بعيدًا عن هذا الهاتف. لقطات الشاشة ممنوعة في هذه الصفحة.</string>
+    <string name="app_private_code_saved">حفظت رمز الاسترداد</string>
+    <string name="app_private_continue">متابعة</string>
+    <string name="app_private_locked">هذا المجلد مقفل.</string>
+    <string name="app_private_password">كلمة المرور</string>
+    <string name="app_private_unlock">فتح القفل</string>
+    <string name="app_private_checking">جارٍ التحقق…</string>
+    <string name="app_private_wrong_password">كلمة المرور غير صحيحة</string>
+    <string name="app_private_wrong_code">هذا الرمز غير صحيح</string>
+    <string name="app_private_use_fingerprint">استخدام البصمة</string>
+    <string name="app_private_use_password">استخدام كلمة المرور</string>
+    <string name="app_private_fingerprint_title">فتح المجلد الخاص</string>
+    <string name="app_private_forgot">نسيت كلمة المرور؟</string>
+    <string name="app_private_reset">إعادة التعيين برمز الاسترداد</string>
+    <string name="app_private_reset_hint">أدخل الرمز الذي حفظته، ثم اختر كلمة مرور جديدة. تبقى فيديوهاتك في المجلد.</string>
+    <string name="app_private_reset_confirm">إعادة تعيين كلمة المرور</string>
+    <string name="app_private_code_field">رمز الاسترداد</string>
+    <string name="app_private_change_password">تغيير كلمة المرور</string>
+    <string name="app_private_old_password">كلمة المرور الحالية</string>
+    <string name="app_private_security">الأمان</string>
+    <string name="app_private_fingerprint">الفتح بالبصمة</string>
+    <string name="app_private_fingerprint_hint">يمكنك دائمًا استخدام كلمة المرور بدلًا منها</string>
+    <string name="app_private_fingerprint_missing">أضف بصمة من إعدادات الهاتف أولًا</string>
+    <string name="app_private_lock_after">القفل بعد المغادرة</string>
+    <string name="app_private_lock_after_hint">المدة التي يبقى فيها المجلد مفتوحًا بعد مغادرته</string>
+    <string name="app_private_lock_at_once">فورًا</string>
+    <string name="app_private_lock_now">القفل الآن</string>
+    <string name="app_private_empty">لا يوجد شيء هنا بعد. في المكتبة، اضغط مطوّلًا على بطاقة واختر «نقل إلى المجلد الخاص».</string>
+    <string name="app_private_hint">اضغط مطوّلًا على فيديو لنقله خارج المجلد.</string>
+    <string name="app_private_move_out">نقل خارج المجلد</string>
+    <string name="app_private_move_out_hint">يعود إلى مجلده الأصلي</string>
+
+    <plurals name="app_videos">
+        <item quantity="zero">لا فيديوهات</item>
+        <item quantity="one">فيديو واحد</item>
+        <item quantity="two">فيديوان</item>
+        <item quantity="few">%d فيديوهات</item>
+        <item quantity="many">%d فيديو</item>
+        <item quantity="other">%d فيديو</item>
+    </plurals>
+    <plurals name="app_episodes">
+        <item quantity="zero">لا حلقات</item>
+        <item quantity="one">حلقة واحدة</item>
+        <item quantity="two">حلقتان</item>
+        <item quantity="few">%d حلقات</item>
+        <item quantity="many">%d حلقة</item>
+        <item quantity="other">%d حلقة</item>
+    </plurals>
+    <plurals name="app_versions">
+        <item quantity="zero">لا نسخ</item>
+        <item quantity="one">نسخة واحدة</item>
+        <item quantity="two">نسختان</item>
+        <item quantity="few">%d نسخ</item>
+        <item quantity="many">%d نسخة</item>
+        <item quantity="other">%d نسخة</item>
+    </plurals>
+    <plurals name="app_titles_in_library">
+        <item quantity="zero">لا عناوين في مكتبتك</item>
+        <item quantity="one">عنوان واحد في مكتبتك</item>
+        <item quantity="two">عنوانان في مكتبتك</item>
+        <item quantity="few">%d عناوين في مكتبتك</item>
+        <item quantity="many">%d عنوانًا في مكتبتك</item>
+        <item quantity="other">%d عنوان في مكتبتك</item>
+    </plurals>
+    <plurals name="app_hours">
+        <item quantity="zero">أقل من ساعة</item>
+        <item quantity="one">ساعة</item>
+        <item quantity="two">ساعتان</item>
+        <item quantity="few">%d ساعات</item>
+        <item quantity="many">%d ساعة</item>
+        <item quantity="other">%d ساعة</item>
+    </plurals>
+    <plurals name="app_minutes">
+        <item quantity="zero">أقل من دقيقة</item>
+        <item quantity="one">دقيقة</item>
+        <item quantity="two">دقيقتان</item>
+        <item quantity="few">%d دقائق</item>
+        <item quantity="many">%d دقيقة</item>
+        <item quantity="other">%d دقيقة</item>
+    </plurals>
+    <plurals name="app_seconds">
+        <item quantity="zero">0 ثانية</item>
+        <item quantity="one">ثانية</item>
+        <item quantity="two">ثانيتان</item>
+        <item quantity="few">%d ثوانٍ</item>
+        <item quantity="many">%d ثانية</item>
+        <item quantity="other">%d ثانية</item>
+    </plurals>
+    <plurals name="app_scan_found">
+        <item quantity="zero">جارٍ الفحص: لا فيديوهات بعد</item>
+        <item quantity="one">جارٍ الفحص: وُجد فيديو واحد</item>
+        <item quantity="two">جارٍ الفحص: وُجد فيديوان</item>
+        <item quantity="few">جارٍ الفحص: وُجدت %d فيديوهات</item>
+        <item quantity="many">جارٍ الفحص: وُجد %d فيديو</item>
+        <item quantity="other">جارٍ الفحص: وُجد %d فيديو</item>
+    </plurals>
+    <plurals name="app_scan_matching">
+        <item quantity="zero">لا توجد عناوين قيد المطابقة</item>
+        <item quantity="one">جارٍ مطابقة عنوان واحد</item>
+        <item quantity="two">جارٍ مطابقة عنوانين</item>
+        <item quantity="few">جارٍ مطابقة %d عناوين</item>
+        <item quantity="many">جارٍ مطابقة %d عنوانًا</item>
+        <item quantity="other">جارٍ مطابقة %d عنوان</item>
+    </plurals>
+    <plurals name="app_refresh_new">
+        <item quantity="zero">لا توجد فيديوهات جديدة</item>
+        <item quantity="one">فيديو جديد واحد</item>
+        <item quantity="two">فيديوان جديدان</item>
+        <item quantity="few">%d فيديوهات جديدة</item>
+        <item quantity="many">%d فيديو جديد</item>
+        <item quantity="other">%d فيديو جديد</item>
+    </plurals>
+    <plurals name="app_media_folders">
+        <item quantity="zero">لا مجلدات</item>
+        <item quantity="one">مجلد واحد</item>
+        <item quantity="two">مجلدان</item>
+        <item quantity="few">%d مجلدات</item>
+        <item quantity="many">%d مجلدًا</item>
+        <item quantity="other">%d مجلد</item>
+    </plurals>
+    <plurals name="app_media_selected">
+        <item quantity="zero">لم يُحدَّد شيء</item>
+        <item quantity="one">عنصر واحد محدد</item>
+        <item quantity="two">عنصران محددان</item>
+        <item quantity="few">%d عناصر محددة</item>
+        <item quantity="many">%d عنصرًا محددًا</item>
+        <item quantity="other">%d عنصر محدد</item>
+    </plurals>
+    <plurals name="app_delete_title">
+        <item quantity="zero">لا فيديوهات للحذف</item>
+        <item quantity="one">حذف فيديو واحد؟</item>
+        <item quantity="two">حذف فيديوين؟</item>
+        <item quantity="few">حذف %d فيديوهات؟</item>
+        <item quantity="many">حذف %d فيديو؟</item>
+        <item quantity="other">حذف %d فيديو؟</item>
+    </plurals>
+    <plurals name="app_delete_more">
+        <item quantity="zero">ولا غيرها</item>
+        <item quantity="one">وفيديو آخر</item>
+        <item quantity="two">وفيديوان آخران</item>
+        <item quantity="few">و%d فيديوهات أخرى</item>
+        <item quantity="many">و%d فيديو آخر</item>
+        <item quantity="other">و%d فيديو آخر</item>
+    </plurals>
+    <plurals name="app_delete_to_trash">
+        <item quantity="zero">لن يذهب أي ملف إلى سلة مهملات الهاتف.</item>
+        <item quantity="one">سيذهب ملف واحد إلى سلة مهملات الهاتف، ويمكنك استعادته منها.</item>
+        <item quantity="two">سيذهب ملفان إلى سلة مهملات الهاتف، ويمكنك استعادتهما منها.</item>
+        <item quantity="few">ستذهب %d ملفات إلى سلة مهملات الهاتف، ويمكنك استعادتها منها.</item>
+        <item quantity="many">سيذهب %d ملفًا إلى سلة مهملات الهاتف، ويمكنك استعادتها منها.</item>
+        <item quantity="other">سيذهب %d ملف إلى سلة مهملات الهاتف، ويمكنك استعادتها منها.</item>
+    </plurals>
+    <plurals name="app_delete_gone">
+        <item quantity="zero">لن يُحذف أي ملف نهائيًا.</item>
+        <item quantity="one">سيُحذف ملف واحد نهائيًا، ولا يمكن استعادته.</item>
+        <item quantity="two">سيُحذف ملفان نهائيًا، ولا يمكن استعادتهما.</item>
+        <item quantity="few">ستُحذف %d ملفات نهائيًا، ولا يمكن استعادتها.</item>
+        <item quantity="many">سيُحذف %d ملفًا نهائيًا، ولا يمكن استعادتها.</item>
+        <item quantity="other">سيُحذف %d ملف نهائيًا، ولا يمكن استعادتها.</item>
+    </plurals>
+    <plurals name="app_delete_sidecars_hint">
+        <item quantity="zero">لا ملفات ترجمة</item>
+        <item quantity="one">ملف ترجمة واحد</item>
+        <item quantity="two">ملفا ترجمة</item>
+        <item quantity="few">%d ملفات ترجمة</item>
+        <item quantity="many">%d ملف ترجمة</item>
+        <item quantity="other">%d ملف ترجمة</item>
+    </plurals>
+    <plurals name="app_delete_done_trash">
+        <item quantity="zero">لم يُنقل أي ملف إلى سلة مهملات الهاتف</item>
+        <item quantity="one">نُقل ملف واحد إلى سلة مهملات الهاتف</item>
+        <item quantity="two">نُقل ملفان إلى سلة مهملات الهاتف</item>
+        <item quantity="few">نُقلت %d ملفات إلى سلة مهملات الهاتف</item>
+        <item quantity="many">نُقل %d ملفًا إلى سلة مهملات الهاتف</item>
+        <item quantity="other">نُقل %d ملف إلى سلة مهملات الهاتف</item>
+    </plurals>
+    <plurals name="app_delete_done_gone">
+        <item quantity="zero">لم يُحذف أي ملف نهائيًا</item>
+        <item quantity="one">حُذف ملف واحد نهائيًا</item>
+        <item quantity="two">حُذف ملفان نهائيًا</item>
+        <item quantity="few">حُذفت %d ملفات نهائيًا</item>
+        <item quantity="many">حُذف %d ملفًا نهائيًا</item>
+        <item quantity="other">حُذف %d ملف نهائيًا</item>
+    </plurals>
+    <plurals name="app_delete_done_failed">
+        <item quantity="zero">لم يتعذّر حذف أي ملف</item>
+        <item quantity="one">تعذّر حذف ملف واحد وبقي على الهاتف</item>
+        <item quantity="two">تعذّر حذف ملفين وبقيا على الهاتف</item>
+        <item quantity="few">تعذّر حذف %d ملفات وبقيت على الهاتف</item>
+        <item quantity="many">تعذّر حذف %d ملفًا وبقيت على الهاتف</item>
+        <item quantity="other">تعذّر حذف %d ملف وبقيت على الهاتف</item>
+    </plurals>
+    <plurals name="app_move_left">
+        <item quantity="zero">لا ملفات متبقية</item>
+        <item quantity="one">بقي ملف واحد</item>
+        <item quantity="two">بقي ملفان</item>
+        <item quantity="few">بقيت %d ملفات</item>
+        <item quantity="many">بقي %d ملفًا</item>
+        <item quantity="other">بقي %d ملف</item>
+    </plurals>
+    <plurals name="app_moved_in">
+        <item quantity="zero">لم يُنقل أي فيديو</item>
+        <item quantity="one">نُقل فيديو واحد إلى المجلد الخاص</item>
+        <item quantity="two">نُقل فيديوان إلى المجلد الخاص</item>
+        <item quantity="few">نُقلت %d فيديوهات إلى المجلد الخاص</item>
+        <item quantity="many">نُقل %d فيديو إلى المجلد الخاص</item>
+        <item quantity="other">نُقل %d فيديو إلى المجلد الخاص</item>
+    </plurals>
+    <plurals name="app_moved_out">
+        <item quantity="zero">لم يُعد أي فيديو إلى المكتبة</item>
+        <item quantity="one">أُعيد فيديو واحد إلى المكتبة</item>
+        <item quantity="two">أُعيد فيديوان إلى المكتبة</item>
+        <item quantity="few">أُعيدت %d فيديوهات إلى المكتبة</item>
+        <item quantity="many">أُعيد %d فيديو إلى المكتبة</item>
+        <item quantity="other">أُعيد %d فيديو إلى المكتبة</item>
+    </plurals>
+    <plurals name="app_private_password_short">
+        <item quantity="zero">كلمة المرور مطلوبة</item>
+        <item quantity="one">استخدم حرفًا واحدًا على الأقل</item>
+        <item quantity="two">استخدم حرفين على الأقل</item>
+        <item quantity="few">استخدم %d أحرف على الأقل</item>
+        <item quantity="many">استخدم %d حرفًا على الأقل</item>
+        <item quantity="other">استخدم %d حرف على الأقل</item>
+    </plurals>
+</resources>

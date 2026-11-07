@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Controls -->
+    <string name="player_back">رجوع</string>
+    <string name="player_lock">قفل الشاشة</string>
+    <string name="player_unlock">فتح القفل</string>
+    <string name="player_play">تشغيل</string>
+    <string name="player_pause">إيقاف مؤقت</string>
+    <string name="player_back_10">رجوع 10 ثوانٍ</string>
+    <string name="player_forward_10">تقديم 10 ثوانٍ</string>
+    <string name="player_subtitles">الترجمة</string>
+    <string name="player_audio">الصوت</string>
+    <string name="player_speed">السرعة</string>
+    <string name="player_speed_title">سرعة التشغيل</string>
+    <string name="player_fit">حجم الصورة</string>
+    <string name="player_episodes">الحلقات</string>
+    <string name="player_more">المزيد</string>
+    <string name="player_times">%1$s×</string>
+    <string name="player_skip_forward">+%1$d</string>
+    <string name="player_skip_back">−%1$d</string>
+    <string name="player_seek_forward">+%1$s</string>
+    <string name="player_seek_back">−%1$s</string>
+    <string name="player_close">إغلاق</string>
+    <string name="player_cancel">إلغاء</string>
+    <string name="player_off">إيقاف</string>
+    <string name="player_less">تقليل</string>
+    <string name="player_more_value">زيادة</string>
+    <string name="player_percent">%1$d%%</string>
+
+    <!-- Picture size -->
+    <string name="player_aspect_fit">مناسب للشاشة</string>
+    <string name="player_aspect_fill">ملء الشاشة</string>
+    <string name="player_aspect_16_9">16:9</string>
+    <string name="player_aspect_4_3">4:3</string>
+    <string name="player_aspect_crop">قص الأطراف</string>
+
+    <!-- Next episode and skipping -->
+    <string name="player_skip_intro">تخطي المقدمة</string>
+    <string name="player_skip_recap">تخطي الملخص</string>
+    <string name="player_skip_credits">تخطي شارة النهاية</string>
+    <string name="player_next_episode">الحلقة التالية</string>
+    <plurals name="player_next_in">
+        <item quantity="zero">الحلقة التالية الآن</item>
+        <item quantity="one">الحلقة التالية بعد ثانية</item>
+        <item quantity="two">الحلقة التالية بعد ثانيتين</item>
+        <item quantity="few">الحلقة التالية بعد %d ثوانٍ</item>
+        <item quantity="many">الحلقة التالية بعد %d ثانية</item>
+        <item quantity="other">الحلقة التالية بعد %d ثانية</item>
+    </plurals>
+    <string name="player_play_now">شغّلها الآن</string>
+
+    <!-- Tracks -->
+    <string name="player_track_unknown">لغة غير معروفة</string>
+    <string name="player_track_forced">إجبارية</string>
+    <string name="player_track_file">ملف</string>
+    <string name="player_track_unplayable">لا يمكن تشغيله</string>
+    <string name="player_channels_mono">أحادي</string>
+    <string name="player_channels_stereo">ستيريو</string>
+    <plurals name="player_channels">
+        <item quantity="zero">بلا قنوات</item>
+        <item quantity="one">قناة واحدة</item>
+        <item quantity="two">قناتان</item>
+        <item quantity="few">%d قنوات</item>
+        <item quantity="many">%d قناة</item>
+        <item quantity="other">%d قناة</item>
+    </plurals>
+
+    <!-- Subtitles -->
+    <string name="player_add_subtitle">إضافة ملف ترجمة</string>
+    <string name="player_subtitle_rejected">هذا الملف ليس ترجمة يقرؤها المشغّل</string>
+    <string name="player_subtitle_delay">تأخير الترجمة</string>
+    <string name="player_delay_value">%1$s ملي ثانية</string>
+    <string name="player_subtitle_style">شكل الترجمة</string>
+    <string name="player_subtitle_encoding">الترميز</string>
+    <string name="player_encoding_auto">تلقائي</string>
+    <string name="player_style_size">الحجم</string>
+    <string name="player_style_position">الارتفاع عن أسفل الشاشة</string>
+    <string name="player_style_outline">إطار حول الحروف</string>
+    <string name="player_style_background">خلفية خلف النص</string>
+    <string name="player_style_font">الخط</string>
+    <string name="player_style_font_default">الخط الافتراضي</string>
+    <string name="player_style_font_reset">الرجوع إلى الخط الافتراضي</string>
+    <string name="player_style_ass_note">ترجمات ASS تحتفظ بشكلها الخاص، والخط المختار يُستخدم لها احتياطيًا فقط.</string>
+    <string name="player_color_white">أبيض</string>
+    <string name="player_color_yellow">أصفر</string>
+    <string name="player_color_cyan">سماوي</string>
+    <string name="player_color_green">أخضر</string>
+
+    <!-- Online subtitles -->
+    <string name="player_online_search">البحث عبر الإنترنت</string>
+    <string name="player_online_title">ترجمات من الإنترنت</string>
+    <string name="player_online_searching">جارٍ البحث في مواقع الترجمة…</string>
+    <string name="player_online_none">لم نجد ترجمة لهذا الفيديو</string>
+    <string name="player_online_retry">إعادة المحاولة</string>
+    <string name="player_online_exact">مطابقة تامة</string>
+    <string name="player_online_pack">حزمة موسم كامل</string>
+    <string name="player_online_unnamed">إصدار بلا اسم</string>
+    <string name="player_online_downloading">جارٍ التنزيل…</string>
+    <string name="player_online_off">ميزات الإنترنت متوقفة، ويمكنك تشغيلها من الإعدادات.</string>
+    <string name="player_online_no_key">أضف مفتاح ترجمة من الإعدادات أولًا.</string>
+    <string name="player_online_network">تعذّر الوصول إلى مواقع الترجمة. تحقق من الاتصال.</string>
+    <string name="player_online_limit">انتهى الحد المتاح في هذا الموقع حاليًا. جرّب نتيجة أخرى أو عُد لاحقًا.</string>
+    <string name="player_online_missing">هذه الحزمة لا تضم هذه الحلقة. جرّب نتيجة أخرى.</string>
+    <string name="player_online_bad">تعذّرت قراءة هذه الترجمة. جرّب نتيجة أخرى.</string>
+
+    <!-- Audio -->
+    <string name="player_audio_delay">تأخير الصوت</string>
+    <string name="player_audio_delay_device">يُحفظ لجهاز %1$s</string>
+    <string name="player_night_audio">الصوت الليلي</string>
+    <string name="player_night_audio_note">يخفّض اللقطات الصاخبة ويرفع صوت الحوار</string>
+
+    <!-- Speed -->
+    <string name="player_speed_normal">%1$s (عادية)</string>
+
+    <!-- More -->
+    <string name="player_info">معلومات الفيديو</string>
+    <string name="player_screenshot">لقطة شاشة</string>
+    <string name="player_screenshot_subtitles">لقطة شاشة مع الترجمة</string>
+    <string name="player_screenshot_saved">حُفظت في Pictures/Frame Glass</string>
+    <string name="player_screenshot_failed">تعذّر حفظ اللقطة</string>
+    <string name="player_sleep_timer">مؤقت النوم</string>
+    <string name="player_sleep_end">نهاية الحلقة</string>
+    <plurals name="player_minutes">
+        <item quantity="zero">%d دقيقة</item>
+        <item quantity="one">دقيقة واحدة</item>
+        <item quantity="two">دقيقتان</item>
+        <item quantity="few">%d دقائق</item>
+        <item quantity="many">%d دقيقة</item>
+        <item quantity="other">%d دقيقة</item>
+    </plurals>
+    <string name="player_rotate">تدوير الشاشة</string>
+    <string name="player_mark_watched">وضع علامة «تمت المشاهدة»</string>
+    <string name="player_mark_unwatched">إزالة علامة «تمت المشاهدة»</string>
+    <string name="player_watched">تمت مشاهدتها</string>
+    <string name="player_season">الموسم %1$d</string>
+
+    <!-- Intro -->
+    <string name="player_set_intro">تحديد المقدمة</string>
+    <string name="player_intro_note">أغلق هذه النافذة، وانتقل إلى اللحظة المطلوبة، ثم ارجع واضغط. يكفي أن تفعل هذا مرة واحدة لكل مسلسل.</string>
+    <string name="player_intro_start">المقدمة تبدأ هنا</string>
+    <string name="player_intro_end">المقدمة تنتهي هنا</string>
+    <string name="player_intro_save_season">حفظ لهذا الموسم</string>
+    <string name="player_intro_save_series">حفظ للمسلسل كله</string>
+
+    <!-- Info panel -->
+    <string name="player_info_codec">ترميز الفيديو</string>
+    <string name="player_info_resolution">الدقة</string>
+    <string name="player_info_frame_rate">معدل الإطارات</string>
+    <string name="player_info_bitrate">معدل البت</string>
+    <string name="player_info_mbps">%1$s Mbps</string>
+    <string name="player_info_hdr">HDR</string>
+    <string name="player_info_decoder">مفكك الفيديو</string>
+    <string name="player_info_hardware">عتادي</string>
+    <string name="player_info_software">برمجي</string>
+    <string name="player_info_dropped">الإطارات المفقودة</string>
+    <string name="player_info_audio">الصوت</string>
+    <string name="player_info_khz">%1$.1f kHz</string>
+    <string name="player_info_audio_decoder">مفكك الصوت</string>
+    <string name="player_hdr_sdr">SDR</string>
+    <string name="player_hdr_dv_base">Dolby Vision P%1$d، يُعرض بصيغة %2$s</string>
+    <string name="player_hdr_dv_warning">Dolby Vision P%1$d غير مدعوم بالكامل هنا، وقد تظهر الألوان غير صحيحة</string>
+    <string name="player_hdr_dv_unknown">Dolby Vision بملف تعريف غير معروف، وقد تظهر الألوان غير صحيحة</string>
+    <string name="player_hdr_software_note">هذا الفيديو بتقنية HDR يعمل بمفكك برمجي لا يتعامل مع HDR، لذلك قد تظهر الألوان غير صحيحة.</string>
+
+    <!-- Failures -->
+    <string name="player_open_elsewhere">فتح في مشغّل آخر</string>
+    <string name="player_error_missing">هذا الملف غير متاح. ربما نُقل أو فُصل القرص الذي يحمله.</string>
+    <string name="player_error_damaged">يبدو أن هذا الملف تالف، لذلك توقف التشغيل هنا.</string>
+    <string name="player_error_incomplete">توقف التشغيل هنا لأن الملف غير مكتمل. ربما لم ينتهِ تنزيله بعد.</string>
+    <string name="player_no_seek">لا يمكن التقديم أو الترجيع في هذا الملف</string>
+    <string name="player_error_other">حدث ما أوقف التشغيل.</string>
+    <string name="player_error_unsupported">لا يمكن تشغيل صيغة هذا الملف هنا.</string>
+    <string name="player_error_codec">يستخدم هذا الملف %1$s، ولا يمكن تشغيله هنا.</string>
+</resources>

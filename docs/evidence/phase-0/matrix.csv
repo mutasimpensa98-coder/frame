@@ -1,0 +1,67 @@
+key,cls,result,notes,interruptions,videoDecoder,audioDecoder,firstFrameMs,rendered,dropped,rmsDb,ssim,cues,assTrack,error,seekReadyMs
+A1a,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,75,191,0,-17.0,0.626862,0,False,,80
+A1b,Core,PASS,,0,c2.qti.avc.decoder,c2.sec.mp3.decoder.mpeg,63,193,0,-17.3,0.950561,0,False,,170
+A2,Core,PASS,,0,c2.qti.avc.decoder,c2.dolby.eac3.decoder.ac3,89,191,0,-9.1,0.892311,0,False,,62
+A3,Core,PASS,,0,c2.qti.avc.decoder,c2.dolby.eac3.decoder.eac3,58,192,0,-9.1,0.892807,0,False,,113
+A4,Core,PASS,,0,c2.qti.avc.decoder,ffmpegLavc63.1.101-dca,52,191,0,-20.2,0.907073,0,False,,102
+A5,Core,PASS,,0,c2.qti.avc.decoder,ffmpegLavc63.1.101-truehd,69,191,0,-19.5,0.899718,0,False,,111
+A6a,Core,PASS,,0,c2.qti.avc.decoder,c2.sec.flac.decoder,147,191,0,-19.5,0.919646,0,False,,81
+A6b,Core,PASS,,0,c2.qti.avc.decoder,c2.android.opus.decoder,63,191,0,-19.5,0.910374,0,False,,93
+A6c,Core,PASS,,0,c2.qti.avc.decoder,c2.android.vorbis.decoder,59,191,0,-16.9,0.89059,0,False,,82
+A8a,Stretch,PASS,,0,c2.qti.avc.decoder,ffmpegLavc63.1.101-alac,56,192,0,-17.0,0.686762,0,False,,61
+A8b,Stretch,PASS,,0,c2.qti.avc.decoder,,85,191,0,-17.0,0.903134,0,False,,89
+A8c,Stretch,FAIL,error; firstFrame -1; no audio None; no seek data,0,,,-1,,,-200,,0,False,"ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED: None of the available extractors (t71, o51, s75, ya1, ax2, q5, jn3, d53, nz4, AssMatroskaExtractor, g5, t2, v2, rw2, fm, pp1, sq, im, sq, pp1, im) could read the stream. {contentIsMalformed=false, dataType=1}
+sniff failures: [NoDeclaredBrand, NoDeclaredBrand]",
+C1+0,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,59,192,0,-17.0,0.794509,0,False,,153
+C1,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,64,191,0,-17.0,0.794859,0,False,,183
+C2,Core,FAIL,not reported as incomplete: None; stopped at 7882 of 30021,0,c2.qti.avc.decoder,c2.android.aac.decoder,54,192,0,-17.0,,0,False,,
+C3+0,Core,PASS,,0,,,-1,,,-200,,0,False,"ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED: None of the available extractors (d50, f40, gx1, d70, zu0, k3, v71, cz0, ms1, AssMatroskaExtractor, b3, r1, t1, qu0, tb, ta0, xd, wb, xd, ta0, wb) could read the stream. {contentIsMalformed=false, dataType=1}
+sniff failures: [NoDeclaredBrand, NoDeclaredBrand]",
+C3,Core,PASS,,0,,,-1,,,-200,,0,False,"ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED: None of the available extractors (d50, f40, gx1, d70, zu0, k3, v71, cz0, ms1, AssMatroskaExtractor, b3, r1, t1, qu0, tb, ta0, xd, wb, xd, ta0, wb) could read the stream. {contentIsMalformed=false, dataType=1}
+sniff failures: [NoDeclaredBrand, NoDeclaredBrand]",
+C4,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,55,193,0,-17.0,0.800837,0,False,,153
+C5,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,170,80,0,-16.2,0.812832,0,False,,79
+H1,Core,PASS,,0,c2.qti.hevc.decoder,c2.android.aac.decoder,75,477,0,-17.0,,0,False,,466
+H2,Core,PASS,,0,c2.qti.hevc.decoder,c2.android.aac.decoder,72,239,0,-17.0,,0,False,,280
+H3,Core,PASS,,0,c2.qti.hevc.decoder,c2.android.aac.decoder,99,189,0,-17.0,,0,False,,273
+S1,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,51,191,0,-17.0,0.783281,0,False,,192
+S1@.cp1256.srt,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,69,192,0,-17.0,0.783281,3,False,,192
+S1@.utf16.srt,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,63,191,0,-17.0,0.783281,3,False,,193
+S1@.utf8.srt,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,62,191,0,-17.0,0.783281,3,False,,194
+S1@.utf8bom.srt,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,63,191,0,-17.0,0.783281,3,False,,191
+S2+0,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,60,192,0,-17.0,0.794333,3,False,,151
+S2,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,66,191,0,-17.0,0.794333,0,False,,131
+S2@.vtt,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,62,191,0,-17.0,0.794333,3,False,,152
+S3,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,584,192,0,-17.0,0.873385,0,True,,253
+S4,Core,FAIL,"seek off in 1/5, worst 1.1",0,c2.qti.hevc.decoder,c2.android.aac.decoder,1484,475,0,-17.0,0.974714,0,True,,901
+S5,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,300,191,0,-17.0,0.904344,0,True,,170
+S6,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,305,192,0,-17.0,0.880998,0,True,,150
+S7,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,300,191,0,-17.0,0.880883,0,True,,150
+S7@.srt,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,308,190,0,-17.0,0.880883,3,False,,192
+S8,Core,PASS,,0,c2.qti.avc.decoder,c2.dolby.eac3.decoder.ac3,95,192,0,-9.1,0.878374,3,False,,113
+V1,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,254,720,0,-17.0,0.62737,0,False,,101
+V10a,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,65,239,0,-17.0,,0,False,,
+V10b,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,57,199,0,-17.0,0.896962,0,False,,100
+V11_120,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,47,952,0,-17.0,0.900835,0,False,,101
+V11_23976,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,104,191,0,-17.0,0.909077,0,False,,172
+V11_25,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,114,199,0,-17.0,0.902032,0,False,,112
+V11_2997,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,105,240,0,-17.0,0.869841,0,False,,545
+V11_60,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,70,478,0,-17.0,0.899332,0,False,,130
+V11_vfr,Core,FAIL,"seek off in 2/5, worst 1.4",0,c2.qti.avc.decoder,c2.android.aac.decoder,51,233,0,-17.0,,0,False,,434
+V12,Stretch,PASS,,0,ffmpegLavc63.1.101-mpeg2video,c2.sec.mp3.decoder.mpeg-L2,48,95,0,-17.0,,0,False,,
+V13,Stretch,FAIL,error; firstFrame -1,0,,,-1,,,-200,,0,False,"ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED: None of the available extractors (t71, o51, s75, ya1, ax2, q5, jn3, d53, nz4, AssMatroskaExtractor, g5, t2, v2, rw2, fm, pp1, sq, im, sq, pp1, im) could read the stream. {contentIsMalformed=false, dataType=1}
+sniff failures: [NoDeclaredBrand, NoDeclaredBrand]",
+V14,Stretch,FAIL,error; firstFrame -1,0,,,-1,,,-200,,0,False,"ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED: None of the available extractors (t71, o51, s75, ya1, ax2, q5, jn3, d53, nz4, AssMatroskaExtractor, g5, t2, v2, rw2, fm, pp1, sq, im, sq, pp1, im) could read the stream. {contentIsMalformed=false, dataType=1}
+sniff failures: [NoDeclaredBrand, NoDeclaredBrand]",
+V15,Stretch,FAIL,firstFrame -1; no seek data,0,,c2.android.aac.decoder,-1,,,-200,,0,False,,
+V16,Stretch,FAIL,"seek off in 5/5, worst 801.4",0,c2.qti.avc.decoder,c2.android.aac.decoder,59,238,0,-17.0,0.590757,0,False,,31
+V2,Core,PASS,,0,ffmpegLavc63.1.101-h264,c2.android.aac.decoder,114,718,0,-17.0,0.625937,0,False,,173
+V3,Core,PASS,,0,c2.qti.hevc.decoder,c2.android.aac.decoder,55,720,0,-17.0,0.915858,0,False,,119
+V4,Core,PASS,,0,c2.qti.hevc.decoder,c2.android.aac.decoder,67,720,0,-17.0,0.970525,0,False,,203
+V5,Core,PASS,,0,c2.qti.hevc.decoder,c2.android.aac.decoder,121,1799,0,-17.0,0.971571,0,False,,466
+V6,Core,PASS,,0,c2.qti.av1.decoder,c2.android.opus.decoder,79,720,0,-17.0,0.940862,0,False,,112
+V7,Core,PASS,,0,c2.qti.av1.decoder,c2.android.opus.decoder,135,192,0,-17.0,0.964733,0,False,,273
+V8,Core,PASS,,0,c2.qti.vp9.decoder,c2.android.opus.decoder,149,192,0,-17.0,0.963803,0,False,,496
+V9,Core,PASS,,0,c2.sec.mpeg4.decoder,c2.sec.mp3.decoder.mpeg,285,174,0,-17.4,0.698914,0,False,,51
+Y1,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,52,475,0,-20.6,,0,False,,
+Y2,Core,PASS,,0,c2.qti.avc.decoder,c2.android.aac.decoder,85,192,0,-17.0,0.886513,0,False,,91

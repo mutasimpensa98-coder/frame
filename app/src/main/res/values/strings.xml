@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Frame Glass</string>
+
+    <string name="app_tab_home">Home</string>
+    <string name="app_tab_search">Search</string>
+    <string name="app_tab_library">Library</string>
+    <string name="app_tab_settings">Settings</string>
+
+    <string name="app_continue_watching">Continue watching</string>
+    <string name="app_top_rated">Top rated in your library</string>
+    <string name="app_collection">Collection</string>
+    <string name="app_section_videos">Videos</string>
+    <string name="app_home_empty">No videos found on this phone</string>
+    <string name="app_home_empty_places">Add a place for Frame Glass to look for videos</string>
+    <string name="app_home_no_access">Allow access to your files so Frame Glass can find your videos</string>
+    <string name="app_home_scanning">Looking for videos…</string>
+    <string name="app_home_search_again">Search again</string>
+
+    <string name="app_add_place">Add a place</string>
+    <string name="app_add_place_hint">Frame Glass searches the whole phone by itself. Add other places here, such as a USB drive.</string>
+    <string name="app_add_this_folder">Add this folder</string>
+    <string name="app_folder_added">Already in your library</string>
+    <string name="app_folder_up">Up one level</string>
+    <string name="app_folder_storage">All storage</string>
+    <string name="app_folder_no_subfolders">No folders inside this one.</string>
+    <string name="app_folder_empty">Nothing to show in this folder.</string>
+    <string name="app_folder_remove">Remove %1$s</string>
+    <string name="app_files_needed">Frame Glass needs access to all files to read your videos and the subtitles beside them. Nothing leaves the phone.</string>
+    <string name="app_files_allow">Allow access</string>
+
+    <string name="app_resume">Resume</string>
+    <string name="app_play">Play</string>
+    <string name="app_play_episode">Play %1$s</string>
+    <string name="app_unavailable">Unavailable</string>
+    <string name="app_watched">Watched</string>
+    <string name="app_kind_movie">Movie</string>
+    <string name="app_kind_series">Series</string>
+    <string name="app_kind_anime">Anime</string>
+    <string name="app_duration_join">%1$s %2$s</string>
+    <string name="app_list_separator">", "</string>
+    <string name="app_credit_label">%1$s:</string>
+    <string name="app_job_director">Director</string>
+    <string name="app_job_writer">Writer</string>
+    <string name="app_job_screenplay">Screenplay</string>
+    <string name="app_job_story">Story</string>
+    <string name="app_job_creator">Creator</string>
+    <string name="app_show_more">Show more</string>
+    <string name="app_show_less">Show less</string>
+    <string name="app_cast">Cast</string>
+    <string name="app_seasons">Seasons</string>
+    <string name="app_season_number">Season %1$s</string>
+    <string name="app_specials">Specials</string>
+    <string name="app_more">More options</string>
+    <string name="app_back">Back</string>
+    <string name="app_mark_watched">Mark as watched</string>
+    <string name="app_mark_unwatched">Mark as unwatched</string>
+    <string name="app_mark_season_watched">Mark season as watched</string>
+    <string name="app_mark_season_unwatched">Mark season as unwatched</string>
+    <string name="app_choose_version">Choose version</string>
+    <string name="app_fix_match">Fix match</string>
+    <string name="app_fix_match_hint">Search by title</string>
+    <string name="app_fix_match_nothing">No matches. Check the TMDB key in Settings, or try another name.</string>
+    <string name="app_pick_match">Choose the right title</string>
+    <string name="app_change_cover">Change cover</string>
+    <string name="app_remove_from_library">Remove from library</string>
+    <string name="app_remove_title">Remove from library?</string>
+    <string name="app_remove_body">Your files stay on the phone, and progress and the match are kept. Add its folder with + to bring this title back.</string>
+    <string name="app_remove">Remove</string>
+    <string name="app_cancel">Cancel</string>
+    <string name="app_resolution">%1$sp</string>
+    <string name="app_episode_missing">Not in your library</string>
+    <string name="app_chip_new">NEW</string>
+    <string name="app_chip_sub">SUB</string>
+
+    <string name="app_filter_all">All</string>
+    <string name="app_filter_movies">Movies</string>
+    <string name="app_filter_series">Series</string>
+    <string name="app_filter_anime">Anime</string>
+    <string name="app_filter_folders">Folders</string>
+    <string name="app_sort_recent">Recently added</string>
+    <string name="app_sort_name">Name</string>
+    <string name="app_sort_rating">Rating</string>
+    <string name="app_view_grid">Show as grid</string>
+    <string name="app_view_list">Show as list</string>
+    <string name="app_library_empty">No titles here yet.</string>
+    <string name="app_library_no_folders">No folders with videos yet.</string>
+
+    <string name="app_search_title">Search your library</string>
+    <string name="app_search_hint">Titles, actors and genres</string>
+    <string name="app_search_placeholder">Search</string>
+    <string name="app_search_clear">Clear search</string>
+    <string name="app_search_nothing">Nothing found</string>
+    <string name="app_search_people">People</string>
+    <string name="app_search_titles">Titles</string>
+
+    <string name="app_settings_library">Library</string>
+    <string name="app_settings_playback">Playback</string>
+    <string name="app_settings_subtitles">Subtitles</string>
+    <string name="app_settings_online">Online features and keys</string>
+    <string name="app_settings_imdb">Optional: IMDb ratings</string>
+    <string name="app_settings_backup">Backup and restore</string>
+    <string name="app_settings_about">About</string>
+
+    <string name="app_scan_whole_phone">Search the whole phone</string>
+    <string name="app_scan_whole_phone_hint">Finds every video by itself. Turn off to scan only the places you add.</string>
+    <string name="app_scan_now">Scan now</string>
+    <string name="app_scan_hint">New videos also appear by themselves when you open the app.</string>
+    <string name="app_show_unavailable">Show unavailable titles</string>
+    <string name="app_show_unavailable_hint">Titles on internal storage whose files are gone</string>
+    <string name="app_scan_hidden">Include hidden folders</string>
+    <string name="app_scan_nomedia">Include .nomedia folders</string>
+
+    <string name="app_double_tap">Double-tap to skip</string>
+    <string name="app_auto_next">Play the next episode automatically</string>
+    <string name="app_background_audio">Background audio</string>
+    <string name="app_background_audio_hint">Keep playing after you leave the player</string>
+    <string name="app_night_audio">Night audio</string>
+    <string name="app_night_audio_hint">Lowers loud peaks and lifts dialogue</string>
+
+    <string name="app_subtitle_size">Size</string>
+    <string name="app_percent">%1$d%%</string>
+    <string name="app_subtitle_colour">Colour</string>
+    <string name="app_colour_white">White</string>
+    <string name="app_colour_yellow">Yellow</string>
+    <string name="app_colour_cyan">Cyan</string>
+    <string name="app_colour_green">Green</string>
+    <string name="app_subtitle_position">Position</string>
+    <string name="app_position_bottom">Bottom</string>
+    <string name="app_subtitle_background">Text background</string>
+    <string name="app_subtitle_font">Font</string>
+    <string name="app_subtitle_font_hint">For SRT, and as the fallback for ASS</string>
+    <string name="app_subtitle_font_bad">That file is not a usable TTF or OTF font</string>
+    <string name="app_subtitle_font_default">Default</string>
+    <string name="app_subtitle_font_pick">Choose a font file</string>
+
+    <string name="app_online">Online features</string>
+    <string name="app_online_hint">Turn off to stop every network call. The library and playback keep working.</string>
+    <string name="app_key_tmdb">TMDB key</string>
+    <string name="app_key_tmdb_hint">Adds covers, plots, cast and ratings. Without it, Frame Glass still works as a local player.</string>
+    <string name="app_tmdb_server">TMDB address</string>
+    <string name="app_tmdb_server_hint">Change this only if you run your own proxy.</string>
+    <string name="app_tmdb_server_default">Default</string>
+    <string name="app_tmdb_server_reset">Back to default</string>
+    <string name="app_key_opensubtitles">OpenSubtitles key</string>
+    <string name="app_key_subdl">SubDL key</string>
+    <string name="app_key_subsource">SubSource key</string>
+    <string name="app_key_subtitles_hint">Optional, for searching subtitles online</string>
+    <string name="app_key_omdb">OMDb key</string>
+    <string name="app_key_omdb_hint">Optional. Shows an IMDb rating beside the TMDB one.</string>
+    <string name="app_key_added">Added</string>
+    <string name="app_key_none">Not added</string>
+    <string name="app_key_placeholder">Paste the key here</string>
+    <string name="app_key_remove">Remove key</string>
+    <string name="app_save">Save</string>
+
+    <string name="app_backup">Back up</string>
+    <string name="app_backup_hint">Saves progress, matches, custom covers and settings to a zip file. Keys are not included.</string>
+    <string name="app_backup_done">Backup saved</string>
+    <string name="app_backup_failed">The backup could not be saved</string>
+    <string name="app_restore">Restore</string>
+    <string name="app_restore_hint">Replaces this data from a backup file. A safety copy is made first.</string>
+    <string name="app_restore_done">Restored</string>
+    <string name="app_restore_failed">This file could not be restored</string>
+
+    <string name="app_about_hint">TMDB notice and licences</string>
+    <string name="app_about_title">About</string>
+    <string name="app_version">Version %1$s</string>
+    <string name="app_tmdb_notice" translatable="false">This application uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.</string>
+    <string name="app_tmdb_notice_translation"></string>
+    <string name="app_tmdb_logo">TMDB logo</string>
+    <string name="app_imdb_statement">This application is not affiliated with IMDb.</string>
+    <string name="app_licences">Licences</string>
+    <string name="app_licence_gpl">NextLib with FFmpeg</string>
+    <string name="app_licence_mit">ass-media, anibridge mappings</string>
+    <string name="app_licence_apache">AndroidX, Media3, Kotlin, OkHttp, Coil, Haze</string>
+    <string name="app_licence_ofl">Alexandria, IBM Plex Sans Arabic, Noto Naskh Arabic</string>
+
+    <string name="app_onboarding_files_title">Allow access to your files</string>
+    <string name="app_onboarding_files_body">Frame Glass then searches the phone for your videos and the subtitles beside them. Nothing leaves the phone.</string>
+    <string name="app_onboarding_key_title">Add a TMDB key</string>
+    <string name="app_onboarding_key_body">Optional. It brings covers, plots and cast. You can add it later in Settings.</string>
+    <string name="app_onboarding_sleep_title">Keep Frame Glass awake</string>
+    <string name="app_onboarding_sleep_body">Samsung can put unused apps to sleep. In Settings, open Battery, then Background usage limits, and add Frame Glass to Never sleeping apps.</string>
+    <string name="app_onboarding_sleep_open">Open battery settings</string>
+    <string name="app_onboarding_finish">Finish</string>
+    <string name="app_onboarding_later">Later</string>
+    <string name="app_onboarding_skip">Skip</string>
+
+    <string name="app_settings_group_general">General</string>
+    <string name="app_settings_group_watching">Watching</string>
+    <string name="app_settings_group_storage">Storage</string>
+    <string name="app_settings_group_app">App</string>
+    <string name="app_settings_appearance">Appearance</string>
+    <string name="app_settings_appearance_hint">Theme, accent colour and cover tint</string>
+    <string name="app_settings_language">Language</string>
+    <string name="app_settings_language_hint">Follow the phone, Arabic or English</string>
+    <string name="app_settings_library_hint">Search, excluded folders and hidden titles</string>
+    <string name="app_settings_playback_hint">Double-tap, next episode and audio</string>
+    <string name="app_settings_subtitles_hint">Size, colour, position and font</string>
+    <string name="app_settings_media">Media Manager</string>
+    <string name="app_settings_media_hint">See what takes up space, and delete videos</string>
+    <string name="app_settings_private">Private folder</string>
+    <string name="app_settings_private_hint">Opens only with your password or fingerprint</string>
+    <string name="app_settings_online_hint">TMDB and subtitle keys, and what leaves the phone</string>
+    <string name="app_settings_backup_hint">Save progress and settings to a file</string>
+    <string name="app_page_online">Online and keys</string>
+    <string name="app_page_backup">Backup</string>
+
+    <string name="app_appearance_preview">Preview</string>
+    <string name="app_appearance_theme">Theme</string>
+    <string name="app_appearance_accent">Accent colour</string>
+    <string name="app_appearance_art">Cover art</string>
+    <string name="app_cover_tint">Cover tint</string>
+    <string name="app_cover_tint_hint">Spreads a soft colour from the cover behind Details and the top of Home</string>
+    <string name="app_preview_title">Tonight\'s film</string>
+    <string name="app_preview_genre">Drama</string>
+
+    <string name="app_language_section">App language</string>
+    <string name="app_language_system">Follow the phone</string>
+    <string name="app_language_system_hint">Uses the language set on the phone</string>
+    <string name="app_language_arabic" translatable="false">العربية</string>
+    <string name="app_language_english" translatable="false">English</string>
+
+    <string name="app_library_section_search">Finding videos</string>
+    <string name="app_library_section_show">What shows in the library</string>
+    <string name="app_excluded_title">Excluded folders</string>
+    <string name="app_excluded_add">Exclude a folder</string>
+    <string name="app_excluded_add_hint">Its videos leave the library and scans skip it. The files stay on the phone.</string>
+    <string name="app_excluded_pick">Exclude this folder</string>
+    <string name="app_excluded_already">Already excluded</string>
+    <string name="app_excluded_remove">Stop excluding %1$s</string>
+    <string name="app_hidden_title">Hidden titles</string>
+    <string name="app_hidden_empty">No hidden titles</string>
+    <string name="app_hidden_restore">Restore</string>
+
+    <string name="app_menu_favorite_add">Add to favourites</string>
+    <string name="app_menu_favorite_remove">Remove from favourites</string>
+    <string name="app_menu_hide">Hide</string>
+    <string name="app_menu_hide_hint">Bring it back from Settings, Library</string>
+    <string name="app_menu_exclude">Exclude this folder</string>
+    <string name="app_menu_private">Move to private folder</string>
+    <string name="app_menu_delete">Delete</string>
+
+    <string name="app_filter_favorites">Favourites</string>
+    <string name="app_favorites_empty">Nothing saved yet. Tap Save on a title, or press and hold its card.</string>
+    <string name="app_saved">Saved</string>
+
+    <string name="app_file_section">File</string>
+    <string name="app_files_section">Files</string>
+    <string name="app_fact_size">Size</string>
+    <string name="app_fact_duration">Duration</string>
+    <string name="app_fact_resolution">Resolution</string>
+    <string name="app_fact_resolution_value" translatable="false">%1$s × %2$s</string>
+    <string name="app_fact_video">Video</string>
+    <string name="app_fact_audio">Audio</string>
+    <string name="app_fact_hdr" translatable="false">HDR</string>
+    <string name="app_fact_sdr" translatable="false">SDR</string>
+    <string name="app_fact_folder">Folder</string>
+    <string name="app_fact_modified">Modified</string>
+
+    <string name="app_refresh_none">No new videos</string>
+
+    <string name="app_media_used_free">%1$s used, %2$s free</string>
+    <string name="app_media_legend_videos">Videos</string>
+    <string name="app_media_legend_other">Other</string>
+    <string name="app_media_legend_free">Free</string>
+    <string name="app_media_tab_largest">Largest videos</string>
+    <string name="app_media_tab_clips">Clips</string>
+    <string name="app_media_empty">Nothing here</string>
+    <string name="app_media_select">Select</string>
+    <string name="app_media_select_done">Cancel selection</string>
+    <string name="app_media_open_title">Open title</string>
+    <string name="app_media_open_folder">Open folder</string>
+
+    <string name="app_delete_title_plain">Delete</string>
+    <string name="app_delete_files">Videos</string>
+    <string name="app_delete_size">Size freed</string>
+    <string name="app_delete_trash_space">Their space comes back when the phone empties its trash.</string>
+    <string name="app_delete_sidecars">Also delete subtitles</string>
+    <string name="app_delete_keeps">Watch progress and matches stay.</string>
+    <string name="app_delete_running">Deleting…</string>
+    <string name="app_delete_done_title">Delete finished</string>
+    <string name="app_delete_done_freed">%1$s freed</string>
+    <string name="app_delete_done_nothing">Nothing was deleted.</string>
+    <string name="app_ok">OK</string>
+
+    <string name="app_move_in_title">Moving to the private folder</string>
+    <string name="app_move_out_title">Moving out of the private folder</string>
+    <string name="app_move_done_title">Move finished</string>
+    <string name="app_move_failed_title">Move failed</string>
+    <string name="app_move_failed">The move could not finish. Your videos stay where they were.</string>
+    <string name="app_move_leave_hint">You can leave this screen. The move carries on.</string>
+    <string name="app_move_nothing">Nothing was moved.</string>
+
+    <string name="app_online_subtitles">Online subtitles</string>
+    <string name="app_send_release">Send the release name</string>
+    <string name="app_send_release_hint">Only when you tap a subtitle search. It finds subtitles that fit this copy better.</string>
+    <string name="app_send_hash">Send the file hash</string>
+    <string name="app_send_hash_hint">Only when you tap a subtitle search, with the file size, to OpenSubtitles. The video itself never leaves the phone.</string>
+
+    <string name="app_playback_section">Player</string>
+    <string name="app_subtitle_section">Subtitle look</string>
+
+    <string name="app_private_intro">Videos you move here leave the library, search and Media Manager. Only your password or fingerprint opens this page.</string>
+    <string name="app_private_uninstall_warning">Uninstalling Frame Glass deletes the private folder and everything in it.</string>
+    <string name="app_private_not_encrypted">This is not extra encryption. Videos sit in the app\'s own storage, out of reach of other apps and the gallery.</string>
+    <string name="app_private_new_password">New password</string>
+    <string name="app_private_repeat_password">Repeat the password</string>
+    <string name="app_private_password_differ">The two passwords do not match</string>
+    <string name="app_private_create">Create password</string>
+    <string name="app_private_code_title">Save your recovery code</string>
+    <string name="app_private_code_warning">This code is shown only once. Without it, a forgotten password cannot be reset and the private folder stays closed.</string>
+    <string name="app_private_code_hint">Write it down and keep it somewhere safe, away from this phone. Screenshots are blocked on this page.</string>
+    <string name="app_private_code_saved">I saved the recovery code</string>
+    <string name="app_private_continue">Continue</string>
+    <string name="app_private_locked">This folder is locked.</string>
+    <string name="app_private_password">Password</string>
+    <string name="app_private_unlock">Unlock</string>
+    <string name="app_private_checking">Checking…</string>
+    <string name="app_private_wrong_password">Wrong password</string>
+    <string name="app_private_wrong_code">That code does not match</string>
+    <string name="app_private_use_fingerprint">Use fingerprint</string>
+    <string name="app_private_use_password">Use password</string>
+    <string name="app_private_fingerprint_title">Open the private folder</string>
+    <string name="app_private_forgot">Forgot your password?</string>
+    <string name="app_private_reset">Reset with recovery code</string>
+    <string name="app_private_reset_hint">Enter the code you saved, then choose a new password. Your videos stay in the folder.</string>
+    <string name="app_private_reset_confirm">Reset password</string>
+    <string name="app_private_code_field">Recovery code</string>
+    <string name="app_private_change_password">Change password</string>
+    <string name="app_private_old_password">Current password</string>
+    <string name="app_private_security">Security</string>
+    <string name="app_private_fingerprint">Unlock with fingerprint</string>
+    <string name="app_private_fingerprint_hint">You can always use the password instead</string>
+    <string name="app_private_fingerprint_missing">Add a fingerprint in the phone\'s settings first</string>
+    <string name="app_private_lock_after">Lock after leaving</string>
+    <string name="app_private_lock_after_hint">How long the folder stays open after you leave it</string>
+    <string name="app_private_lock_at_once">At once</string>
+    <string name="app_private_lock_now">Lock now</string>
+    <string name="app_private_empty">Nothing here yet. In the library, press and hold a card and choose Move to private folder.</string>
+    <string name="app_private_hint">Press and hold a video to move it out.</string>
+    <string name="app_private_move_out">Move out</string>
+    <string name="app_private_move_out_hint">Back to its original folder</string>
+
+    <plurals name="app_videos">
+        <item quantity="one">%d video</item>
+        <item quantity="other">%d videos</item>
+    </plurals>
+    <plurals name="app_episodes">
+        <item quantity="one">%d episode</item>
+        <item quantity="other">%d episodes</item>
+    </plurals>
+    <plurals name="app_versions">
+        <item quantity="one">%d version</item>
+        <item quantity="other">%d versions</item>
+    </plurals>
+    <plurals name="app_titles_in_library">
+        <item quantity="one">%d title in your library</item>
+        <item quantity="other">%d titles in your library</item>
+    </plurals>
+    <plurals name="app_hours">
+        <item quantity="one">%dh</item>
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="app_minutes">
+        <item quantity="one">%d min</item>
+        <item quantity="other">%d min</item>
+    </plurals>
+    <plurals name="app_seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <plurals name="app_scan_found">
+        <item quantity="one">Scanning: %d video found</item>
+        <item quantity="other">Scanning: %d videos found</item>
+    </plurals>
+    <plurals name="app_scan_matching">
+        <item quantity="one">Matching %d title</item>
+        <item quantity="other">Matching %d titles</item>
+    </plurals>
+    <plurals name="app_refresh_new">
+        <item quantity="one">%d new video</item>
+        <item quantity="other">%d new videos</item>
+    </plurals>
+    <plurals name="app_media_folders">
+        <item quantity="one">%d folder</item>
+        <item quantity="other">%d folders</item>
+    </plurals>
+    <plurals name="app_media_selected">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <plurals name="app_delete_title">
+        <item quantity="one">Delete %d video?</item>
+        <item quantity="other">Delete %d videos?</item>
+    </plurals>
+    <plurals name="app_delete_more">
+        <item quantity="one">and %d more</item>
+        <item quantity="other">and %d more</item>
+    </plurals>
+    <plurals name="app_delete_to_trash">
+        <item quantity="one">%d file goes to the phone\'s trash, so you can restore it from there.</item>
+        <item quantity="other">%d files go to the phone\'s trash, so you can restore them from there.</item>
+    </plurals>
+    <plurals name="app_delete_gone">
+        <item quantity="one">%d file will be gone for good. It cannot be restored.</item>
+        <item quantity="other">%d files will be gone for good. They cannot be restored.</item>
+    </plurals>
+    <plurals name="app_delete_sidecars_hint">
+        <item quantity="one">%d subtitle file</item>
+        <item quantity="other">%d subtitle files</item>
+    </plurals>
+    <plurals name="app_delete_done_trash">
+        <item quantity="one">%d file moved to the phone\'s trash</item>
+        <item quantity="other">%d files moved to the phone\'s trash</item>
+    </plurals>
+    <plurals name="app_delete_done_gone">
+        <item quantity="one">%d file deleted for good</item>
+        <item quantity="other">%d files deleted for good</item>
+    </plurals>
+    <plurals name="app_delete_done_failed">
+        <item quantity="one">%d file could not be deleted and stays on the phone</item>
+        <item quantity="other">%d files could not be deleted and stay on the phone</item>
+    </plurals>
+    <plurals name="app_move_left">
+        <item quantity="one">%d file left</item>
+        <item quantity="other">%d files left</item>
+    </plurals>
+    <plurals name="app_moved_in">
+        <item quantity="one">%d video moved to the private folder</item>
+        <item quantity="other">%d videos moved to the private folder</item>
+    </plurals>
+    <plurals name="app_moved_out">
+        <item quantity="one">%d video moved back to the library</item>
+        <item quantity="other">%d videos moved back to the library</item>
+    </plurals>
+    <plurals name="app_private_password_short">
+        <item quantity="one">Use at least %d character</item>
+        <item quantity="other">Use at least %d characters</item>
+    </plurals>
+</resources>

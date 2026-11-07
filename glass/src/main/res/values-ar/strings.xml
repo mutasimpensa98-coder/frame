@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="glass_close">إغلاق</string>
+    <string name="glass_new_episode">حلقة جديدة</string>
+    <string name="glass_rating">التقييم %1$s على %2$s</string>
+    <string name="glass_sort_by">الترتيب حسب %1$s</string>
+    <string name="glass_unavailable">غير متوفر</string>
+    <string name="glass_view_all">عرض الكل</string>
+    <string name="glass_watched">تمت مشاهدته</string>
+
+    <string name="glass_theme_system">حسب الهاتف</string>
+    <string name="glass_theme_dark">داكن</string>
+    <string name="glass_theme_light">فاتح</string>
+    <string name="glass_accent_white">أبيض</string>
+    <string name="glass_accent_black">أسود</string>
+    <string name="glass_accent_blue">أزرق</string>
+    <string name="glass_accent_red">أحمر</string>
+    <string name="glass_accent_green">أخضر</string>
+    <string name="glass_accent_amber">كهرماني</string>
+    <string name="glass_accent_violet">بنفسجي</string>
+
+    <string name="glass_left_under_minute">باقي أقل من دقيقة</string>
+    <string name="glass_hours_minutes_left">باقي %1$s و%2$s</string>
+    <plurals name="glass_minutes_left">
+        <item quantity="zero">باقي أقل من دقيقة</item>
+        <item quantity="one">باقي دقيقة</item>
+        <item quantity="two">باقي دقيقتان</item>
+        <item quantity="few">باقي %d دقائق</item>
+        <item quantity="many">باقي %d دقيقة</item>
+        <item quantity="other">باقي %d دقيقة</item>
+    </plurals>
+    <plurals name="glass_hours_left">
+        <item quantity="zero">باقي أقل من ساعة</item>
+        <item quantity="one">باقي ساعة</item>
+        <item quantity="two">باقي ساعتان</item>
+        <item quantity="few">باقي %d ساعات</item>
+        <item quantity="many">باقي %d ساعة</item>
+        <item quantity="other">باقي %d ساعة</item>
+    </plurals>
+    <plurals name="glass_hours">
+        <item quantity="zero">أقل من ساعة</item>
+        <item quantity="one">ساعة</item>
+        <item quantity="two">ساعتان</item>
+        <item quantity="few">%d ساعات</item>
+        <item quantity="many">%d ساعة</item>
+        <item quantity="other">%d ساعة</item>
+    </plurals>
+    <plurals name="glass_minutes">
+        <item quantity="zero">أقل من دقيقة</item>
+        <item quantity="one">دقيقة</item>
+        <item quantity="two">دقيقتان</item>
+        <item quantity="few">%d دقائق</item>
+        <item quantity="many">%d دقيقة</item>
+        <item quantity="other">%d دقيقة</item>
+    </plurals>
+</resources>

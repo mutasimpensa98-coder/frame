@@ -1,0 +1,113 @@
+# Next
+
+Updated 2026-11-07, at the end of the improvement package. Read `STATUS.md` first. R1 applies to all of this as changed by the GitHub waiver of 2026-11-07 in `WAIVERS.md`: one private repository under the owner's account is allowed, and everything else stands: no team-knowledge, no lessons inbox.
+
+The project had no git commit when this was written, so nothing has been pushed. `origin` appeared in `.git/config` at 21:15, after that waiver was recorded at 21:08. This round did not add it.
+
+**Before the first commit:** `.gitignore` does not yet cover what the waiver keeps out of the history. A plain `git add .` would take the 12 phone screenshots in `docs/evidence/phase-1/first-build/`, the 195 files in `docs/evidence/phase-0/raw/` and `docs/device/`. Check those for device serials and the owner's file names, and check `third_party/` and `tools/` for keys or test media. Add the ignores first, because a clean history cannot be fixed after a push.
+
+## 1. Put this build on the phone
+
+Nothing below was done in this round. Agents were told not to use adb.
+
+1. Connect the phone by wireless adb, then run `.\fg.ps1 ship`. This is the first update that changes the schema, version 1 to 2. `tools/check_update.py` passes on desktop SQLite with 21 saved rows kept, but `MIGRATION_1_2` has never run on Android. After the install, confirm that the library, watch progress, settings and keys are all still there. If the open fails, find the cause. Never uninstall.
+2. Run `.\fg.ps1 qa`, then `python tools/matrix.py rerun`, with the screen kept on. It redoes the rows that failed or were cut off. A full `matrix.py run` moves `raw` to `raw-<time>`, so use `rerun`.
+3. Before moving anything real into the private folder, test with a throwaway clip: move in, play, kill the app, reopen, move out, then compare the file with the original.
+4. Before deleting anything real, delete a throwaway clip and confirm that it reaches the phone's trash and can be restored from there.
+5. Save screenshots of the new flows under `docs/evidence/phase-1/`, then update `STATUS.md`.
+
+## 2. Owner checklist for this round
+
+Send this to the owner as it stands, and record the answers in `docs/evidence/phase-1/owner-answers.md`.
+
+1. افتح التطبيق بعد التثبيت. هل بدأ يبحث وحده في التلفون بدون ما تضيف مجلد؟
+2. هل ظهرت فيديوهاتك في الرئيسية؟ وهل مقاطع الكاميرا وواتساب في صف «مقاطع» لحالها؟
+3. هل ظهرت الأفلام والمسلسلات ببطاقات بنفس الشكل في الرئيسية وفي المكتبة؟
+4. شغّل فيديو دقيقة، ثم ارجع. هل ظهر شريط التتبع على بطاقته؟
+5. أضف مفتاح TMDB من الإعدادات. هل ظهر التقييم والغلاف على الأفلام والمسلسلات؟
+6. افتح «مقاطع» و«مجلدات» في المكتبة. هل كل شيء في مكانه؟
+7. هل ظهر فيديو ما تبيه، مثل مقاطع تطبيقات أو ملفات مؤقتة؟ اكتب اسم المجلد.
+8. كم تقريبًا أخذ البحث الأول حتى انتهى؟
+
+جولة التحسينات. جرّب أول شيء بمقطع ما يهمك، مش بفيديو مهم:
+
+9. من الإعدادات، غيّر المظهر بين داكن وفاتح وحسب التلفون، وجرّب الألوان الستة. هل كل النصوص واضحة في الفاتح؟ وهل المشغّل بقى داكن؟
+10. غيّر لغة التطبيق بين العربي والإنجليزي. هل كل الشاشات تقلب صح؟
+11. ضغطة طويلة على بطاقة: هل ظهرت القائمة كاملة؟ جرّب المفضلة، وإخفاء العنوان، واستبعاد المجلد.
+12. افتح تفاصيل الملف. هل الحجم والمسار والدقة صحيحة؟
+13. اسحب الشاشة لتحت في الرئيسية أو المكتبة. هل بدأ بحث جديد وظهر عدد الفيديوهات الجديدة؟
+14. افتح إدارة الوسائط. هل أحجام المجلدات والفيديوهات قريبة من اللي تعرفه؟
+15. احذف مقطع تجربة. هل وضّحت لك رسالة التأكيد إن كان يمشي لسلة المهملات أو ينحذف نهائيًا؟ وهل قدرت ترجّعه من السلة؟
+16. افتح المجلد الخاص أول مرة. هل طلع رمز الاسترجاع؟ اكتبه في مكان آمن. وهل البصمة تفتح المجلد؟
+17. انقل مقطع تجربة للمجلد الخاص، وشغّله، ثم رجّعه. هل رجع لمجلده الأصلي؟ وهل اختفى من الرئيسية والبحث وإدارة الوسائط وهو داخل المجلد؟
+18. وأنت تشغّل فيديو من المجلد الخاص، حاول تاخذ لقطة شاشة، وشوف الإشعار. هل الاسم مخفي؟
+19. في المشغّل، افتح الترجمة وابحث أونلاين (يحتاج مفتاح ترجمة). هل ظهرت النتائج والعربي أولها؟ وهل اشتغلت الترجمة بدون ما يعيد الفيديو؟
+
+## 3. Watch for on the phone
+
+These come from reading the code. None has been seen.
+
+- **Time and heat of the first search.** Every new file is hashed, then probed with up to 3 at once. A phone with thousands of clips will run this for a while.
+- **Playback during the first search.** The probing does not pause while a video plays, and playback has priority under section 7.9. If playback stutters, pause `Enricher` while the player is open.
+- **All Files granted without leaving the app.** A catch-up starts only when `MainActivity` is stopped and started again. In split screen or a pop-up window it may not stop, and Home then says no videos until Search again is tapped.
+- **Folder name case.** If MediaStore spells a folder with different case from the disk, its videos can get a second row, which shows as a second version.
+- **Home changing during the first search.** The hero list follows the newest files, so it moves until the search ends.
+- **Trash through MediaStore.** Direct `IS_TRASHED` is expected to work with All Files access. If Android refuses it, the system confirmation appears. A subtitle goes through the Files table, and `createTrashRequest` may refuse a batch that holds one. The whole batch then comes back as failed. Nothing is lost, but the delete would need a fix.
+- **Time to move into the private folder.** Every file is copied, then the whole copy is read back and hashed, so a big film takes about twice its copy time, with heat.
+- **Recovery after a kill during a move.** Both sides are hashed again in `beforeScan`, so one large file delays the first scan after that kill.
+- **BiometricPrompt under R8.** The constructors of `BiometricFragment`, `FingerprintDialogFragment` and `BiometricViewModel` are in `seeds.txt`, kept by the fragment and lifecycle consumer rules. No extra keep rule was needed, but the prompt has only been built, never shown.
+- **`MainActivity` is now a `FragmentActivity`.** Watch for anything that changed with it, such as back handling or the trash confirmation result.
+- **Recents flag.** A process death during private playback leaves the flag set until the next public play.
+- **Font scale 1.3.** `TopGlassBar` is fixed at 34 sp, so settings titles may clip.
+
+## 4. Known limits in this build
+
+- A cut MKV plays to the cut, then shows a friendly message. It cannot seek or resume, and a refused seek shows a message.
+- A cut MKV with cues at the front, cut exactly between clusters, holds the last frame with no message.
+- The delayed error that reaches the player for a cut file was read from bytecode only. Matrix row C2 is the real check.
+- `ScanState.currentFolder` is filled in, but no screen shows it.
+- Changing subtitle encoding or adding a subtitle file still reopens the video. Online results load live.
+- The new-video count after a swipe is a before-and-after difference, so it is approximate.
+- HDR contrast under the 0.78 player sheet scrim is unmeasured.
+- A kill between a copy reaching the private folder and its row committing leaves an unlisted file there. It costs space only, and the original stays. It is not swept on purpose: if the database were ever lost, a sweep would destroy the only copies.
+- If the private copy is damaged and the original is already gone, nothing can restore it. The card stays in the folder.
+- `PrivateVaultImpl`, `MediaManagerImpl` and `MediaStoreTrash` have no test that runs them, because they need Room and MediaStore on a device. Only their pure parts are tested on the JVM.
+
+## 5. Decisions for the owner
+
+1. **Recently added on Home.** F-U5 lists Top rated, genre and collection only. With no key none of them can appear, so this round added Recently added as a fallback, used only when none of those rows qualifies. Keep it, or return to the brief's list?
+2. **Player sheets.** They are solid now, because `SurfaceView` gives Haze nothing to sample. Image 08 shows dimmed video behind the sheet. Keep solid, go back to a see-through tint, or try the `PixelCopy` backdrop of section 7.5?
+3. **Videos under 4.** Brief rule: a row with fewer than 4 titles is hidden. A phone with films and 1 to 3 clips shows those clips only in Library. Keep the rule for the Videos row?
+4. **Cover tint.** `coverTint` is a Settings switch and defaults to off, which keeps the dark look as it was. On spreads the cover colour further. Keep it off by default?
+5. **Lost recovery code.** The code is held in memory until the owner confirms it. If the app dies before that, the code is gone and only the password opens the folder, so a forgotten password then means the videos cannot be reached. A way to issue a new code while unlocked would close this, and it needs a new call beside `PrivateVault`. Build it?
+6. **Uninstalling.** Private videos live in app storage, so uninstalling or clearing the app's data deletes them unless the owner picks Keep data. `hasFragileUserData` offers that choice, and the private folder shows a warning. This cannot be solved without storing them elsewhere. Accept it?
+7. **Moving to a new phone.** `allowBackup="false"` stops cloud backup, but since Android 12 it does not stop device-to-device transfer, and lint flags this. With no `dataExtractionRules`, a transfer may copy `files/vault` and the database to the new phone. The keys are sealed to this phone, so the folder would not open there, but the files would have left it. Adding rules that exclude everything closes this, and the app's own backup zip then becomes the only way to move the library. Add them?
+
+## 6. Gate 0, still open
+
+Gate 0 does not block app work under the waiver, but it still has to pass. Done so far: matrix 50 of 53 Core and the delay proof, both in `phase-0-results.md`.
+
+- Run C2 for the full clip. It stopped at 8 s, before the cut.
+- S4 missed one seek by 1.1 frames. V11_vfr needs a check that fits a variable frame rate.
+- `python tools/matrix.py soak 30` for the soak.
+- Step 0.7, glass over video. `VideoBlurHook.ENABLED` stays false until this is measured. `D:\FrameGlass\releases\test\FG Test phase 0.apk` is the build with the blur button.
+- Step 0.8, storage proof, needs a USB drive. Step 0.9, mpv, is skipped under D3.
+- Real files for H4 to H6, A7, S9 and S10.
+- Complete `phase-0-results.md` with what brief section 0.10 asks: one row per `[UNVERIFIED]` item and per engine risk, and a plain recommendation.
+- Owner checks: font choice, HDR look, Arabic subtitle rendering, dialogue on A2 to A5.
+
+## 7. Build next, in order
+
+1. **`docs/OWNER-REQUESTS.md`.** Seven requests were held for after this package: rating badge colours, refetch on language change, hero rules, the Anime filter, the Details status bar overlap, Cinema mode and automatic subtitle sync. None is started.
+2. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
+3. **F-S4 local intro detection.** Phase 7b.
+4. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `MigrationTestHelper` for 1 to 2, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
+5. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
+
+## 8. Missing project files
+
+- `docs/VERSIONS.md`. `gradle/libs.versions.toml` has entries that section 4.2 does not list: `material-icons-extended` 1.7.8, `junit` 4.13.2, and `biometric` 1.1.0, which the private folder waiver allows. Log them with the reason, and record the `:app:dependencies` result that section 4.2 asks for.
+- `docs/design-tokens.md` does not have the light theme or the accents yet.
+- `tools/name_report.py`, section 6.2, and `tools/make_fixture_library.py`, Gate 1. Until that tool exists, demo clips are `ffmpeg -t 15 -i testmedia/gen/V3_hevc_8bit_1080p.mkv -c copy -metadata title=demo-<i>-<stem> <tmp>.mkv`, pushed to `/sdcard/Movies/FG Titles/<name>`. Names: The.Matrix.1999.1080p.BluRay.x264.mkv, Inception.2010.1080p.WEB-DL.x265.mkv, Interstellar.2014.1080p.BluRay.mkv, Dune.Part.Two.2024.2160p.WEB-DL.mkv, The.Dark.Knight.2008.1080p.mkv, Breaking Bad/Season 1/Breaking.Bad.S01E01.1080p.mkv, S01E02 and S01E03 in the same form, [SubsPlease] Frieren - 05 (1080p) [ABCD1234].mkv, and the same with 06.
+- `.\fg.ps1 gate N` covers gate 0 only.
+- The pre-commit hook of section 3.4 is not installed.

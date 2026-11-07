@@ -1,0 +1,25 @@
+#!/bin/sh
+# Stops a commit that carries signing files, pictures, media, a key or a private path.
+# History cannot be cleaned after a push. See brief section 3.4 and docs/WAIVERS.md.
+
+banned='\.(jks|keystore|p12|pem|key|pfx|pepk|apk|aab|png|jpe?g|webp|gif|zip|mkv|mp4|srt|ass)$|(keystore|local)\.properties$|(^|/)\.env'
+bad=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "$banned")
+if [ -n "$bad" ]; then
+    echo "pre-commit: these files must not enter git:"
+    echo "$bad"
+    exit 1
+fi
+
+# Tests hold made-up keys on purpose, schemas hold Room hashes, and binaries are not text.
+added=$(git diff --cached -U0 --text -- . ':(exclude)data/schemas' ':(exclude)*/src/test/*' ':(exclude)*.jar' ':(exclude)*.ttf' ':(exclude)tools/hooks/pre-commit' | grep '^+')
+
+if printf '%s\n' "$added" | grep -Eq 'gh[opsu]_[A-Za-z0-9]{20,}|github_pat_|eyJ[A-Za-z0-9_-]{30,}\.|(^|[^A-Za-z0-9])[a-f0-9]{32}([^A-Za-z0-9]|$)'; then
+    echo "pre-commit: something that looks like a key was added:"
+    printf '%s\n' "$added" | grep -En 'gh[opsu]_[A-Za-z0-9]{20,}|github_pat_|eyJ[A-Za-z0-9_-]{30,}\.|(^|[^A-Za-z0-9])[a-f0-9]{32}([^A-Za-z0-9]|$)' | cut -c1-24
+    exit 1
+fi
+
+if printf '%s\n' "$added" | grep -Eqi 'C:\\+Users|ASRock|R5GL24MLD4N|192\.168\.[0-9]'; then
+    echo "pre-commit: a private path, device serial or address was added."
+    exit 1
+fi

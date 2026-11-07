@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nothing is shared until a person picks "Open in another player", and then only that one file. -->
+<paths>
+    <root-path name="root" path="." />
+</paths>

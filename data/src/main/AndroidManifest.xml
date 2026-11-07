@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Section 4.10 lists it. NetworkCheck reads the active network before metadata runs. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- The private folder holds the only copy of its videos, so uninstalling must offer to keep app data. -->
+    <application android:hasFragileUserData="true" />
+</manifest>

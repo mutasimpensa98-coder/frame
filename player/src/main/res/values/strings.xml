@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Controls -->
+    <string name="player_back">Back</string>
+    <string name="player_lock">Lock the screen</string>
+    <string name="player_unlock">Unlock</string>
+    <string name="player_play">Play</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_back_10">Back 10 seconds</string>
+    <string name="player_forward_10">Forward 10 seconds</string>
+    <string name="player_subtitles">Subtitles</string>
+    <string name="player_audio">Audio</string>
+    <string name="player_speed">Speed</string>
+    <string name="player_speed_title">Playback speed</string>
+    <string name="player_fit">Picture size</string>
+    <string name="player_episodes">Episodes</string>
+    <string name="player_more">More</string>
+    <string name="player_times">%1$s×</string>
+    <string name="player_skip_forward">+%1$d</string>
+    <string name="player_skip_back">−%1$d</string>
+    <string name="player_seek_forward">+%1$s</string>
+    <string name="player_seek_back">−%1$s</string>
+    <string name="player_close">Close</string>
+    <string name="player_cancel">Cancel</string>
+    <string name="player_off">Off</string>
+    <string name="player_less">Decrease</string>
+    <string name="player_more_value">Increase</string>
+    <string name="player_percent">%1$d%%</string>
+
+    <!-- Picture size -->
+    <string name="player_aspect_fit">Fit</string>
+    <string name="player_aspect_fill">Fill</string>
+    <string name="player_aspect_16_9">16:9</string>
+    <string name="player_aspect_4_3">4:3</string>
+    <string name="player_aspect_crop">Crop</string>
+
+    <!-- Next episode and skipping -->
+    <string name="player_skip_intro">Skip intro</string>
+    <string name="player_skip_recap">Skip recap</string>
+    <string name="player_skip_credits">Skip credits</string>
+    <string name="player_next_episode">Next episode</string>
+    <plurals name="player_next_in">
+        <item quantity="one">Next episode in %d second</item>
+        <item quantity="other">Next episode in %d seconds</item>
+    </plurals>
+    <string name="player_play_now">Play now</string>
+
+    <!-- Tracks -->
+    <string name="player_track_unknown">Unknown language</string>
+    <string name="player_track_forced">Forced</string>
+    <string name="player_track_file">File</string>
+    <string name="player_track_unplayable">Can\'t play</string>
+    <string name="player_channels_mono">Mono</string>
+    <string name="player_channels_stereo">Stereo</string>
+    <plurals name="player_channels">
+        <item quantity="one">%d channel</item>
+        <item quantity="other">%d channels</item>
+    </plurals>
+
+    <!-- Subtitles -->
+    <string name="player_add_subtitle">Add subtitle file</string>
+    <string name="player_subtitle_rejected">That file isn\'t a subtitle this player can read</string>
+    <string name="player_subtitle_delay">Subtitle delay</string>
+    <string name="player_delay_value">%1$s ms</string>
+    <string name="player_subtitle_style">Subtitle style</string>
+    <string name="player_subtitle_encoding">Encoding</string>
+    <string name="player_encoding_auto">Automatic</string>
+    <string name="player_style_size">Size</string>
+    <string name="player_style_position">Height from the bottom</string>
+    <string name="player_style_outline">Outline</string>
+    <string name="player_style_background">Background</string>
+    <string name="player_style_font">Font</string>
+    <string name="player_style_font_default">Default font</string>
+    <string name="player_style_font_reset">Back to the default font</string>
+    <string name="player_style_ass_note">ASS subtitles keep their own style. A custom font is only their fallback.</string>
+    <string name="player_color_white">White</string>
+    <string name="player_color_yellow">Yellow</string>
+    <string name="player_color_cyan">Cyan</string>
+    <string name="player_color_green">Green</string>
+
+    <!-- Online subtitles -->
+    <string name="player_online_search">Search online</string>
+    <string name="player_online_title">Online subtitles</string>
+    <string name="player_online_searching">Searching subtitle sites…</string>
+    <string name="player_online_none">No subtitles found for this video</string>
+    <string name="player_online_retry">Try again</string>
+    <string name="player_online_exact">Exact match</string>
+    <string name="player_online_pack">Season pack</string>
+    <string name="player_online_unnamed">Unnamed release</string>
+    <string name="player_online_downloading">Downloading…</string>
+    <string name="player_online_off">Online features are off. You can turn them on in Settings.</string>
+    <string name="player_online_no_key">Add a subtitle key in Settings first.</string>
+    <string name="player_online_network">Couldn\'t reach the subtitle sites. Check your connection.</string>
+    <string name="player_online_limit">That site\'s limit is used up for now. Try another result, or come back later.</string>
+    <string name="player_online_missing">This pack doesn\'t have this episode. Try another result.</string>
+    <string name="player_online_bad">That subtitle couldn\'t be read. Try another result.</string>
+
+    <!-- Audio -->
+    <string name="player_audio_delay">Audio delay</string>
+    <string name="player_audio_delay_device">Remembered for %1$s</string>
+    <string name="player_night_audio">Night audio</string>
+    <string name="player_night_audio_note">Softens loud moments and lifts voices</string>
+
+    <!-- Speed -->
+    <string name="player_speed_normal">%1$s (normal)</string>
+
+    <!-- More -->
+    <string name="player_info">Video info</string>
+    <string name="player_screenshot">Screenshot</string>
+    <string name="player_screenshot_subtitles">Screenshot with subtitles</string>
+    <string name="player_screenshot_saved">Saved to Pictures/Frame Glass</string>
+    <string name="player_screenshot_failed">Couldn\'t save the screenshot</string>
+    <string name="player_sleep_timer">Sleep timer</string>
+    <string name="player_sleep_end">End of episode</string>
+    <plurals name="player_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <string name="player_rotate">Rotate screen</string>
+    <string name="player_mark_watched">Mark as watched</string>
+    <string name="player_mark_unwatched">Mark as not watched</string>
+    <string name="player_watched">Watched</string>
+    <string name="player_season">Season %1$d</string>
+
+    <!-- Intro -->
+    <string name="player_set_intro">Set intro</string>
+    <string name="player_intro_note">Close this sheet, seek to the moment, then come back and tap. You only do this once per series.</string>
+    <string name="player_intro_start">Intro starts here</string>
+    <string name="player_intro_end">Intro ends here</string>
+    <string name="player_intro_save_season">Save for this season</string>
+    <string name="player_intro_save_series">Save for the whole series</string>
+
+    <!-- Info panel -->
+    <string name="player_info_codec">Video codec</string>
+    <string name="player_info_resolution">Resolution</string>
+    <string name="player_info_frame_rate">Frame rate</string>
+    <string name="player_info_bitrate">Bitrate</string>
+    <string name="player_info_mbps">%1$s Mbps</string>
+    <string name="player_info_hdr">HDR</string>
+    <string name="player_info_decoder">Video decoder</string>
+    <string name="player_info_hardware">hardware</string>
+    <string name="player_info_software">software</string>
+    <string name="player_info_dropped">Dropped frames</string>
+    <string name="player_info_audio">Audio</string>
+    <string name="player_info_khz">%1$.1f kHz</string>
+    <string name="player_info_audio_decoder">Audio decoder</string>
+    <string name="player_hdr_sdr">SDR</string>
+    <string name="player_hdr_dv_base">Dolby Vision P%1$d, playing as %2$s</string>
+    <string name="player_hdr_dv_warning">Dolby Vision P%1$d isn\'t fully supported here, so colours may look wrong</string>
+    <string name="player_hdr_dv_unknown">Dolby Vision, profile unknown, so colours may look wrong</string>
+    <string name="player_hdr_software_note">This HDR video is on a software decoder, which has no HDR handling, so colours may look wrong.</string>
+
+    <!-- Failures -->
+    <string name="player_open_elsewhere">Open in another player</string>
+    <string name="player_error_missing">This file isn\'t available. It may have moved, or its drive may be unplugged.</string>
+    <string name="player_error_damaged">This file seems to be damaged, so playback stopped here.</string>
+    <string name="player_error_incomplete">Playback stopped here because this file isn\'t complete. It may still be downloading.</string>
+    <string name="player_no_seek">You can\'t skip around in this file</string>
+    <string name="player_error_other">Something stopped playback.</string>
+    <string name="player_error_unsupported">This file\'s format can\'t be played here.</string>
+    <string name="player_error_codec">This file uses %1$s, which can\'t be played here.</string>
+</resources>
