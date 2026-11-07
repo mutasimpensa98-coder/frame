@@ -14,6 +14,7 @@ import com.frameglass.data.api.FrameServices
 import com.frameglass.data.api.FrameServicesOwner
 import com.frameglass.net.Net
 import com.frameglass.player.model.UiModel
+import com.frameglass.player.model.decodesArt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -25,7 +26,7 @@ class FrameApp : Application(), FrameServicesOwner, SingletonImageLoader.Factory
         private set
 
     internal val ui: UiModel by lazy(LazyThreadSafetyMode.NONE) {
-        UiModel(services, CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate))
+        UiModel(services, CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate), artDecodes = { decodesArt(it) })
     }
 
     override fun onCreate() {

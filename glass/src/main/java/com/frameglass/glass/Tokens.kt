@@ -152,4 +152,7 @@ object FrameSizes {
 
     /** Height of [TopGlassBar] without the status bar. */
     val TopBarHeight = 64.dp
+
+    /** How far a page scrolls while [TopGlassBar] turns from clear to glass. */
+    val TopBarCollapse = 64.dp
 }

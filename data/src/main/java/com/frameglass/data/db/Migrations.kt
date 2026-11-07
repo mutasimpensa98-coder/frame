@@ -32,4 +32,12 @@ internal object Migrations {
     val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(db: SupportSQLiteDatabase) = STATEMENTS_1_2.forEach(db::execSQL)
     }
+
+    val STATEMENTS_2_3: List<String> = listOf(
+        "ALTER TABLE `Title` ADD COLUMN `metaLanguage` TEXT",
+    )
+
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) = STATEMENTS_2_3.forEach(db::execSQL)
+    }
 }

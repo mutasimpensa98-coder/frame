@@ -218,13 +218,17 @@ fun GlassSheet(
             shown = false
         }
     }
-    PredictiveBackHandler(enabled = state.isOpen) { events ->
-        try {
-            events.collect { back.snapTo(it.progress) }
-            state.close()
-        } catch (cancelled: CancellationException) {
-            scope.launch { back.animateTo(0f, FrameMotion.effects()) }
-            throw cancelled
+    // Composed only while open, so it registers last. Back goes to the newest handler, and a screen composed
+    // after a sheet that stays in composition, such as the one card menu at the root, would take Back from it.
+    if (state.isOpen) {
+        PredictiveBackHandler { events ->
+            try {
+                events.collect { back.snapTo(it.progress) }
+                state.close()
+            } catch (cancelled: CancellationException) {
+                scope.launch { back.animateTo(0f, FrameMotion.effects()) }
+                throw cancelled
+            }
         }
     }
     if (shown) {
@@ -394,7 +398,8 @@ fun GlassMenu(
             shown = false
         }
     }
-    BackHandler(enabled = expanded, onBack = onDismiss)
+    // Composed only while open, for the reason given in GlassSheet.
+    if (expanded) BackHandler(onBack = onDismiss)
     if (shown) {
         GlassOverlay { MenuLayer(anchor, progress, onDismiss, modifier, content) }
     }

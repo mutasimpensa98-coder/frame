@@ -1,9 +1,10 @@
 # Status
 
-Updated 2026-11-07, after the phone check and the first upload. R9 applies.
+Updated 2026-11-08, after the owner-requests package was built, reviewed and its four review faults fixed. R9 applies.
 
 ## Read this first
 
+- **The owner-requests package is built and unit tested, and nobody has seen it on a phone.** The phone runs 1.0.103 without it, and nothing of it is committed. It holds schema 3, two one-time passes over the owner's rows, Cinema mode, automatic subtitle sync, the hero rules, the refetch on a language change and the Details top bar. The migration and the passes have run only on the JVM and on desktop SQLite. The section "This round" below lists each item.
 - **The improvement package has run on the phone,** and the update kept the library, progress, settings and keys. `NEXT.md` section 1 lists what was seen and what was not. Screenshots of those checks stay in `D:\FrameGlass\shots`, because some show the owner's real videos. The tables below still describe filed evidence only.
 - **The last filed phone evidence is the first app build,** 18:19 to 18:22. Later phone checks are recorded in `NEXT.md` section 1 and in `phase-0-results.md`.
 - **Delete has not run on the phone, and the private folder ran only on the test copy.** Test delete with a clip the owner does not need.
@@ -29,22 +30,22 @@ Phase 0 matrix, on the round 2 `qa` build (`evidence/phase-0/matrix.csv`): 50 of
 
 ## Build and tests
 
-Run on this PC on 2026-11-07 with `--rerun-tasks --no-build-cache`: 799 tasks, all executed, none from a cache.
+Run on this PC on 2026-11-08 with `--rerun-tasks --no-build-cache`: 815 tasks, all executed, none from a cache. Log: `D:\FrameGlass\logs\build-integrate-faults-full.log`.
 
 | Check | Result |
 |---|---|
 | `assembleQa`, `assembleRelease` | Pass, R8 included. |
-| Unit tests | 933 run, 932 passed, 0 failed, 1 skipped: parser 154, data 374, net 308, engine 28, player 31, app 20, glass 18. |
+| Unit tests | 1,040 run, 1,039 passed, 0 failed, 1 skipped: parser 161, data 413, net 308, engine 67, player 37, app 36, glass 18. |
 | Skipped test | `AnimeIndexTest.theRealFileParses` needs a local copy of the mappings file. |
 | No tests at all | `:qa`, `:third_party:ass-media`. |
-| Android lint | `lintRelease` on `:app`, `:player`, `:data`, `:glass`, `:engine`, `:net`, `:qa`: 0 errors, 21 warnings, `MissingTranslation` 0. |
-| `tools/check_update.py` | Pass: 1 step, 25 tables, 21 saved rows kept. This is desktop SQLite, not Android. |
-| `.\fg.ps1 build` | Pass: signature, 16 KB alignment, size, `lib/` listing. |
-| Release APK | 23,013,892 bytes (21.9 MiB), budget 60 MB, only `lib/arm64-v8a`. |
-| `qa` APK | 23,046,700 bytes (22.0 MiB), same certificate, 16 KB alignment passes. |
+| Android lint | `lintRelease` on `:app`, `:player`, `:data`, `:glass`, `:engine`, `:net`, `:qa`: 0 errors, 17 warnings (app 8, qa 5, player 4), `MissingTranslation` 0. |
+| `tools/check_update.py` | Pass: 2 steps (1 to 2, 2 to 3), 25 tables, 21 saved rows kept. This is desktop SQLite, not Android. |
+| `.\fg.ps1 build` | Pass: signature, 16 KB alignment, size, `lib/` listing. Local only: nothing was installed or published. |
+| Release APK | 23,090,660 bytes (22.0 MiB), budget 60 MB, only `lib/arm64-v8a`. Not installed and not saved as a release. |
+| `qa` APK | 23,123,464 bytes (22.1 MiB), same certificate. |
 | Certificate SHA-256 | `6517fbf832436c7cb106855c03d8b8b1d94816517b2f4328279fb9a051354d67` |
 | Permissions in the release APK | The list in section 4.10 plus `USE_BIOMETRIC`. `USE_FINGERPRINT` is removed. |
-| Not run | `MigrationTestHelper`. The schema change did pass on the phone, through the in-place update. |
+| Not run | `MigrationTestHelper`. Schema 1 to 2 passed on the phone through the in-place update. Schema 2 to 3 has not run on Android. |
 
 R8 and `androidx.biometric`: no failure and no new keep rule. `BiometricFragment`, `FingerprintDialogFragment` and `BiometricViewModel` keep their no-argument constructors through the fragment and lifecycle consumer rules, confirmed in `seeds.txt`. `BiometricPrompt` itself has not been shown.
 
@@ -102,7 +103,7 @@ Three gaps were found and fixed in the whole-phone search round, with tests:
 | F-L3 | Unavailable | UNIT TESTED | Not seen | `TitleListsTest`, `FolderBuilderTest`. USB unplug not run. |
 | F-L4 | Automatic scan | BUILT | Part: one added folder (`08`, `09`) | Whole-phone search came after that run. Path rules are unit tested. `Scanner`, `MediaIndex` and `CatchUp` have never run. |
 | F-L5 | Backup and restore | UNIT TESTED | Not seen | `BackupFormatTest` covers the format, favourites and excluded folders. Private items stay out by id. Dump, wipe and restore not run. |
-| F-L6 | Migrations | UNIT TESTED | Not seen | Schema version 2. `MigrationSchemaTest` and `tools/check_update.py` replay 1 to 2 on desktop SQLite. `MigrationTestHelper` not run, and no upgrade on Android yet. |
+| F-L6 | Migrations | UNIT TESTED | Part: 1 to 2 kept the library through the 1.0.103 update | Schema version 3 adds the nullable `Title.metaLanguage`. `MigrationSchemaTest` and `tools/check_update.py` replay 1 to 2 to 3 on desktop SQLite. `MigrationTestHelper` not run. 2 to 3 has not run on Android. |
 | F-L7 | Instant add | BUILT | Part: cards with local frames (`09`) | Matching after the add not seen. |
 | F-L8 | Parser | UNIT TESTED | Not seen | All golden rows pass. The owner's 200 labelled names are not done, and `tools/name_report.py` does not exist. |
 | F-L9 | Versions | UNIT TESTED | Not seen | `VersionsTest`, `EpisodeRowsTest`. The picker itself has no test. |
@@ -219,6 +220,34 @@ Glass over video is off: `VideoBlurHook.ENABLED` is false until step 0.7 is meas
 | F-T5 | Info panel | BUILT | Not seen | |
 | F-T6 | Sleep timer | BUILT | Not seen | |
 | F-T7 | Anime4K | NOT BUILT (allowed) | Not seen | Needs mpv, Phase 8. |
+
+## This round: the owner-requests package
+
+Built after 1.0.103. Not committed, not installed, and not seen on a phone, in either theme or in Arabic.
+
+| Request | Status | Notes |
+|---|---|---|
+| IMDb ratings as soon as the OMDb key is added | BUILT | Saving the key starts the fetch. A network failure waits for a swipe. The yellow badge shows only on Details; cards keep TMDB. |
+| Refetch in the app language | UNIT TESTED | `MetaLanguageTest`. `Title.metaLanguage` is NULL on every existing row, so the first open after this update fetches every matched title once more: details, 3 images, all seasons and one OMDb call each. Whether TMDB answers plain `ar` in Arabic is unverified. `AppLanguage` reads `LocaleManager` first. |
+| Home hero rules | UNIT TESTED | `HeroArtTest`, `ClipViewsTest`. Art is decoded before Home sees it. A hero with a broken backdrop falls back to its cover, and one with neither leaves the pager. `Snapshot.broken` also keeps a title out of the hero when only its frame grab failed. |
+| Anime filter | UNIT TESTED | `AnimeNamesTest`, `PlainNumberTest`. A one-time pass moves false-anime rows to Series. Short numbered phone clips go to Videos and skip lookup unless 3 files share the name. Clips already matched as anime stay until Fix match. |
+| Details top bar | UNIT TESTED | Tests in `app/src/test/.../details/`. A glass bar fades in once the art leaves it, with the title. |
+| Cinema mode | UNIT TESTED | `ClipViewsTest`. Settings › Library. With no real titles Home says so and offers to turn it off. |
+| Automatic subtitle sync | UNIT TESTED | `SyncAlignerTest`, `SubtitleCuesTest`, `SyncPlanTest`, `SpeechDetectorTest`, `SyncPipelineTest`, `SyncTextTest`. Synthetic films only: 1,600 wrong-subtitle runs gave no false fix. Decode speed, the speech detector on real film audio, the thresholds and playback impact are unmeasured. Manual delay now reaches ±60 s. |
+| Back closes the long-press menu | BUILT | Sheets and menus register Back only while open. |
+| About mark in the light theme | BUILT | Tinted. |
+| TMDB and IMDb switches | NOT STARTED | Still in `OWNER-REQUESTS.md`. |
+
+Four faults from the review of this package were fixed, each with a JVM test of its pure part:
+
+| Fault | Fix |
+|---|---|
+| Cues had no length limit. A fansub watermark line over the whole video swallowed every cue, and an SRT end typed as 99:59:59 sized the FFT near 8M points, about 330 MB. The `OutOfMemoryError` would have ended playback. | `SubtitleCues` drops any cue longer than 15 s. `SyncAligner.withinReach` cuts every cue at the reach of the audio. `SubtitleSync` and `PlayerSession.startSync` catch any `Throwable` except cancellation, so a failure only means no answer. |
+| A hero whose art was on disk but did not decode was dropped by the app after `:data` had taken it out of Continue watching, so a title in progress left Home. | `HeroItem.continueItem` carries that card. `withDrawableHeroes` puts it back at the head of the row, and a row that appears this way replaces the last title row, so Home keeps 3 automatic rows. |
+| A frame rate fix became the chosen subtitle, and a file added from the picker was listed only while it was the chosen one, so after a reopen the original was gone. | A reopen lists every subtitle copied in for the video (`CopiedSubtitles`), so the original and the retimed copy both stay selectable. Undo itself still ends at a reopen. |
+| The anime pass left the old release tags, such as a round-bracket name at the start, so demoted rows never counted as plain numbers and went to TMDB on every swipe. | `ClipPass` reads each file again, and `TitleOps.settleAsSeries` writes its tags and anime number in the same transaction, before the keys are rebuilt. The Room path has no test; `StoredParse.reread` has. |
+
+`Api.kt` gained `AppSettings.cinemaMode`, `HomeFeed.cinemaEmpty`, `HomeFeed.MAX_AUTOMATIC_ROWS` and `HeroItem.continueItem`, all with defaults beside the fixed contract.
 
 ## Owner requests with no feature ID
 

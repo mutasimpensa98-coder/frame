@@ -51,7 +51,7 @@ internal fun TabsScreen(selected: Int, onSelect: (Int) -> Unit) {
         ) { tab ->
             saved.SaveableStateProvider(tab) {
                 when (tab) {
-                    HomeTab -> HomeScreen()
+                    HomeTab -> HomeScreen(onOpenLibrary = { onSelect(LibraryTab) })
                     SearchTab -> SearchScreen()
                     LibraryTab -> LibraryScreen()
                     else -> SettingsScreen()

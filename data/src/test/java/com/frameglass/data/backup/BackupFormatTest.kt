@@ -221,6 +221,7 @@ class BackupFormatTest {
             themeMode = com.frameglass.data.api.ThemeMode.LIGHT,
             accent = com.frameglass.data.api.AccentColor.VIOLET,
             coverTint = true,
+            cinemaMode = true,
             sendReleaseName = false,
             sendFileHash = false,
             vaultLockSeconds = 30,
@@ -229,9 +230,17 @@ class BackupFormatTest {
         assertEquals(chosen.themeMode, back.themeMode)
         assertEquals(chosen.accent, back.accent)
         assertEquals(chosen.coverTint, back.coverTint)
+        assertEquals(chosen.cinemaMode, back.cinemaMode)
         assertEquals(chosen.sendReleaseName, back.sendReleaseName)
         assertEquals(chosen.sendFileHash, back.sendFileHash)
         assertEquals(chosen.vaultLockSeconds, back.vaultLockSeconds)
+    }
+
+    @Test
+    fun aBackupWrittenBeforeCinemaModeLeavesItOff() {
+        val json = BackupCodec.encode(doc).replace(Regex(",?\\s*\"cinemaMode\": false"), "")
+        assertTrue("cinemaMode" !in json)
+        assertEquals(false, BackupCodec.decode(json).settings.cinemaMode)
     }
 
     @Test

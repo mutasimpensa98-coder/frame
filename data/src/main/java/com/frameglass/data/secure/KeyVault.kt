@@ -4,6 +4,7 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -83,13 +84,16 @@ internal class KeyVault(
     init {
         scope.launch {
             store.data.collect { prefs ->
-                blobs = ApiKey.entries.mapNotNull { kind -> prefs[prefKey(kind)]?.let { kind to it } }.toMap()
+                blobs = blobsOf(prefs)
                 loaded.complete(Unit)
             }
         }
     }
 
     private fun prefKey(kind: ApiKey) = stringPreferencesKey("key.${kind.name}")
+
+    private fun blobsOf(prefs: Preferences): Map<ApiKey, String> =
+        ApiKey.entries.mapNotNull { kind -> prefs[prefKey(kind)]?.let { kind to it } }.toMap()
 
     suspend fun awaitLoaded() = loaded.await()
 
@@ -99,9 +103,11 @@ internal class KeyVault(
 
     suspend fun write(kind: ApiKey, value: String?) {
         val trimmed = value?.trim()?.ifEmpty { null }
-        store.edit { prefs ->
+        val saved = store.edit { prefs ->
             if (trimmed == null) prefs.remove(prefKey(kind)) else prefs[prefKey(kind)] = cipher.seal(trimmed)
         }
+        // The collector above runs a moment later, and the fetch this key starts must already see it.
+        blobs = blobsOf(saved)
     }
 
     /** A record that no longer opens reads as absent, so the folder can be set up again. */

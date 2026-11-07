@@ -93,8 +93,10 @@ internal object ClipNames {
         if (digits >= MIN_LONG_NUMBER) return true
         val alone = digits == stem.length
         if (alone && digits == YEAR_DIGITS && isPlausibleYear(stem.toInt())) return false
-        return fileName.substringAfterLast('.', "").lowercase() in PHONE_EXTENSIONS
+        return isPhoneFile(fileName)
     }
+
+    fun isPhoneFile(fileName: String): Boolean = fileName.substringAfterLast('.', "").lowercase() in PHONE_EXTENSIONS
 
     private fun isHash(stem: String): Boolean {
         if (HEX_HASH.matches(stem)) return stem.any { it in '0'..'9' } && stem.any { it.isLetter() }

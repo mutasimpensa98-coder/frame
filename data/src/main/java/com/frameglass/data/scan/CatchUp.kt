@@ -148,6 +148,24 @@ internal class CatchUp(
         }
     }
 
+    /** The ratings that are missing come with no swipe. */
+    fun onOmdbKeySet() {
+        scope.launch {
+            runCatching {
+                pipeline.queueMissingImdb()
+                db.meta().makeAllDue(clock.now())
+            }
+            metadataLane.kick()
+        }
+    }
+
+    /** For every activity start, which covers an app open and the recreate that follows a language change. */
+    fun onLanguageCheck() {
+        scope.launch {
+            if (runCatching { pipeline.queueLanguageRefresh() }.getOrDefault(0) > 0) metadataLane.kick()
+        }
+    }
+
     fun onMounted() = scanLane.kick()
 
     fun onUnmounted(volume: String) {

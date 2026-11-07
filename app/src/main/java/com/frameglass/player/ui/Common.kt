@@ -259,7 +259,7 @@ internal fun RatingInfo.toCard(): CardRating = CardRating(
     },
 )
 
-internal fun sourceLabel(source: RatingSource): String = when (source) {
+private fun sourceLabel(source: RatingSource): String = when (source) {
     RatingSource.TMDB -> "TMDB"
     RatingSource.IMDB -> "IMDb"
 }
@@ -267,9 +267,6 @@ internal fun sourceLabel(source: RatingSource): String = when (source) {
 /** A number through the device locale (F-A6). */
 @Composable
 internal fun localNumber(value: Int): String = String.format(LocalLocale.current.platformLocale, "%d", value)
-
-@Composable
-internal fun ratingText(value: Double): String = String.format(LocalLocale.current.platformLocale, "%.1f", value)
 
 @Composable
 internal fun kindLabel(kind: TitleKind): String = stringResource(

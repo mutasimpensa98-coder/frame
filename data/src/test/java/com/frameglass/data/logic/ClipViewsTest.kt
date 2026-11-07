@@ -7,6 +7,7 @@ import com.frameglass.data.api.LibrarySort
 import com.frameglass.data.api.MatchState
 import com.frameglass.data.api.RatingSource
 import com.frameglass.data.api.TitleKind
+import com.frameglass.data.db.EnrichState
 import com.frameglass.data.db.MediaFile
 import com.frameglass.data.db.NameKinds
 import com.frameglass.data.db.RatingRow
@@ -14,6 +15,7 @@ import com.frameglass.data.db.RootFolder
 import com.frameglass.data.db.TitleRow
 import com.frameglass.data.db.Volume
 import com.frameglass.data.db.WatchState
+import com.frameglass.parser.NameParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -383,6 +385,246 @@ class HomeClipsTest {
     fun withWholePhoneSearchOffNoFolderMeansEmpty() {
         val s = snapshot(clips(10, 1), clipFiles(10, 1), settings = AppSettings(scanWholePhone = false))
         assertTrue(HomeBuilder.build(s, labels).empty)
+    }
+}
+
+/** Numbered home videos, such as Beach Day - 3.mp4. */
+class PlainNumberTest {
+    private fun numbered(id: Long, minutes: Long, relPath: String = "Movies/Beach Day - 3.mp4", season: Int? = null, tags: String? = null) =
+        file(id, "t:$id:s1:e3", season = season, episode = 3, titleId = id, relPath = relPath)
+            .copy(durationMs = minutes * minute, releaseTags = tags)
+
+    private val s = snapshot(
+        titles = listOf(
+            title(1, MatchState.UNMATCHED, TitleKind.SERIES),
+            title(2, MatchState.AUTO, TitleKind.SERIES),
+            title(3, MatchState.NONE_FOUND, TitleKind.SERIES),
+            title(4, MatchState.NONE_FOUND, TitleKind.SERIES),
+            title(5, MatchState.NONE_FOUND, TitleKind.ANIME),
+        ),
+        files = listOf(
+            numbered(1, 2),
+            numbered(2, 2),
+            numbered(3, 24),
+            numbered(4, 2, season = 1),
+            numbered(5, 12, tags = "Group"),
+        ),
+    )
+
+    @Test
+    fun onlyABareNumberOnAPhoneFileCounts() {
+        assertTrue(ClipRules.plainNumber(numbered(1, 2)))
+        assertFalse(ClipRules.plainNumber(numbered(1, 2, relPath = "Movies/Sample Title - 3.mkv")))
+        assertFalse(ClipRules.plainNumber(numbered(1, 2, season = 2)))
+        assertFalse(ClipRules.plainNumber(numbered(1, 2, tags = "1080p")))
+        assertFalse(ClipRules.plainNumber(numbered(1, 2).copy(nameKind = NameKinds.MOVIE)))
+    }
+
+    @Test
+    fun anOldReadingOfANameInRoundBracketsBecomesAPlainNumberWhenReadAgain() {
+        val path = "Movies/(Person) Garden Party 02.mp4"
+        val old = numbered(1, 2, relPath = path, tags = "Person").copy(parsedAbsolute = 2)
+        assertFalse(ClipRules.plainNumber(old))
+        val again = StoredParse.reread(old, NameParser.parse(path))
+        assertNull(again.releaseTags)
+        assertNull(again.parsedAbsolute)
+        assertTrue(ClipRules.plainNumber(again))
+    }
+
+    @Test
+    fun readingAgainKeepsARealReleaseTag() {
+        val path = "Movies/[Group] Sample Title - 05 [1080p].mp4"
+        val again = StoredParse.reread(numbered(1, 24, relPath = path), NameParser.parse(path))
+        assertFalse(ClipRules.plainNumber(again))
+        assertEquals(5, again.parsedAbsolute)
+    }
+
+    @Test
+    fun aShortUnmatchedOneIsAClip() = assertTrue(s.infos.getValue(1).isClip)
+
+    @Test
+    fun aMatchKeepsItATitle() = assertFalse(s.infos.getValue(2).isClip)
+
+    @Test
+    fun aLongOneStaysASeries() = assertFalse(s.infos.getValue(3).isClip)
+
+    @Test
+    fun aSeasonKeepsAShortEpisodeASeries() = assertFalse(s.infos.getValue(4).isClip)
+
+    @Test
+    fun aReleaseAnimeOfAnyLengthIsNotAClip() = assertFalse(ClipRules.isClip(TitleKind.ANIME, false, false, 12 * minute, plainNumber = true))
+
+    @Test
+    fun itLeavesSeriesForVideos() {
+        assertEquals(listOf(1L), ids(s, LibraryFilter.VIDEOS))
+        assertEquals(listOf(2L, 3L, 4L), ids(s, LibraryFilter.SERIES))
+    }
+
+    @Test
+    fun itNeverReachesTmdbAlone() {
+        assertTrue(ClipRules.skipsLookup(TitleKind.SERIES, null, false, 2 * minute, plainNumber = true))
+        assertFalse(ClipRules.skipsLookup(TitleKind.SERIES, 2019, false, 2 * minute, plainNumber = true))
+        assertFalse(ClipRules.skipsLookup(TitleKind.SERIES, null, false, 25 * minute, plainNumber = true))
+    }
+}
+
+class CinemaModeTest {
+    private val cinema = AppSettings(cinemaMode = true)
+
+    private fun cinema(titles: List<TitleRow>, files: List<MediaFile>, watch: List<WatchState> = emptyList()) =
+        snapshot(titles, files, watch = watch, settings = cinema)
+
+    private val mixed = cinema(mix.titleRows, mix.files)
+
+    private fun clip(id: Long) = title(id, MatchState.UNMATCHED)
+    private fun clipFile(id: Long) = video(id, 1, nameKind = NameKinds.CLIP)
+
+    @Test
+    fun itIsOffByDefault() {
+        assertFalse(AppSettings().cinemaMode)
+        assertEquals(7, ids(mix, LibraryFilter.ALL).size)
+    }
+
+    @Test
+    fun allHoldsOnlyFilmsSeriesAndAnime() = assertEquals(listOf(6L, 2L, 1L, 7L), ids(mixed, LibraryFilter.ALL))
+
+    @Test
+    fun videosHoldsEverythingAllLeftOut() = assertEquals(listOf(5L, 3L, 4L), ids(mixed, LibraryFilter.VIDEOS))
+
+    @Test
+    fun theOtherFiltersDoNotChange() {
+        assertEquals(ids(mix, LibraryFilter.MOVIES), ids(mixed, LibraryFilter.MOVIES))
+        assertEquals(ids(mix, LibraryFilter.SERIES), ids(mixed, LibraryFilter.SERIES))
+    }
+
+    @Test
+    fun homeHoldsNoClipAnywhere() {
+        val titles = (1L..4L).map { title(it, MatchState.AUTO) } + (10L..15L).map(::clip)
+        val files = (1L..4L).map { video(it, 100) } + (10L..15L).map(::clipFile)
+        val watch = listOf(WatchState("t:10", 5, 60_000, false, 500, 10))
+        val feed = HomeBuilder.build(cinema(titles, files, watch), labels)
+        assertTrue(feed.heroes.none { it.titleId >= 10 })
+        assertTrue(feed.continueWatching.isEmpty())
+        assertEquals(listOf(HomeRowKind.RECENT), feed.rows.map { it.kind })
+        assertFalse(feed.cinemaEmpty)
+    }
+
+    @Test
+    fun theRecentViewAllLeavesOutWhatIsNotAFilm() {
+        val ids = HomeBuilder.rowTitles(mixed, HomeRowKind.RECENT, null).map { it.id }
+        assertEquals(setOf(1L, 2L, 6L, 7L), ids.toSet())
+    }
+
+    @Test
+    fun theVideosViewAllStillListsClips() {
+        val ids = HomeBuilder.rowTitles(mixed, HomeRowKind.VIDEOS, null).map { it.id }
+        assertEquals(setOf(4L, 5L), ids.toSet())
+    }
+
+    @Test
+    fun withOnlyClipsHomeSaysSoInsteadOfGoingBlank() {
+        val feed = HomeBuilder.build(cinema(listOf(clip(10)), listOf(clipFile(10))), labels)
+        assertTrue(feed.cinemaEmpty)
+        assertFalse(feed.empty)
+        assertTrue(feed.heroes.isEmpty() && feed.rows.isEmpty() && feed.continueWatching.isEmpty())
+    }
+
+    @Test
+    fun withNoVideoAtAllHomeIsPlainlyEmpty() {
+        val feed = HomeBuilder.build(cinema(emptyList(), emptyList()), labels)
+        assertTrue(feed.empty)
+        assertFalse(feed.cinemaEmpty)
+    }
+
+    @Test
+    fun withTheModeOffClipsFillHomeAsBefore() {
+        val feed = HomeBuilder.build(snapshot(listOf(clip(10)), listOf(clipFile(10))), labels)
+        assertFalse(feed.cinemaEmpty)
+        assertEquals(listOf(10L), feed.heroes.map { it.titleId })
+    }
+}
+
+class HeroChoiceTest {
+    private fun film(id: Long, frame: String? = "/f$id", backdrop: String? = null, cover: String? = null) =
+        title(id, MatchState.AUTO).copy(framePath = frame, backdropPath = backdrop, coverPath = cover)
+
+    private fun heroes(s: Snapshot, onDisk: (String) -> Boolean = { true }) =
+        HomeBuilder.build(s, labels, onDisk).heroes.map { it.titleId }
+
+    @Test
+    fun aTitleWithNoImageIsSkipped() {
+        val s = snapshot(listOf(film(1), film(2, frame = null)), listOf(video(1, 100), video(2, 100)))
+        assertEquals(listOf(1L), heroes(s))
+    }
+
+    @Test
+    fun anyOneImageIsEnough() {
+        val titles = listOf(film(1, frame = null, backdrop = "/b1"), film(2, frame = null, cover = "/c2"), film(3))
+        assertEquals(listOf(3L, 2L, 1L), heroes(snapshot(titles, listOf(video(1, 100), video(2, 100), video(3, 100)))))
+    }
+
+    @Test
+    fun skippedTitlesLeaveRoomForTheNextOnes() {
+        val titles = (1L..6L).map { film(it, frame = if (it > 4) null else "/f$it") }
+        assertEquals(listOf(4L, 3L, 2L, 1L), heroes(snapshot(titles, titles.map { video(it.id, 100) })))
+    }
+
+    @Test
+    fun aProbeThatFailedMakesAFileBroken() {
+        val broken = video(2, 100).copy(enrichState = EnrichState.FAILED)
+        assertEquals(listOf(1L), heroes(snapshot(listOf(film(1), film(2)), listOf(video(1, 100), broken))))
+    }
+
+    @Test
+    fun aFileNoDecoderCouldReadIsBrokenEvenWithAPoster() {
+        val broken = video(2, 100).copy(enrichState = EnrichState.DONE, framePath = null)
+        val titles = listOf(film(1), film(2, frame = null, backdrop = "/b2"))
+        assertEquals(listOf(1L), heroes(snapshot(titles, listOf(video(1, 100), broken))))
+    }
+
+    @Test
+    fun aFileStillBeingProbedIsNotBroken() {
+        assertEquals(listOf(1L), heroes(snapshot(listOf(film(1)), listOf(video(1, 100).copy(enrichState = EnrichState.PENDING)))))
+    }
+
+    @Test
+    fun aHealthyFileWithAFrameIsNotBroken() {
+        val done = video(1, 100).copy(enrichState = EnrichState.DONE, framePath = "/frame.jpg")
+        assertEquals(listOf(1L), heroes(snapshot(listOf(film(1)), listOf(done))))
+    }
+
+    @Test
+    fun aFileGoneFromDiskIsNeverAHero() {
+        val s = snapshot(listOf(film(1), film(2)), listOf(video(1, 100), video(2, 100)))
+        assertEquals(listOf(1L), heroes(s) { !it.endsWith("v2.mp4") })
+    }
+
+    @Test
+    fun anImageGoneFromDiskCountsAsNoImage() {
+        val s = snapshot(listOf(film(1), film(2)), listOf(video(1, 100), video(2, 100)))
+        assertEquals(listOf(1L), heroes(s) { it != "/f2" })
+    }
+
+    @Test
+    fun aMissingBackdropFallsBackToTheFrame() {
+        val s = snapshot(listOf(film(1, backdrop = "/gone")), listOf(video(1, 100)))
+        assertEquals("/f1", HomeBuilder.build(s, labels) { it != "/gone" }.heroes.single().backdropPath)
+    }
+
+    @Test
+    fun aLastPlayedTitleThatCannotBeAHeroStaysInContinueWatching() {
+        val titles = listOf(film(1), film(2, frame = null))
+        val watch = listOf(WatchState("t:2", 5, 60_000, false, 500, 2))
+        val feed = HomeBuilder.build(snapshot(titles, listOf(video(1, 100), video(2, 100)), watch = watch), labels)
+        assertEquals(listOf(1L), feed.heroes.map { it.titleId })
+        assertEquals(listOf(2L), feed.continueWatching.map { it.titleId })
+    }
+
+    @Test
+    fun nothingFitAtAllLeavesHomeWithNoHeroButNotEmpty() {
+        val feed = HomeBuilder.build(snapshot(listOf(film(1, frame = null)), listOf(video(1, 100))), labels)
+        assertTrue(feed.heroes.isEmpty())
+        assertFalse(feed.empty)
     }
 }
 

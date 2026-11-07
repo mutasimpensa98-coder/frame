@@ -236,11 +236,24 @@ internal class TitleOps(
                     matchState = MatchState.MANUAL,
                     matchConfidence = 1.0,
                     fetchedAt = null,
+                    metaLanguage = null,
                     collectionId = if (sameTarget) current.collectionId else null,
                 ),
             )
             meta.upsertQueue(LookupQueue(titleId, LookupState.QUEUED, 0, clock.now(), LookupJob.REFRESH))
             index.index(titleId)
+        }
+    }
+
+    /** The word anime came from a file name that no longer earns it. A match or a choice made by hand stays. */
+    /** [reread] holds the title's files with their parse read again, written before the keys are worked out. */
+    suspend fun settleAsSeries(titleId: Long, reread: List<MediaFile> = emptyList()) {
+        db.withTransaction {
+            val title = db.titles().title(titleId) ?: return@withTransaction
+            if (title.kind != TitleKind.ANIME || title.tmdbId != null || title.manualMatch) return@withTransaction
+            val scan = db.scan()
+            for (file in reread) if (file.titleId == titleId) scan.setReading(file.rowId, file.releaseTags, file.parsedAbsolute)
+            rekey(title, TitleKind.SERIES)
         }
     }
 

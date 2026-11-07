@@ -46,6 +46,7 @@ import com.frameglass.data.api.ContinueItem
 import com.frameglass.data.api.HomeFeed
 import com.frameglass.data.api.HomeRow
 import com.frameglass.data.api.HomeRowKind
+import com.frameglass.data.api.LibraryFilter
 import com.frameglass.data.api.ScanState
 import com.frameglass.glass.ActivityLine
 import com.frameglass.glass.FrameColors
@@ -96,7 +97,7 @@ private val ScanChipMaxWidth = 240.dp
 private const val QuietScanMillis = 4_000L
 
 @Composable
-internal fun HomeScreen() {
+internal fun HomeScreen(onOpenLibrary: () -> Unit) {
     val model = rememberUiModel()
     val feed by model.home.collectAsStateWithLifecycle()
     val scan by model.scan.collectAsStateWithLifecycle()
@@ -111,14 +112,19 @@ internal fun HomeScreen() {
         }
     }
 
+    val view = homeView(current)
+
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        when {
-            current == null -> HomeSkeleton(maxHeight * HeroShare)
-            current.empty -> HomeEmpty(scan, wholePhone = settings?.scanWholePhone != false)
-            else -> HomeList(current, maxWidth * ContinueCardShare, maxHeight * HeroShare)
+        when (view) {
+            HomeView.Loading -> HomeSkeleton(maxHeight * HeroShare)
+            HomeView.NoVideos -> HomeEmpty(scan, wholePhone = settings?.scanWholePhone != false)
+            HomeView.NoCinemaTitles -> CinemaEmpty()
+            HomeView.LibraryOnly -> HomeInLibrary(scan, onOpenLibrary)
+            HomeView.Feed -> current?.let { HomeList(it, maxWidth * ContinueCardShare, maxHeight * HeroShare) }
         }
         AnimatedVisibility(
-            visible = current?.empty == false && scan.running && longScan,
+            // The empty and Library-only views show the search in their own message.
+            visible = (view == HomeView.Feed || view == HomeView.NoCinemaTitles) && scan.running && longScan,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .statusBarsPadding()
@@ -211,6 +217,51 @@ private fun HomeEmpty(scan: ScanState, wholePhone: Boolean) {
         }
     }
     AddFolderSheet(sheet)
+}
+
+/** Cinema mode with no film, series or anime: said plainly, with the way back to every video. */
+@Composable
+private fun CinemaEmpty() {
+    val model = rememberUiModel()
+    GlassSource(Modifier.fillMaxSize()) {
+        CenteredMessage(
+            title = stringResource(R.string.app_home_cinema_empty),
+            body = stringResource(R.string.app_home_cinema_empty_body),
+            action = {
+                WhitePill(
+                    text = stringResource(R.string.app_home_cinema_off),
+                    onClick = { model.updateSettings { it.copy(cinemaMode = false) } },
+                )
+            },
+        )
+    }
+}
+
+/** Videos that Home has nothing to show for yet, such as a few clips whose frames are still being made. */
+@Composable
+private fun HomeInLibrary(scan: ScanState, onOpenLibrary: () -> Unit) {
+    val model = rememberUiModel()
+    GlassSource(Modifier.fillMaxSize()) {
+        if (scan.running) {
+            CenteredMessage(
+                title = scanLabel(scan.found),
+                action = { ActivityLine(Modifier.width(ScanLineWidth)) },
+            )
+        } else {
+            CenteredMessage(
+                title = stringResource(R.string.app_home_in_library),
+                action = {
+                    WhitePill(
+                        text = stringResource(R.string.app_home_open_library),
+                        onClick = {
+                            model.changeQuery { it.copy(filter = LibraryFilter.ALL) }
+                            onOpenLibrary()
+                        },
+                    )
+                },
+            )
+        }
+    }
 }
 
 @Composable

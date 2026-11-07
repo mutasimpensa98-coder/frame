@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.PhotoCamera
@@ -225,6 +227,7 @@ private fun SubtitlesSheet(session: PlayerSession, ui: PlayerUiState, actions: P
         },
     )
     DelayStepper(R.string.player_subtitle_delay, state.subtitleDelayMs, session::setSubtitleDelay)
+    SyncSection(session)
     GlassRow(
         text = stringResource(R.string.player_subtitle_style),
         icon = Icons.Rounded.TextFields,
@@ -236,6 +239,31 @@ private fun SubtitlesSheet(session: PlayerSession, ui: PlayerUiState, actions: P
             supporting = state.subtitleEncoding ?: stringResource(R.string.player_encoding_auto),
             icon = Icons.Rounded.Language,
             onClick = { ui.openSheet(PlayerSheet.SUBTITLE_ENCODING) },
+        )
+    }
+}
+
+/** Automatic sync: what it found or why it changed nothing, Undo after a change, and a row to run it again. */
+@Composable
+private fun SyncSection(session: PlayerSession) {
+    val state = session.state
+    val sync = state.sync
+    val running = sync == SyncState.Running
+    if (sync != null) Note(SyncText.summary(LocalResources.current, LocalLocale.current.platformLocale, sync))
+    if (running) ActivityLine(Modifier.fillMaxWidth().padding(horizontal = FrameSpacing.S12))
+    if (state.syncUndoable && !running) {
+        GlassRow(
+            text = stringResource(R.string.player_sync_undo),
+            icon = Icons.AutoMirrored.Rounded.Undo,
+            onClick = session::undoSync,
+        )
+    }
+    if (!running && session.canSync()) {
+        GlassRow(
+            text = stringResource(R.string.player_sync_now),
+            supporting = stringResource(R.string.player_sync_now_note),
+            icon = Icons.Rounded.GraphicEq,
+            onClick = session::syncNow,
         )
     }
 }

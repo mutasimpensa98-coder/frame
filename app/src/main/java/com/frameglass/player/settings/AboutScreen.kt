@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -79,10 +80,12 @@ internal fun AboutScreen() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(FrameSpacing.S16),
             ) {
+                // The mark is drawn white for the launcher, so it takes the content colour of the theme here.
                 Image(
                     painter = painterResource(R.drawable.app_icon_foreground),
                     contentDescription = null,
                     modifier = Modifier.size(AppMarkSize),
+                    colorFilter = ColorFilter.tint(FrameColors.White),
                 )
                 Text(stringResource(R.string.app_name), style = FrameType.TitleLarge, color = FrameColors.White)
                 Text(

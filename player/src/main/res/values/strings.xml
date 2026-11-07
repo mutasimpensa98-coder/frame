@@ -78,6 +78,21 @@
     <string name="player_color_cyan">Cyan</string>
     <string name="player_color_green">Green</string>
 
+    <!-- Automatic subtitle sync -->
+    <string name="player_sync_now">Sync with the speech</string>
+    <string name="player_sync_now_note">Listens to the video and sets the delay. Nothing leaves the phone.</string>
+    <string name="player_sync_running">Finding where the speech falls…</string>
+    <string name="player_sync_applied">Synced to the speech: %1$s s</string>
+    <string name="player_sync_ratio">Speed fixed from %1$s to %2$s fps</string>
+    <string name="player_sync_undo">Undo sync</string>
+    <string name="player_sync_already">The timing already matches the speech</string>
+    <string name="player_sync_unsure">Couldn\'t be sure of the timing, so nothing changed</string>
+    <string name="player_sync_exact">Made for this exact file, so it needs no sync</string>
+    <string name="player_sync_no_audio">This video\'s sound can\'t be read on the phone, so sync isn\'t available</string>
+    <string name="player_sync_no_cues">This subtitle has too few lines of dialogue to sync</string>
+    <string name="player_sync_timed_out">The check took too long, so nothing changed</string>
+    <string name="player_sync_retimed">%1$s, speed fixed</string>
+
     <!-- Online subtitles -->
     <string name="player_online_search">Search online</string>
     <string name="player_online_title">Online subtitles</string>

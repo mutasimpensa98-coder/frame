@@ -56,6 +56,12 @@ internal class PlayerState {
     var subtitleDelayMs by mutableLongStateOf(0L)
     var audioDelayMs by mutableLongStateOf(0L)
 
+    /** The last automatic subtitle sync of this play, or null. */
+    var sync by mutableStateOf<SyncState?>(null)
+
+    /** An automatic sync changed something that Undo can put back. */
+    var syncUndoable by mutableStateOf(false)
+
     /** Product name of the Bluetooth output, when one is connected. */
     var audioDevice by mutableStateOf<String?>(null)
 
@@ -96,6 +102,8 @@ internal class PlayerState {
         textTracks = emptyList()
         hasTextFiles = false
         online = OnlineSearch()
+        sync = null
+        syncUndoable = false
         subtitleEncoding = null
         segment = null
         next = null
@@ -128,7 +136,8 @@ internal sealed interface Feedback {
     data class Brightness(val level: Float) : Feedback
     data class Volume(val level: Float) : Feedback
     data class Zoom(val zoom: Float) : Feedback
-    data class Message(val text: String) : Feedback
+    /** [longer] keeps a sentence up long enough to read. */
+    data class Message(val text: String, val longer: Boolean = false) : Feedback
 }
 
 /** Seeking in progress. Nothing reaches the player until the finger lifts. */
@@ -185,8 +194,8 @@ internal class PlayerUiState {
         touch()
     }
 
-    fun show(message: String) {
-        feedback = Feedback.Message(message)
+    fun show(message: String, longer: Boolean = false) {
+        feedback = Feedback.Message(message, longer)
     }
 }
 

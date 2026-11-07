@@ -1,12 +1,14 @@
 # Next
 
-Updated 2026-11-07, after the phone check, the cleanup and the first upload. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
+Updated 2026-11-08, after the owner-requests package was built and the four faults of its review were fixed. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
 The history must stay fit to publish. `.gitignore` and `tools/hooks/pre-commit`, set through `core.hooksPath`, keep out what the waiver bans. A new clone needs `git config core.hooksPath tools/hooks`.
 
 Testing stays small: essentials only, and long runs such as the soak only when the owner asks.
 
 ## 1. State of the phone
+
+The phone runs 1.0.103. The owner-requests package of `STATUS.md`, section "This round", is in the working tree only: not committed, not installed and not seen on any phone. Shipping it is step 1 of section 7.
 
 The release build is on the phone, updated in place from the first install, with the library, progress, settings and keys intact. `firstInstallTime` did not change.
 
@@ -51,6 +53,23 @@ Send this to the owner as it stands, and record the answers in `docs/evidence/ph
 18. وأنت تشغّل فيديو من المجلد الخاص، حاول تاخذ لقطة شاشة، وشوف الإشعار. هل الاسم مخفي؟
 19. في المشغّل، افتح الترجمة وابحث أونلاين (يحتاج مفتاح ترجمة). هل ظهرت النتائج والعربي أولها؟ وهل اشتغلت الترجمة بدون ما يعيد الفيديو؟
 
+جولة طلباتك الأخيرة. هذي تنفع بعد ما تثبّت النسخة الجاية فوق 1.0.103:
+
+20. أول فتحة بعد التحديث: هل مكتبتك ومكان وقوفك في كل فيديو والإعدادات والمفاتيح بقوا زي ما هم؟ التطبيق يجيب بيانات كل الأفلام والمسلسلات من جديد مرة وحدة، فكم تقريبًا أخذ لين هدأ؟ وهل سخن التلفون؟
+21. من الإعدادات › المكتبة شغّل «وضع السينما». هل الرئيسية و«الكل» في المكتبة صاروا يعرضوا الأفلام والمسلسلات والأنمي بس؟ وهل بقية فيديوهاتك موجودة في «مقاطع»؟ طفّيه بعدها: هل رجع كل شيء زي قبل؟
+22. اسحب بين صفحات الواجهة الكبيرة فوق في الرئيسية. هل كل صفحة فيها صورة، وما فيه ولا صفحة فاضية أو سوداء؟ وهل آخر فيديو كنت تتفرج عليه باين، في الواجهة أو في «تابع المشاهدة»؟
+23. افتح تفاصيل مسلسل وانزل لتحت في الحلقات، في الداكن والفاتح وبالعربي. هل ظهر فوق شريط زجاجي فيه اسم المسلسل؟ وهل ما عاد فيه شيء يبان تحت شريط الساعة والبطارية؟
+24. ضغطة طويلة على بطاقة، وبعدها زر الرجوع. هل القائمة تتقفل بس، بدون ما تطلع من الشاشة؟
+25. في المظهر الفاتح افتح «حول». هل شعار التطبيق واضح؟
+26. غيّر لغة التطبيق للعربي، وسكّر التطبيق وافتحه. هل أسماء الأفلام والتصنيفات والقصة صارت بالعربي، وين ما تكون متوفرة؟ وارجع للإنجليزي: هل رجعت؟
+27. لو ما عندكش مفتاح OMDb، ضيفه من الإعدادات. هل ظهر تقييم IMDb الأصفر في صفحة التفاصيل بدون ما تسحب الشاشة للتحديث؟ (البطاقات تبقى على تقييم TMDB.)
+28. مقاطعك الشخصية اللي في اسمها رقم بس، مثل «رحلة البحر - 3»: هل طلعت من «أنمي» وصارت في «مقاطع»؟ وهل فيه أنمي حقيقي طلع من «أنمي» بالغلط؟
+29. شغّل فيلم بترجمة تعرف إن توقيتها غلط، واختارها من قائمة الترجمة. هل اتزامنت وحدها، وطلعت رسالة فيها الفرق بالثواني وزر «التراجع عن المزامنة»؟ كم أخذت تقريبًا؟ وهل الفيديو تقطّع وهي تشتغل، خصوصًا في فيلم 4K؟
+30. جرّب «التراجع عن المزامنة». هل رجع التوقيت زي ما كان؟
+31. حط على نفس الفيلم ترجمة فيلم ثاني. هل قال إنه مش متأكد، وما غيّر التوقيت؟
+32. لو عندك ترجمة تمشي صح في الأول وتتأخر شوي شوي لين آخر الفيلم: هل صحّحها، وكتب إنه صحّح السرعة؟ سكّر الفيديو وافتحه: هل الترجمة الأصلية لسه في القائمة جنب النسخة المصحّحة؟
+33. التأخير اليدوي للترجمة صار يوصل لدقيقة قدّام أو ورا. هل يشتغل زي قبل؟
+
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
@@ -68,6 +87,15 @@ These come from reading the code. None has been seen.
 - **Recents flag.** A process death during private playback leaves the flag set until the next public play.
 - **Font scale 1.3.** `TopGlassBar` is fixed at 34 sp, so settings titles may clip.
 
+From the owner-requests package, read in the code and never run:
+
+- **The first open after the update.** Schema 2 to 3 runs, then the clip pass and the anime pass, then every matched title is fetched once more because `metaLanguage` is NULL on every row: details, 3 images, all seasons and one OMDb call each. With many titles this spends OMDb's 1,000 calls a day, and it runs while the owner looks at Home.
+- **Arabic from TMDB.** Plain `ar` is asked for. Whether TMDB answers it in Arabic is unverified. `AppLanguage` reads `LocaleManager` first; whether the application context sees a change made in Settings has not been checked.
+- **Automatic sync on real films.** A second decoder reads the audio while the film plays: decode speed, heat, the speech detector on real film audio, the thresholds and any stutter, mostly with EAC3 or Dolby audio under 4K, are unmeasured. The sync gives up after 25 s.
+- **A frame rate fix** writes a stretched copy to `filesDir/player-subs/` and shows it live, because NextLib's subtitle speed cannot take a ratio.
+- **Hero art** is decoded once for every feed Home gets. During the first search that can be every 400 ms or so, for up to 5 heroes.
+- **The OMDb fetch after a new key** waits for a swipe when the network fails.
+
 ## 4. Known limits in this build
 
 - A cut MKV plays to the cut, then shows a friendly message. It cannot seek or resume, and a refused seek shows a message.
@@ -79,6 +107,12 @@ These come from reading the code. None has been seen.
 - HDR contrast under the 0.78 player sheet scrim is unmeasured.
 - A kill between a copy reaching the private folder and its row committing leaves an unlisted file there. It costs space only, and the original stays. It is not swept on purpose: if the database were ever lost, a sweep would destroy the only copies.
 - If the private copy is damaged and the original is already gone, nothing can restore it. The card stays in the folder.
+- Automatic sync runs on a subtitle the owner picks, adds, downloads or taps "Sync with the speech" for. Sidecars loaded at open are not synced by themselves, and embedded tracks cannot be synced.
+- Undo of a sync ends when the video reopens, for example after an encoding change or an added file. The original subtitle stays in the list, so choosing it again brings it back, and that starts a new sync with its own Undo.
+- Every subtitle copied in for a video is listed when it opens, including old picks and retimed copies.
+- Clips already matched as anime before this build stay anime until Fix match.
+- A cue longer than 15 s counts for nothing in sync.
+- The ClipPass rewrite of stored tags and the anime pass need Room, so only `StoredParse.reread` is tested.
 - `PrivateVaultImpl`, `MediaManagerImpl` and `MediaStoreTrash` have no test that runs them, because they need Room and MediaStore on a device. Only their pure parts are tested on the JVM.
 
 ## 5. Decisions for the owner
@@ -106,11 +140,12 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 
 ## 7. Build next, in order
 
-1. **`docs/OWNER-REQUESTS.md`.** Seven requests were held for after this package: rating badge colours, refetch on language change, hero rules, the Anime filter, the Details status bar overlap, Cinema mode and automatic subtitle sync. None is started.
-2. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
-3. **F-S4 local intro detection.** Phase 7b.
-4. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `MigrationTestHelper` for 1 to 2, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
-5. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
+1. **Ship the owner-requests package.** Write `docs/RELEASE-NOTES.md` in Arabic, commit and push `main`, run `.\fg.ps1 release`, and send the checklist of section 2, items 20 to 33. Watch the first open after the update closely, because schema 3 and both one-time passes run on the owner's library there.
+2. **TMDB and IMDb switches** from `docs/OWNER-REQUESTS.md`. Not started.
+3. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
+4. **F-S4 local intro detection.** Phase 7b.
+5. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2 and 2 to 3, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
+6. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
 
 ## 8. Missing project files
 

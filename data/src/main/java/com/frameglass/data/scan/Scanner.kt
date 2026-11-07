@@ -26,6 +26,7 @@ import com.frameglass.data.logic.ScanRoots
 import com.frameglass.data.logic.ScanRules
 import com.frameglass.data.logic.SidecarFile
 import com.frameglass.data.logic.SidecarMatcher
+import com.frameglass.data.logic.StoredParse
 import com.frameglass.data.meta.TitleResolver
 import com.frameglass.parser.NameKind
 import com.frameglass.parser.NameParser
@@ -403,7 +404,7 @@ internal class Scanner(
                 lastSeenAt = now,
                 titleId = null,
                 episodeId = null,
-                releaseTags = parsed.releaseTags.joinToString(",").ifEmpty { null },
+                releaseTags = StoredParse.tags(parsed),
                 hasSidecarSub = hasSidecar,
                 playableKey = "",
                 parsedSeason = parsed.season,

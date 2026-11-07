@@ -63,7 +63,6 @@ private const val PillSlotRatio = 1.16f
 // Tabs per second at which the pill reaches its full stretch. A one-tab move peaks near 10.
 private const val FullStretchSpeed = 8f
 
-private val BarTitleCollapse = 64.dp
 private const val CollapsedTitleScale = 20f / 34f
 
 /** One tab of [LiquidTabBar]. */
@@ -184,7 +183,10 @@ fun LazyListState.glassScrolled(): Float =
 fun LazyGridState.glassScrolled(): Float =
     if (firstVisibleItemIndex > 0) Float.MAX_VALUE else firstVisibleItemScrollOffset.toFloat()
 
-/** A 34 sp title that shrinks to 20 sp as glass fades in behind it, with [scrolled] read outside composition. */
+/**
+ * A 34 sp title that shrinks to 20 sp as glass fades in behind it, with [scrolled] read outside composition.
+ * With [titleOnScroll], for a page that opens on art with its own title, a 20 sp title fades in with the glass.
+ */
 @Composable
 fun TopGlassBar(
     title: String,
@@ -192,8 +194,9 @@ fun TopGlassBar(
     modifier: Modifier = Modifier,
     navigation: (@Composable () -> Unit)? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
+    titleOnScroll: Boolean = false,
 ) {
-    val range = with(LocalDensity.current) { BarTitleCollapse.toPx() }
+    val range = with(LocalDensity.current) { FrameSizes.TopBarCollapse.toPx() }
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val latestScrolled by rememberUpdatedState(scrolled)
     val collapse = remember(range) {
@@ -220,18 +223,22 @@ fun TopGlassBar(
             navigation?.invoke()
             Text(
                 text = bidiIsolate(title),
-                style = FrameType.Display,
+                style = if (titleOnScroll) FrameType.Title else FrameType.Display,
                 color = FrameTheme.colors.content,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .weight(1f)
                     .graphicsLayer {
-                        val scale = lerp(1f, CollapsedTitleScale, collapse.value)
-                        scaleX = scale
-                        scaleY = scale
-                        // The pivot is a raw fraction too, so the start edge is picked by hand.
-                        transformOrigin = TransformOrigin(if (rtl) 1f else 0f, 0.5f)
+                        if (titleOnScroll) {
+                            alpha = collapse.value
+                        } else {
+                            val scale = lerp(1f, CollapsedTitleScale, collapse.value)
+                            scaleX = scale
+                            scaleY = scale
+                            // The pivot is a raw fraction too, so the start edge is picked by hand.
+                            transformOrigin = TransformOrigin(if (rtl) 1f else 0f, 0.5f)
+                        }
                     },
             )
             actions?.invoke(this)

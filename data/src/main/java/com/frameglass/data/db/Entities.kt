@@ -141,6 +141,8 @@ data class Title(
     val removed: Boolean = false,
     val createdAt: Long,
     @ColumnInfo(defaultValue = "0") val favorite: Boolean = false,
+    /** The language of [name], [overview] and the genres. Null means unknown, so the next open fetches them again. */
+    val metaLanguage: String? = null,
 )
 
 @Entity(tableName = "Episode", indices = [Index(value = ["titleId", "season", "number"], unique = true)])

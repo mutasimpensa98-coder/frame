@@ -16,6 +16,7 @@ import com.frameglass.data.backup.BackupManager
 import com.frameglass.data.db.FrameDb
 import com.frameglass.data.logic.Clock
 import com.frameglass.data.logic.SystemClock
+import com.frameglass.data.meta.AppLanguage
 import com.frameglass.data.meta.CacheSweeper
 import com.frameglass.data.meta.MetadataPipeline
 import com.frameglass.data.meta.NetworkCheck
@@ -92,7 +93,7 @@ internal class DataServices(context: Context, clock: Clock) : FrameServices {
     private val work = WorkScheduler(context)
 
     val pipeline: MetadataPipeline by lazy {
-        MetadataPipeline(context, db, client, config, images, ops, index, clock, NetworkCheck(context))
+        MetadataPipeline(db, client, config, images, ops, index, clock, NetworkCheck(context), AppLanguage(context))
     }
 
     private val clipPass = ClipPass(db, ops, settingsStore)
@@ -149,6 +150,7 @@ internal class DataServices(context: Context, clock: Clock) : FrameServices {
 
     init {
         settingsStore.onMetadataEnabled = { catchUp.onMetadataEnabled() }
+        settingsStore.onOmdbKeySet = { catchUp.onOmdbKeySet() }
         settingsStore.onScanScopeChanged = { catchUp.onFoldersChanged() }
         watchChanges(context)
     }
@@ -168,6 +170,7 @@ internal class DataServices(context: Context, clock: Clock) : FrameServices {
             override fun onActivityStarted(activity: Activity) {
                 started++
                 watcher.setVisible(true)
+                catchUp.onLanguageCheck()
                 if (privateFolder.isInitialized()) privateFolder.value.onAppVisible()
             }
 

@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -60,6 +59,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -100,6 +100,7 @@ import com.frameglass.glass.GlassSource
 import com.frameglass.glass.OutlinePill
 import com.frameglass.glass.RatingBadge
 import com.frameglass.glass.SectionHeader
+import com.frameglass.glass.TopGlassBar
 import com.frameglass.glass.WhitePill
 import com.frameglass.glass.bidiIsolate
 import com.frameglass.glass.coverGlow
@@ -120,6 +121,7 @@ import com.frameglass.player.ui.fileSizeLabel
 import com.frameglass.player.ui.localNumber
 import com.frameglass.player.ui.metaLine
 import com.frameglass.player.ui.navigationInset
+import com.frameglass.player.ui.statusInset
 import com.frameglass.player.ui.toCard
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -179,6 +181,13 @@ private val CreditJobs = mapOf(
     "Creator" to R.string.app_job_creator,
 )
 
+/**
+ * Pixels scrolled into the last [collapsePx] of the art above the bar, so the bar is whole glass by the time the
+ * art has left it. Anything below the art, such as a long episode list, then scrolls under glass.
+ */
+internal fun scrolledPastArt(firstIndex: Int, firstOffset: Int, artPx: Float, barPx: Float, collapsePx: Float): Float =
+    if (firstIndex > 0) Float.MAX_VALUE else (firstOffset - (artPx - barPx - collapsePx)).coerceAtLeast(0f)
+
 /** F-U7 and F-U9: the movie and series page of images 03 and 10. */
 @Composable
 internal fun DetailsScreen(route: Route.Details) {
@@ -187,8 +196,6 @@ internal fun DetailsScreen(route: Route.Details) {
     val detail by remember(route.titleId) { library.title(route.titleId) }
         .collectAsStateWithLifecycle(null as TitleDetail?)
     val list = rememberLazyListState()
-    val overArt by remember(list) { derivedStateOf { list.firstVisibleItemIndex == 0 } }
-    ArtUnderStatusBar(overArt)
     val fixMatch = rememberGlassSheetState()
     val remove = rememberGlassSheetState()
     val versions = rememberGlassSheetState()
@@ -212,6 +219,16 @@ internal fun DetailsScreen(route: Route.Details) {
 
     BoxWithConstraints(Modifier.fillMaxSize().background(FrameColors.Canvas)) {
         val artHeight = maxHeight * ArtShare
+        val density = LocalDensity.current
+        val artPx = with(density) { artHeight.toPx() }
+        val barPx = with(density) { (statusInset() + FrameSizes.TopBarHeight).toPx() }
+        val collapsePx = with(density) { FrameSizes.TopBarCollapse.toPx() }
+        val scrolled = remember(list, artPx, barPx, collapsePx) {
+            { scrolledPastArt(list.firstVisibleItemIndex, list.firstVisibleItemScrollOffset, artPx, barPx, collapsePx) }
+        }
+        // The icons turn with the glass: light ones over the art, the theme's once the bar has come in.
+        val overArt by remember(scrolled, collapsePx) { derivedStateOf { scrolled() < collapsePx / 2f } }
+        ArtUnderStatusBar(overArt)
         GlassSource(Modifier.fillMaxSize()) {
             LazyColumn(
                 state = list,
@@ -277,11 +294,11 @@ internal fun DetailsScreen(route: Route.Details) {
                 }
             }
         }
-        BackButton(
-            Modifier
-                .align(Alignment.TopStart)
-                .statusBarsPadding()
-                .padding(FrameSpacing.S12),
+        TopGlassBar(
+            title = current?.name.orEmpty(),
+            scrolled = scrolled,
+            navigation = { BackButton() },
+            titleOnScroll = true,
         )
     }
     if (current != null) {

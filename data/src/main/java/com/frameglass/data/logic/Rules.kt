@@ -4,6 +4,7 @@ import com.frameglass.data.api.SkipSegment
 import com.frameglass.data.api.TitleKind
 import com.frameglass.data.db.IntroSegment
 import com.frameglass.data.db.MediaFile
+import com.frameglass.data.db.NameKinds
 import com.frameglass.data.db.WatchState
 import java.util.concurrent.TimeUnit
 
@@ -83,11 +84,31 @@ internal object ClipRules {
     val SHORT_MS: Long = TimeUnit.MINUTES.toMillis(20)
     val FILM_MS: Long = TimeUnit.MINUTES.toMillis(40)
 
+    /** This many numbered files under one name are a series, so even a short one gets its lookup. */
+    const val SERIES_RUN = 3
+
+    /** What phones and social apps write. The same list as ClipNames in :parser. */
+    private val PHONE_EXTENSIONS = setOf("mp4", "mov", "3gp", "m4v", "webm")
+
     private fun isShort(durationMs: Long) = durationMs in 1 until SHORT_MS
 
-    /** Episodes stay in Series at any length: a 12 minute anime is not a clip. */
-    fun isClip(kind: TitleKind, matched: Boolean, clipName: Boolean, durationMs: Long): Boolean =
-        !matched && (clipName || (kind == TitleKind.MOVIE && isShort(durationMs)))
+    /**
+     * A number and nothing else, as in Beach Day - 3.mp4: no season, no release tag, and a container phones write.
+     * People number their own clips this way, so such a file proves no more than a plain name does.
+     */
+    fun plainNumber(file: MediaFile): Boolean =
+        file.nameKind == NameKinds.EPISODE && file.parsedSeason == null && file.releaseTags == null &&
+            ParsePaths.extension(file.relPath) in PHONE_EXTENSIONS
+
+    private fun plainVideo(kind: TitleKind, plainNumber: Boolean) =
+        kind == TitleKind.MOVIE || (kind == TitleKind.SERIES && plainNumber)
+
+    /**
+     * Episodes stay in Series at any length: a 12 minute anime is not a clip. [plainNumber] means every file of the
+     * title is a [plainNumber] file, which is the one kind of episode that length can still decide.
+     */
+    fun isClip(kind: TitleKind, matched: Boolean, clipName: Boolean, durationMs: Long, plainNumber: Boolean = false): Boolean =
+        !matched && (clipName || (plainVideo(kind, plainNumber) && isShort(durationMs)))
 
     fun isFilm(kind: TitleKind, matched: Boolean, clip: Boolean, durationMs: Long): Boolean =
         kind == TitleKind.MOVIE && !clip && (matched || durationMs >= FILM_MS)
@@ -95,9 +116,20 @@ internal object ClipRules {
     /**
      * A clip must never reach TMDB, and a home video called Birthday Party must not come back as a film. A year
      * or an episode number earns a short video one lookup: if that finds nothing, [isClip] takes it from there.
+     * A [plainNumber] alone earns nothing, unless SERIES_RUN files share the name.
      */
-    fun skipsLookup(kind: TitleKind, year: Int?, clipName: Boolean, durationMs: Long): Boolean =
-        clipName || (kind == TitleKind.MOVIE && year == null && isShort(durationMs))
+    fun skipsLookup(kind: TitleKind, year: Int?, clipName: Boolean, durationMs: Long, plainNumber: Boolean = false): Boolean =
+        clipName || (plainVideo(kind, plainNumber) && year == null && isShort(durationMs))
+}
+
+/** The language metadata is asked for and recorded in, reduced to what TMDB can tell apart. */
+internal object MetaLanguage {
+    private const val FALLBACK = "en"
+    private const val UNDEFINED = "und"
+
+    /** TMDB holds Arabic under ar-SA and ar-AE, so a phone set to ar-LY must ask for plain ar. */
+    fun of(tag: String?): String =
+        tag?.substringBefore('-')?.lowercase()?.takeUnless { it.isEmpty() || it == UNDEFINED } ?: FALLBACK
 }
 
 /** F-L9. */

@@ -172,10 +172,18 @@ class FramePlayer(context: Context, val config: EngineConfig = EngineConfig()) {
         assHandler.videoTimeCallback = delayed
     }
 
-    /** Positive values show subtitles later. Applies live, with no re-prepare. */
+    /**
+     * Positive values show subtitles later. Applies live, with no re-prepare, to the cue renderer through NextLib and
+     * to the libass overlay through its clock. NextLib's subtitleSpeed is not used for a frame rate fix: it multiplies
+     * the renderer position, which carries Media3's 10^12 µs offset, so any speed but 1 moves cues by hours.
+     */
     fun setSubtitleDelayMs(ms: Long) {
         player.subtitleDelayMilliseconds = ms
         assDelayUs = ms * 1000
+        // A paused video sends the overlay no clock, so it would keep the old timing until play.
+        if (!player.isPlaying && player.playbackState == Player.STATE_READY) {
+            assHandler.videoTimeCallback?.invoke(player.currentPosition * 1000)
+        }
     }
 
     fun setAudioDelayMs(ms: Long) {

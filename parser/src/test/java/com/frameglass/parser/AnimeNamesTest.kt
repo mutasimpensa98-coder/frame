@@ -254,6 +254,64 @@ class AnimeNamesTest {
     }
 
     @Test
+    fun aNumberedPhoneVideoIsNotAnime() {
+        val names = listOf(
+            "Beach Day - 3.mp4",
+            "Nour - 02.mov",
+            "Picnic- 4.3gp",
+            "Garden Party [2].mp4",
+            "(Nour) Garden Party 02.mp4",
+            "Picnic - 4/1.mp4",
+        )
+        names.forEach { assertFalse(parse(it).animeHint, it) }
+    }
+
+    @Test
+    fun aBareNumberStillReadsAsAnEpisode() {
+        val p = parse("Beach Day - 3.mp4")
+        assertEquals("Beach Day", p.title)
+        assertEquals(3, p.episode)
+        assertEquals(NameKind.EPISODE, p.kind)
+    }
+
+    @Test
+    fun aPersonInBracketsIsNotAReleaseGroup() {
+        val p = parse("(Nour) Garden Party.mp4")
+        assertFalse(p.animeHint)
+        assertTrue(p.releaseTags.isEmpty(), p.releaseTags.toString())
+    }
+
+    @Test
+    fun aReleaseSignStillMakesAPhoneFileAnime() {
+        val names = listOf(
+            "[Group] Sample Title - 05.mp4",
+            "Sample Title - 05 [1080p].mp4",
+            "Sample Title - 05 (720p).mp4",
+            "Sample Title - 05 WEB-DL.mp4",
+            "Sample Title - 05 [ABCD1234].mp4",
+            "(Group) Sample Title - 05 [1080p].mp4",
+            "انمي العنوان الحلقة 1.mp4",
+        )
+        names.forEach { assertTrue(parse(it).animeHint, it) }
+    }
+
+    @Test
+    fun aWeakTagIsNotAReleaseSign() = assertFalse(parse("Beach Day - 3 HD.mp4").animeHint)
+
+    @Test
+    fun aDownloadContainerKeepsTheRunningNumberHint() {
+        assertTrue(parse("Sample Title - 05.mkv").animeHint)
+        assertTrue(parse("(Group) Sample Title - 05.mkv").animeHint)
+        assertTrue(parse("(Group) Sample Title OP2 [1080p].mkv").animeHint)
+    }
+
+    @Test
+    fun aFolderNeedsAReleaseSignToo() {
+        assertFalse(parse("Picnic - 4/Beach Day 02.mkv").animeHint)
+        assertTrue(parse("[Group] Sample Title/Sample Title 02.mp4").animeHint)
+    }
+
+    @Test
     fun animeMovieHasNoEpisode() {
         check("[Group] Title The Movie [1080p].mkv", "Title The Movie", kind = NameKind.MOVIE)
     }

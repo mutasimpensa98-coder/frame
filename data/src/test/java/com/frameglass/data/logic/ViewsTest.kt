@@ -104,6 +104,15 @@ class HomeBuilderTest {
     }
 
     @Test
+    fun theHeroCarriesTheCardItTookFromTheRow() {
+        val titles = listOf(row(1, TitleKind.MOVIE), row(2, TitleKind.MOVIE))
+        val watch = listOf(state("t:1", 1, position = 5, at = 90), state("t:2", 2, position = 5, at = 10))
+        val feed = HomeBuilder.build(snapshot(titles, titles.map { movieFile(it.id) }, watch = watch), labels)
+        assertEquals("t:1", feed.heroes.first().continueItem?.play?.playableKey)
+        assertTrue(feed.heroes.drop(1).all { it.continueItem == null })
+    }
+
+    @Test
     fun continueWatchingHoldsOneItemPerSeries() {
         val titles = listOf(row(1, TitleKind.MOVIE), row(9, TitleKind.SERIES))
         val files = listOf(movieFile(1)) + (1..3).map { episodeFile(10L + it, 9, it) }

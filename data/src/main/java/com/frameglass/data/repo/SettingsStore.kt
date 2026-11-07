@@ -54,6 +54,7 @@ private object Prefs {
     val themeMode = stringPreferencesKey("themeMode")
     val accent = stringPreferencesKey("accent")
     val coverTint = booleanPreferencesKey("coverTint")
+    val cinemaMode = booleanPreferencesKey("cinemaMode")
     val sendReleaseName = booleanPreferencesKey("sendReleaseName")
     val sendFileHash = booleanPreferencesKey("sendFileHash")
     val vaultLockSeconds = intPreferencesKey("vaultLockSeconds")
@@ -62,6 +63,7 @@ private object Prefs {
     val mediaSignal = stringPreferencesKey("internal.mediaSignal")
     val lastSweepAt = longPreferencesKey("internal.lastSweepAt")
     val clipPassDone = booleanPreferencesKey("internal.clipPassDone")
+    val animePassDone = booleanPreferencesKey("internal.animePassDone")
 }
 
 internal class SettingsStore(
@@ -73,6 +75,10 @@ internal class SettingsStore(
     /** Set by the wiring: a new key or Online turned on should start matching. */
     @Volatile
     var onMetadataEnabled: () -> Unit = {}
+
+    /** Set by the wiring: a new OMDb key should bring the IMDb ratings that are missing. */
+    @Volatile
+    var onOmdbKeySet: () -> Unit = {}
 
     /** Set by the wiring: a setting that changes where the search goes needs a scan. */
     @Volatile
@@ -101,6 +107,7 @@ internal class SettingsStore(
             themeMode = enumOf(p[Prefs.themeMode], d.themeMode),
             accent = enumOf(p[Prefs.accent], d.accent),
             coverTint = p[Prefs.coverTint] ?: d.coverTint,
+            cinemaMode = p[Prefs.cinemaMode] ?: d.cinemaMode,
             sendReleaseName = p[Prefs.sendReleaseName] ?: d.sendReleaseName,
             sendFileHash = p[Prefs.sendFileHash] ?: d.sendFileHash,
             vaultLockSeconds = p[Prefs.vaultLockSeconds] ?: d.vaultLockSeconds,
@@ -129,6 +136,7 @@ internal class SettingsStore(
         p[Prefs.themeMode] = s.themeMode.name
         p[Prefs.accent] = s.accent.name
         p[Prefs.coverTint] = s.coverTint
+        p[Prefs.cinemaMode] = s.cinemaMode
         p[Prefs.sendReleaseName] = s.sendReleaseName
         p[Prefs.sendFileHash] = s.sendFileHash
         p[Prefs.vaultLockSeconds] = s.vaultLockSeconds
@@ -157,8 +165,13 @@ internal class SettingsStore(
 
     override suspend fun setKey(kind: ApiKeyKind, value: String?) {
         vault.write(kind.toNet(), value)
+        if (value.isNullOrBlank()) return
         // Subtitle keys work on the next tap, and nothing in the metadata queue waits for them.
-        if (!value.isNullOrBlank() && (kind == ApiKeyKind.TMDB || kind == ApiKeyKind.OMDB)) onMetadataEnabled()
+        when (kind) {
+            ApiKeyKind.TMDB -> onMetadataEnabled()
+            ApiKeyKind.OMDB -> onOmdbKeySet()
+            else -> Unit
+        }
     }
 
     suspend fun mediaSignal(): String? = store.data.first()[Prefs.mediaSignal]
@@ -177,6 +190,12 @@ internal class SettingsStore(
 
     suspend fun setClipPassDone() {
         store.edit { it[Prefs.clipPassDone] = true }
+    }
+
+    suspend fun animePassDone(): Boolean = store.data.first()[Prefs.animePassDone] == true
+
+    suspend fun setAnimePassDone() {
+        store.edit { it[Prefs.animePassDone] = true }
     }
 
     private fun ApiKeyKind.toNet(): ApiKey = ApiKey.valueOf(name)

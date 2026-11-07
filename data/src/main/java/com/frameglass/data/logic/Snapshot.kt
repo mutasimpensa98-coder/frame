@@ -5,6 +5,7 @@ import com.frameglass.data.api.MatchState
 import com.frameglass.data.api.RatingInfo
 import com.frameglass.data.api.RatingSource
 import com.frameglass.data.api.TitleKind
+import com.frameglass.data.db.EnrichState
 import com.frameglass.data.db.EpisodeLite
 import com.frameglass.data.db.GenreLink
 import com.frameglass.data.db.MediaFile
@@ -35,6 +36,10 @@ internal class Playable(
     val inProgress: Boolean get() = watch != null && !watch.watched && watch.positionMs > 0
     val started: Boolean get() = watched || inProgress
     val firstSeenAt: Long get() = files.minOf { it.firstSeenAt }
+
+    /** The probe crashed on it, or neither decoder could read one frame of it. */
+    val broken: Boolean
+        get() = best.let { it.enrichState == EnrichState.FAILED || (it.enrichState == EnrichState.DONE && it.framePath == null) }
     val durationMs: Long
         get() = best.durationMs.takeIf { it > 0 } ?: watch?.durationMs?.takeIf { it > 0 }
             ?: episode?.runtime?.let { it * 60_000L } ?: 0
@@ -117,10 +122,14 @@ internal class TitleInfo(
     val matched: Boolean = title.matchState == MatchState.AUTO || title.matchState == MatchState.MANUAL
     val durationMs: Long = playables.maxOfOrNull { it.durationMs } ?: 0
     private val clipName: Boolean = playables.any { p -> p.files.any { it.nameKind == NameKinds.CLIP } }
+    private val plainNumber: Boolean = playables.all { p -> p.files.all(ClipRules::plainNumber) }
 
     /** A personal or social video: it has a card, a frame and progress, but no poster to fetch. */
-    val isClip: Boolean = ClipRules.isClip(title.kind, matched, clipName, durationMs)
+    val isClip: Boolean = ClipRules.isClip(title.kind, matched, clipName, durationMs, plainNumber)
     val isFilm: Boolean = ClipRules.isFilm(title.kind, matched, isClip, durationMs)
+
+    /** A film, a series or an anime. A video that is neither a film nor a clip is not one, so Cinema mode leaves it out. */
+    val isRealTitle: Boolean = isFilm || (title.kind != TitleKind.MOVIE && !isClip)
 
     /** The card rating: TMDB by default per F-M10, IMDb only when it is all there is. */
     val rating: RatingInfo?
@@ -205,4 +214,7 @@ internal class Snapshot(
 
     /** F-L3: titles from a gone drive stay dimmed, and gone internal titles wait behind the toggle. */
     fun inLibrary(info: TitleInfo): Boolean = info.available || info.onRemovable || settings.showUnavailable
+
+    /** What Home may show from [live], the titles on storage now. */
+    fun forHome(live: List<TitleInfo>): List<TitleInfo> = if (settings.cinemaMode) live.filter { it.isRealTitle } else live
 }

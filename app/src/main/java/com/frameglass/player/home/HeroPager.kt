@@ -120,7 +120,16 @@ internal fun HeroPager(heroes: List<HeroItem>, height: Dp) {
     var touching by remember { mutableStateOf(false) }
 
     LaunchedEffect(pager, heroes.size, reduced, touching, dragged) {
-        if (heroes.size < 2 || reduced || touching || dragged) return@LaunchedEffect
+        if (touching || dragged) return@LaunchedEffect
+        // A touch or a new list can stop the advance between two pages, so it settles on the nearer one first.
+        if (pager.currentPageOffsetFraction != 0f && !pager.isScrollInProgress) {
+            if (reduced) {
+                pager.scrollToPage(pager.currentPage)
+            } else {
+                pager.animateScrollToPage(pager.currentPage, animationSpec = FrameMotion.defaultSpatial())
+            }
+        }
+        if (heroes.size < 2 || reduced) return@LaunchedEffect
         lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             while (true) {
                 delay(AdvanceMillis)

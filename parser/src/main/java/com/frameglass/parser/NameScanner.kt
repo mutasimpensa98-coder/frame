@@ -5,6 +5,8 @@ internal class NameContext(
     val isFolder: Boolean = false,
     val inSeasonFolder: Boolean = false,
     val parentKey: String? = null,
+    /** A container phones write, so the name alone says nothing about a release. */
+    val phoneFile: Boolean = false,
 )
 
 /** What one file or folder name says on its own. */
@@ -74,7 +76,7 @@ internal object NameScanner {
         out.revision = out.revision ?: out.bracketRevision
         out.title = finishTitle(words, dotted)
         if (out.title.isEmpty()) findOtherTitle(after, out)
-        settleNumbering(out)
+        settleNumbering(out, context)
         return out
     }
 
@@ -94,8 +96,11 @@ internal object NameScanner {
                 text.lowercase() in Vocabulary.SITE_NAMES || NameText.isSite(bracket.text) -> Unit
                 bracket.atStart && out.group == null -> {
                     out.group = text
-                    out.tags += text
-                    out.animeHint = true
+                    // Square brackets are how a release names its group. (Nour) can be anyone, so it needs a release sign.
+                    if (bracket.square) {
+                        out.tags += text
+                        out.animeHint = true
+                    }
                 }
                 else -> out.otherBrackets += text
             }
@@ -278,7 +283,7 @@ internal object NameScanner {
         if (words.size < 2) return
         val last = words.last()
         val beforeLast = words[words.size - 2]
-        val fansubForm = out.animeHint || out.runningNumber || beforeLast == "-"
+        val fansubForm = out.animeHint || out.group != null || out.runningNumber || beforeLast == "-"
         if (last.lowercase() in Vocabulary.TITLE_END_EXTRAS || (fansubForm && ANIME_EXTRA_WORD.matches(last))) {
             out.extra = true
             words.removeAt(words.lastIndex)
@@ -344,10 +349,13 @@ internal object NameScanner {
 
     /**
      * Anime names with no season count from the first episode, whatever marker they use. The dash
-     * form alone is not read as anime on an Arabic title: AniList cannot search those.
+     * form alone is not read as anime on an Arabic title: AniList cannot search those. It is not
+     * read as anime on a bare phone file either, because Beach Day - 3.mp4 is how people number
+     * their own clips. A real anime named that way still becomes one through its match.
      */
-    private fun settleNumbering(out: Scan) {
-        if (out.runningNumber && out.title.none { isArabicLetter(it) }) out.animeHint = true
+    private fun settleNumbering(out: Scan, context: NameContext) {
+        val fansubForm = out.group != null || (out.runningNumber && out.title.none { isArabicLetter(it) })
+        if (fansubForm && hasReleaseSign(out, context)) out.animeHint = true
         if (out.animeHint && out.season == null && !out.special && !out.extra) out.absolute = out.episode
         if (out.extra) {
             out.episode = null
@@ -355,6 +363,9 @@ internal object NameScanner {
             out.absolute = null
         }
     }
+
+    private fun hasReleaseSign(out: Scan, context: NameContext): Boolean =
+        !(context.isFolder || context.phoneFile) || out.tags.any { ReleaseTags.strong(it) != null }
 
     private fun wordsOf(text: String): List<String> = text.split(' ').filter { it.isNotEmpty() }
 }

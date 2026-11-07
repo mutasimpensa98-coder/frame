@@ -43,9 +43,15 @@ import com.frameglass.engine.DecoderLadder
 import com.frameglass.engine.DecoderProbe
 import com.frameglass.engine.EngineConfig
 import com.frameglass.engine.FramePlayer
+import com.frameglass.engine.FrameRateFix
 import com.frameglass.engine.HdrReport
 import com.frameglass.engine.LiveSubtitle
+import com.frameglass.engine.SubtitleCues
 import com.frameglass.engine.SubtitleEncoding
+import com.frameglass.engine.SubtitleSync
+import com.frameglass.engine.SyncAligner
+import com.frameglass.engine.SyncOutcome
+import com.frameglass.engine.SyncProblem
 import com.frameglass.engine.VideoFacts
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import kotlinx.coroutines.CancellationException
@@ -61,9 +67,12 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.nio.charset.Charset
 import java.security.MessageDigest
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 /** Facts for the info panel (F-T5, F-P20). Read once a second while the panel is open. */
 internal data class StreamFacts(
@@ -120,6 +129,12 @@ internal class PlayerSession(context: Context) {
     private var liveFile: SubtitleFile? = null
     private var liveClock: Job? = null
     private var liveSwitch: Job? = null
+
+    private var syncJob: Job? = null
+    private var syncUndo: SyncUndo? = null
+
+    /** A file added from the picker is synced once the reopen has selected it. */
+    private var pendingSyncPath: String? = null
 
     private var openJob: Job? = null
     private var onlineJob: Job? = null
@@ -271,6 +286,8 @@ internal class PlayerSession(context: Context) {
 
     private fun prepareForNewItem() {
         onlineJob?.cancel()
+        forgetSync()
+        pendingSyncPath = null
         clearLive()
         textRows = emptyList()
         state.clearForNewItem()
@@ -372,9 +389,10 @@ internal class PlayerSession(context: Context) {
     /** Runs off the main thread: text sidecars may need transcoding to UTF-8 (F-P8). */
     private fun subtitleConfigurations(item: PlaybackItem): List<MediaItem.SubtitleConfiguration> {
         val all = item.sidecars.map { SubtitleFile(it.path, it.label, it.language, it.mimeType) }.toMutableList()
-        val added = prefs.subtitleUri
-        if (added != null && all.none { it.path == added } && File(added).isFile) {
-            all += SubtitleFile(added, File(added).name, null, subtitleMime(added) ?: MimeTypes.APPLICATION_SUBRIP)
+        val chosen = prefs.subtitleUri?.takeIf { File(it).isFile }
+        val copied = subtitleFolder(item).listFiles()?.filter { it.isFile && subtitleMime(it.name) != null }?.map { it.path }.orEmpty()
+        for (path in CopiedSubtitles.extra(all.map { it.path }, chosen, copied)) {
+            all += SubtitleFile(path, File(path).name, null, subtitleMime(path) ?: MimeTypes.APPLICATION_SUBRIP)
         }
         files = all
         return all.mapIndexed { index, file ->
@@ -397,6 +415,8 @@ internal class PlayerSession(context: Context) {
         val position = player.currentPosition
         val playing = player.playWhenReady
         openJob?.cancel()
+        // Track rows are rebuilt by the reopen, so an Undo could no longer find what it would put back.
+        forgetSync()
         // The reopen brings any live subtitle back as a normal track, through item.sidecars and prefs.
         clearLive()
         openJob = main.launch {
@@ -603,6 +623,11 @@ internal class PlayerSession(context: Context) {
             tracksApplied = true
             applyMemory(audio, textRows)
         }
+        pendingSyncPath?.let { path ->
+            val row = textRows.firstOrNull { it.sidecarPath == path && it.selected } ?: return@let
+            pendingSyncPath = null
+            fileOf(row)?.let(::startSync)
+        }
         checkPlayable(tracks)
     }
 
@@ -664,9 +689,25 @@ internal class PlayerSession(context: Context) {
         }
     }
 
+    /** A choice from the sheet. A subtitle file chosen here is then synced to the speech. */
     fun selectTrack(type: Int, row: TrackRow) {
+        if (type != C.TRACK_TYPE_TEXT) {
+            applyTrack(type, row)
+            return
+        }
+        dropSync()
+        val file = fileOf(row)
         if (row.group == LIVE_GROUP) {
-            liveFiles.getOrNull(row.track)?.let(::selectLive)
+            file?.let { live -> selectLive(live) { startSync(live) } }
+            return
+        }
+        applyTrack(type, row)
+        file?.let(::startSync)
+    }
+
+    private fun applyTrack(type: Int, row: TrackRow) {
+        if (row.group == LIVE_GROUP) {
+            liveFiles.getOrNull(row.track)?.let { selectLive(it) }
             return
         }
         val group = player.currentTracks.groups.getOrNull(row.group) ?: return
@@ -695,6 +736,7 @@ internal class PlayerSession(context: Context) {
     }
 
     fun subtitlesOff() {
+        dropSync()
         stopLive()
         publishTextRows()
         disableTextTracks()
@@ -708,7 +750,17 @@ internal class PlayerSession(context: Context) {
             .build()
     }
 
+    /** The owner's own change. It stops a sync still running, so the result cannot overwrite it. */
     fun setSubtitleDelay(ms: Long) {
+        if (state.sync == SyncState.Running) {
+            syncJob?.cancel()
+            syncJob = null
+            state.sync = null
+        }
+        applyDelay(ms)
+    }
+
+    private fun applyDelay(ms: Long) {
         val value = ms.coerceIn(-MAX_SUBTITLE_DELAY_MS, MAX_SUBTITLE_DELAY_MS)
         state.subtitleDelayMs = value
         engine.setSubtitleDelayMs(value)
@@ -737,8 +789,10 @@ internal class PlayerSession(context: Context) {
             if (path == null) {
                 onRejected()
             } else {
+                dropSync()
                 savePrefs { copy(subtitleUri = path, subtitleLanguage = null, subtitlesOff = false) }
                 reload()
+                pendingSyncPath = path
             }
         }
     }
@@ -746,13 +800,16 @@ internal class PlayerSession(context: Context) {
     private fun copySubtitle(uri: Uri, item: PlaybackItem): String? {
         val name = displayName(uri) ?: return null
         subtitleMime(name) ?: return null
-        val folder = File(app.filesDir, "$SUBTITLE_FOLDER/${hash(item.playableKey)}").apply { mkdirs() }
+        val folder = subtitleFolder(item).apply { mkdirs() }
         val target = File(folder, File(name).name)
         app.contentResolver.openInputStream(uri)?.use { input ->
             target.outputStream().use { input.copyTo(it) }
         } ?: return null
         return target.path
     }
+
+    /** Subtitles copied in or made for one video, in app storage. */
+    private fun subtitleFolder(item: PlaybackItem): File = File(app.filesDir, "$SUBTITLE_FOLDER/${hash(item.playableKey)}")
 
     private fun displayName(uri: Uri): String? =
         app.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
@@ -803,16 +860,26 @@ internal class PlayerSession(context: Context) {
         if (state.online.loading != null) return
         state.online = state.online.copy(loading = result, failure = null)
         onlineJob = main.launch {
-            val failure = loadOnline(item, result)
+            val loaded = loadOnline(item, result)
             ensureActive()
-            state.online = state.online.copy(loading = null, failure = failure)
-            if (failure == null) onLoaded()
+            state.online = state.online.copy(loading = null, failure = loaded.failure)
+            val sidecar = loaded.sidecar ?: return@launch
+            onLoaded()
+            // A hash match was made from this very file, so its timing is already right.
+            if (result.hashMatch) {
+                state.sync = SyncState.Exact
+            } else {
+                state.textTracks.firstOrNull { it.sidecarPath == sidecar.path }?.let(::fileOf)?.let(::startSync)
+            }
         }
     }
 
-    private suspend fun loadOnline(item: PlaybackItem, result: SubtitleResult): OnlineFailure? {
-        val sidecar = attempt { services.subtitles.download(item, result) }.getOrElse { return OnlineFailure.of(it) }
-        return if (addLive(sidecar)) null else OnlineFailure.UNREADABLE
+    private class OnlineLoad(val sidecar: SidecarSubtitle? = null, val failure: OnlineFailure? = null)
+
+    private suspend fun loadOnline(item: PlaybackItem, result: SubtitleResult): OnlineLoad {
+        val sidecar = attempt { services.subtitles.download(item, result) }.getOrElse { return OnlineLoad(failure = OnlineFailure.of(it)) }
+        dropSync()
+        return if (addLive(sidecar)) OnlineLoad(sidecar) else OnlineLoad(failure = OnlineFailure.UNREADABLE)
     }
 
     private suspend fun <T> attempt(call: suspend () -> Result<T>): Result<T> = try {
@@ -828,7 +895,7 @@ internal class PlayerSession(context: Context) {
     /** A file already saved for this video is a real track of this play, so it needs nothing new. */
     private suspend fun addLive(sidecar: SidecarSubtitle): Boolean {
         state.textTracks.firstOrNull { it.sidecarPath == sidecar.path && it.supported }?.let { row ->
-            selectTrack(C.TRACK_TYPE_TEXT, row)
+            applyTrack(C.TRACK_TYPE_TEXT, row)
             return true
         }
         val file = SubtitleFile(sidecar.path, sidecar.label, sidecar.language, sidecar.mimeType)
@@ -841,12 +908,13 @@ internal class PlayerSession(context: Context) {
         return true
     }
 
-    private fun selectLive(file: SubtitleFile) {
+    private fun selectLive(file: SubtitleFile, then: (() -> Unit)? = null) {
         liveSwitch?.cancel()
         liveSwitch = main.launch {
             if (playLive(file)) {
                 publishTextRows()
                 rememberLive(file)
+                then?.invoke()
             }
         }
     }
@@ -910,6 +978,132 @@ internal class PlayerSession(context: Context) {
         liveSwitch?.cancel()
         stopLive()
         liveFiles = emptyList()
+    }
+
+    // ---- Automatic subtitle sync ------------------------------------------------------------------
+
+    /** What Undo puts back: the delay from before, and the file a frame rate fix replaced with [copy]. */
+    private class SyncUndo(val delayMs: Long, val appliedDelayMs: Long, val original: SubtitleFile?, val copy: SubtitleFile?)
+
+    /** True when the subtitle on screen is a file that sync can read. Embedded tracks keep the video's own timing. */
+    fun canSync(): Boolean {
+        val row = state.textTracks.firstOrNull { it.selected } ?: return false
+        val file = fileOf(row) ?: return false
+        return SubtitleCues.kindOf(file.mimeType) != null
+    }
+
+    /** The row in the subtitle sheet, for a file that was loaded by itself or needs another try. */
+    fun syncNow() {
+        val row = state.textTracks.firstOrNull { it.selected } ?: return
+        fileOf(row)?.let(::startSync)
+    }
+
+    private fun fileOf(row: TrackRow): SubtitleFile? {
+        val path = row.sidecarPath ?: return null
+        return if (row.group == LIVE_GROUP) liveFiles.getOrNull(row.track) else files.firstOrNull { it.path == path }
+    }
+
+    private fun startSync(file: SubtitleFile) {
+        val item = state.item ?: return
+        if (SubtitleCues.kindOf(file.mimeType) == null) return
+        syncJob?.cancel()
+        state.sync = SyncState.Running
+        val audioGroups = player.currentTracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
+        val audio = audioGroups.indexOfFirst { it.isSelected }.takeIf { it >= 0 }
+        val fps = player.videoFormat?.frameRate?.takeIf { it > 0f }
+        val duration = max(state.durationMs, item.durationMs)
+        val encoding = prefs.subtitleEncoding
+        syncJob = main.launch {
+            val outcome = try {
+                val readable = withContext(Dispatchers.IO) { SubtitleEncoding.toUtf8(app, File(file.path), encoding) }
+                SubtitleSync.run(app, playbackUri(item), readable, file.mimeType, duration, fps, audio)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Throwable) {
+                // Even an Error must stay here: this scope has no handler, and an escape would end playback.
+                SyncOutcome.Unavailable(SyncProblem.NO_CUES)
+            }
+            ensureActive()
+            if (state.item?.playableKey != item.playableKey) return@launch
+            when (outcome) {
+                is SyncOutcome.Fit -> applyFit(file, outcome)
+                SyncOutcome.Unsure -> state.sync = SyncState.Unsure
+                is SyncOutcome.Unavailable -> state.sync = SyncState.Unavailable(outcome.problem)
+            }
+        }
+    }
+
+    /**
+     * A delay alone goes through the normal delay. A frame rate fix cannot: NextLib's speed is broken by Media3's
+     * renderer offset, so a copy with every time stretched is shown live instead, and the delay goes on top of it.
+     */
+    private suspend fun applyFit(file: SubtitleFile, fit: SyncOutcome.Fit) {
+        val target = ((fit.offsetMs / SYNC_STEP_MS.toDouble()).roundToLong() * SYNC_STEP_MS)
+            .coerceIn(-MAX_SUBTITLE_DELAY_MS, MAX_SUBTITLE_DELAY_MS)
+        val earlier = syncUndo
+        val before = earlier?.delayMs ?: state.subtitleDelayMs
+        if (fit.fix == FrameRateFix.NONE) {
+            if (abs(target - state.subtitleDelayMs) < SYNC_SAME_MS) {
+                state.sync = SyncState.AlreadyRight
+                return
+            }
+            syncUndo = SyncUndo(before, target, earlier?.original, earlier?.copy)
+        } else {
+            val copy = withContext(Dispatchers.IO) { runCatching { writeRetimed(file, fit.fix) }.getOrNull() }
+            if (copy == null || !addLive(SidecarSubtitle(copy.path, copy.label, copy.language, copy.mimeType))) {
+                state.sync = SyncState.Unavailable(SyncProblem.NO_CUES)
+                return
+            }
+            syncUndo = SyncUndo(before, target, earlier?.original ?: file, copy)
+        }
+        applyDelay(target)
+        state.sync = SyncState.Applied(target, fit.fix)
+        state.syncUndoable = true
+    }
+
+    /** Beside the video's other copied subtitles in app storage, never next to the video. */
+    private fun writeRetimed(file: SubtitleFile, fix: FrameRateFix): SubtitleFile? {
+        val item = state.item ?: return null
+        val kind = SubtitleCues.kindOf(file.mimeType) ?: return null
+        val source = File(file.path)
+        val text = SubtitleEncoding.toUtf8(app, source, prefs.subtitleEncoding).readText().removePrefix(BOM)
+        // Written in the charset it was read with: a chosen encoding applies to every subtitle of this video.
+        val charset = prefs.subtitleEncoding?.takeIf(Charset::isSupported)?.let(Charset::forName) ?: Charsets.UTF_8
+        val folder = subtitleFolder(item).apply { mkdirs() }
+        val name = source.name
+        val target = File(folder, "${name.substringBeforeLast('.')}.${fix.name.lowercase()}.${name.substringAfterLast('.', "srt")}")
+        target.writeText(SubtitleCues.retime(text, kind, fix.ratio), charset)
+        return SubtitleFile(target.path, app.getString(R.string.player_sync_retimed, file.label), file.language, file.mimeType)
+    }
+
+    fun undoSync() {
+        val undo = syncUndo ?: return
+        forgetSync()
+        applyDelay(undo.delayMs)
+        val original = undo.original ?: return
+        state.textTracks.firstOrNull { it.sidecarPath == original.path }?.let { applyTrack(C.TRACK_TYPE_TEXT, it) }
+        val copy = undo.copy ?: return
+        if (copy !in liveFiles) return
+        liveFiles = liveFiles - copy
+        state.item = state.item?.let { it.copy(sidecars = it.sidecars.filterNot { sidecar -> sidecar.path == copy.path }) }
+        publishTextRows()
+        writes.launch { runCatching { File(copy.path).delete() } }
+    }
+
+    /** A new subtitle choice. A delay that sync set for the last file goes back, unless the owner has changed it since. */
+    private fun dropSync() {
+        val undo = syncUndo
+        forgetSync()
+        pendingSyncPath = null
+        if (undo != null && state.subtitleDelayMs == undo.appliedDelayMs) applyDelay(undo.delayMs)
+    }
+
+    private fun forgetSync() {
+        syncJob?.cancel()
+        syncJob = null
+        syncUndo = null
+        state.sync = null
+        state.syncUndoable = false
     }
 
     // ---- Aspect and zoom ------------------------------------------------------------------------
@@ -1110,6 +1304,8 @@ internal class PlayerSession(context: Context) {
         savePosition()
         openJob?.cancel()
         onlineJob?.cancel()
+        forgetSync()
+        pendingSyncPath = null
         vaultWatch?.cancel()
         countdown?.cancel()
         stopTicker()
@@ -1144,6 +1340,11 @@ internal class PlayerSession(context: Context) {
         const val FONT_FOLDER = "player-fonts"
         const val SIDECAR_ID = "side"
         const val MANUAL_SOURCE = "manual"
+        const val BOM = "\uFEFF"
+
+        /** A found delay is rounded to this, and one within [SYNC_SAME_MS] of the current one changes nothing. */
+        const val SYNC_STEP_MS = 10L
+        const val SYNC_SAME_MS = 50L
         const val ARABIC = "ar"
         const val HASH_LENGTH = 24
 
@@ -1184,7 +1385,8 @@ internal class PlayerSession(context: Context) {
         const val MAX_SPEED = 4f
         const val HOLD_SPEED = 2f
 
-        const val MAX_SUBTITLE_DELAY_MS = 10_000L
+        /** As far as automatic sync searches, so a found delay can still be nudged by hand. */
+        const val MAX_SUBTITLE_DELAY_MS = SyncAligner.MAX_OFFSET_MS
         const val MAX_AUDIO_DELAY_MS = 2_000L
 
         val BLUETOOTH_OUTPUTS = setOf(

@@ -16,6 +16,11 @@
     <string name="app_home_no_access">Allow access to your files so Frame Glass can find your videos</string>
     <string name="app_home_scanning">Looking for videos…</string>
     <string name="app_home_search_again">Search again</string>
+    <string name="app_home_cinema_empty">No films, series or anime yet</string>
+    <string name="app_home_cinema_empty_body">Cinema mode hides your other videos. They are still under Videos in Library.</string>
+    <string name="app_home_cinema_off">Turn off Cinema mode</string>
+    <string name="app_home_in_library">Your videos are in Library</string>
+    <string name="app_home_open_library">Open Library</string>
 
     <string name="app_add_place">Add a place</string>
     <string name="app_add_place_hint">Frame Glass searches the whole phone by itself. Add other places here, such as a USB drive.</string>
@@ -84,6 +89,7 @@
     <string name="app_view_grid">Show as grid</string>
     <string name="app_view_list">Show as list</string>
     <string name="app_library_empty">No titles here yet.</string>
+    <string name="app_cinema_library_empty">Cinema mode shows only films, series and anime here. Your other videos are under Videos.</string>
     <string name="app_library_no_folders">No folders with videos yet.</string>
 
     <string name="app_search_title">Search your library</string>
@@ -110,6 +116,8 @@
     <string name="app_show_unavailable_hint">Titles on internal storage whose files are gone</string>
     <string name="app_scan_hidden">Include hidden folders</string>
     <string name="app_scan_nomedia">Include .nomedia folders</string>
+    <string name="app_cinema_mode">Cinema mode</string>
+    <string name="app_cinema_mode_hint">Home and All show only films, series and anime. Other videos stay under Videos.</string>
 
     <string name="app_double_tap">Double-tap to skip</string>
     <string name="app_auto_next">Play the next episode automatically</string>

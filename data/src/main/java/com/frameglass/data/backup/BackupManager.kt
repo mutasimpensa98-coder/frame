@@ -158,6 +158,7 @@ internal class BackupManager(
                     dominantColor = colors?.dominant ?: existing.dominantColor,
                     coverLuma = colors?.luma ?: existing.coverLuma,
                     fetchedAt = if (sameMatch) existing.fetchedAt else null,
+                    metaLanguage = if (sameMatch) existing.metaLanguage else null,
                 ),
             )
             return existing.id

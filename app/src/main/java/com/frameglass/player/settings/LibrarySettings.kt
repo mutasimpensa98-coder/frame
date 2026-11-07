@@ -170,6 +170,13 @@ private fun ShowSection(settings: AppSettings) {
 
     SettingsSection(stringResource(R.string.app_library_section_show)) {
         ToggleRow(
+            title = stringResource(R.string.app_cinema_mode),
+            description = stringResource(R.string.app_cinema_mode_hint),
+            checked = settings.cinemaMode,
+            onChange = { value -> model.updateSettings { it.copy(cinemaMode = value) } },
+        )
+        SettingsDivider()
+        ToggleRow(
             title = stringResource(R.string.app_show_unavailable),
             description = stringResource(R.string.app_show_unavailable_hint),
             checked = settings.showUnavailable,

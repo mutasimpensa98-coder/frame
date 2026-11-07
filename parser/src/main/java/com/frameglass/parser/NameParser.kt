@@ -26,6 +26,7 @@ object NameParser {
             NameContext(
                 inSeasonFolder = inSeason || titleFolder?.season != null,
                 parentKey = titleFolder?.title?.let(ArabicNormalizer::key),
+                phoneFile = ClipNames.isPhoneFile(fileName),
             ),
         )
 

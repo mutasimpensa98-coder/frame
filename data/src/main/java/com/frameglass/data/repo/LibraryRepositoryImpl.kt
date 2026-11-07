@@ -97,7 +97,7 @@ internal class LibraryRepositoryImpl(
     private fun <T> view(block: suspend (Snapshot) -> T): Flow<T> =
         snapshots.flow.map(block).distinctUntilChanged().flowOn(Dispatchers.Default)
 
-    override val home: Flow<HomeFeed> = view { HomeBuilder.build(it, labels) }
+    override val home: Flow<HomeFeed> = view { HomeBuilder.build(it, labels) { path -> File(path).exists() } }
 
     override val scanState: Flow<ScanState> = combine(
         progress.state,

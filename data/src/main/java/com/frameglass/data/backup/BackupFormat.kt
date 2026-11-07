@@ -47,6 +47,7 @@ internal data class BackupSettings(
     val sendReleaseName: Boolean = true,
     val sendFileHash: Boolean = true,
     val vaultLockSeconds: Int = 0,
+    val cinemaMode: Boolean = false,
 ) {
     fun toAppSettings(fontExists: Boolean) = AppSettings(
         onlineFeatures = onlineFeatures,
@@ -67,6 +68,7 @@ internal data class BackupSettings(
         themeMode = ThemeMode.valueOf(themeMode),
         accent = AccentColor.valueOf(accent),
         coverTint = coverTint,
+        cinemaMode = cinemaMode,
         sendReleaseName = sendReleaseName,
         sendFileHash = sendFileHash,
         vaultLockSeconds = vaultLockSeconds,
@@ -80,7 +82,7 @@ internal data class BackupSettings(
             s.subtitleColor, s.subtitleBackground, s.subtitleFontPath, s.subtitleBottomOffset, s.scanHiddenFolders,
             s.scanNomediaFolders, s.showUnavailable, s.tmdbBaseUrl, s.neverSleepingHintDone, s.onboardingDone,
             s.scanWholePhone, s.themeMode.name, s.accent.name, s.coverTint, s.sendReleaseName, s.sendFileHash,
-            s.vaultLockSeconds,
+            s.vaultLockSeconds, s.cinemaMode,
         )
     }
 }

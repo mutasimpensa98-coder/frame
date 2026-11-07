@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -44,12 +45,18 @@ internal data class LibraryQuery(
  * last result at once instead of a skeleton while the snapshot flow starts again.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-internal class UiModel(private val services: FrameServices, private val scope: CoroutineScope) {
+internal class UiModel(
+    private val services: FrameServices,
+    private val scope: CoroutineScope,
+    private val artDecodes: suspend (String) -> Boolean = { true },
+) {
     private val library = services.library
     private val sharing = SharingStarted.WhileSubscribed(KeepAliveMillis)
 
     val settings: StateFlow<AppSettings?> = services.settings.settings.stateIn(scope, SharingStarted.Eagerly, null)
-    val home: StateFlow<HomeFeed?> = library.home.stateIn(scope, sharing, null)
+    val home: StateFlow<HomeFeed?> = library.home
+        .mapLatest { feed -> feed.withDrawableHeroes(artDecodes) }
+        .stateIn(scope, sharing, null)
     val scan: StateFlow<ScanState> = library.scanState.stateIn(scope, sharing, ScanState(false, 0, 0))
     val folders: StateFlow<List<RootFolderInfo>?> = library.folders.stateIn(scope, sharing, null)
     val rootFolder: StateFlow<FolderView?> = library.folder(null).stateIn(scope, sharing, null)

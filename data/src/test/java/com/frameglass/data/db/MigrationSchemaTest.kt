@@ -60,14 +60,39 @@ class MigrationSchemaTest {
 
     @Test
     fun noStatementTouchesAnExistingRow() {
-        Migrations.STATEMENTS_1_2.forEach { sql ->
+        (Migrations.STATEMENTS_1_2 + Migrations.STATEMENTS_2_3).forEach { sql ->
             assertTrue(sql, sql.startsWith("CREATE ") || sql.startsWith("ALTER TABLE `Title` ADD COLUMN"))
         }
+    }
+
+    @Test
+    fun stepThreeOnlyAddsTheMetadataLanguageToTitle() {
+        val old = entities(2)
+        val new = entities(3)
+        assertEquals(old.keys, new.keys)
+        val changed = old.keys.filter { old.getValue(it).createSql(it) != new.getValue(it).createSql(it) }
+        assertEquals(listOf("Title"), changed)
+        assertEquals(columns(old.getValue("Title")) + "metaLanguage", columns(new.getValue("Title")))
+    }
+
+    @Test
+    fun theMetadataLanguageMatchesRoomsDefinition() {
+        val field = entities(3).getValue("Title").getValue("fields").jsonArray.map { it.jsonObject }
+            .single { it.getValue("columnName").jsonPrimitive.content == "metaLanguage" }
+        assertEquals("TEXT", field.getValue("affinity").jsonPrimitive.content)
+        assertTrue(field["notNull"]?.jsonPrimitive?.content != "true")
+        assertEquals(listOf("ALTER TABLE `Title` ADD COLUMN `metaLanguage` TEXT"), Migrations.STATEMENTS_2_3)
     }
 
     @Test
     fun theMigrationRunsFromOneToTwo() {
         assertEquals(1, Migrations.MIGRATION_1_2.startVersion)
         assertEquals(2, Migrations.MIGRATION_1_2.endVersion)
+    }
+
+    @Test
+    fun theMigrationRunsFromTwoToThree() {
+        assertEquals(2, Migrations.MIGRATION_2_3.startVersion)
+        assertEquals(3, Migrations.MIGRATION_2_3.endVersion)
     }
 }

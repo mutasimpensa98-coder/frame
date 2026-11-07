@@ -14,6 +14,11 @@
     <string name="app_home_no_access">اسمح بالوصول إلى ملفاتك ليجد Frame Glass فيديوهاتك</string>
     <string name="app_home_scanning">جارٍ البحث عن الفيديوهات…</string>
     <string name="app_home_search_again">ابحث مرة أخرى</string>
+    <string name="app_home_cinema_empty">لا توجد أفلام أو مسلسلات أو أنمي بعد</string>
+    <string name="app_home_cinema_empty_body">وضع السينما يُخفي بقية فيديوهاتك، وتجدها في «مقاطع» داخل المكتبة.</string>
+    <string name="app_home_cinema_off">أوقف وضع السينما</string>
+    <string name="app_home_in_library">فيديوهاتك موجودة في المكتبة</string>
+    <string name="app_home_open_library">افتح المكتبة</string>
 
     <string name="app_add_place">إضافة مكان</string>
     <string name="app_add_place_hint">يبحث Frame Glass في الهاتف كله تلقائيًا. أضف من هنا أماكن أخرى مثل قرص ⁦USB⁩.</string>
@@ -82,6 +87,7 @@
     <string name="app_view_grid">عرض كشبكة</string>
     <string name="app_view_list">عرض كقائمة</string>
     <string name="app_library_empty">لا توجد عناوين هنا بعد.</string>
+    <string name="app_cinema_library_empty">في وضع السينما تظهر هنا الأفلام والمسلسلات والأنمي فقط، وبقية فيديوهاتك في «مقاطع».</string>
     <string name="app_library_no_folders">لا توجد مجلدات فيها فيديوهات بعد.</string>
 
     <string name="app_search_title">ابحث في مكتبتك</string>
@@ -108,6 +114,8 @@
     <string name="app_show_unavailable_hint">عناوين على وحدة التخزين الداخلية اختفت ملفاتها</string>
     <string name="app_scan_hidden">تضمين المجلدات المخفية</string>
     <string name="app_scan_nomedia">تضمين مجلدات ⁦.nomedia⁩</string>
+    <string name="app_cinema_mode">وضع السينما</string>
+    <string name="app_cinema_mode_hint">تعرض الرئيسية و«الكل» الأفلام والمسلسلات والأنمي فقط، وتبقى بقية الفيديوهات في «مقاطع».</string>
 
     <string name="app_double_tap">التخطي باللمس المزدوج</string>
     <string name="app_auto_next">تشغيل الحلقة التالية تلقائيًا</string>

@@ -61,6 +61,7 @@ internal fun LibraryScreen() {
     val titles by model.titles.collectAsStateWithLifecycle()
     val hasAnime by model.hasAnime.collectAsStateWithLifecycle()
     val root by model.rootFolder.collectAsStateWithLifecycle()
+    val settings by model.settings.collectAsStateWithLifecycle()
     val grid = rememberLazyGridState()
     val folders = query.filter == LibraryFilter.FOLDERS
     val frames = query.filter == LibraryFilter.VIDEOS && !query.asList
@@ -150,12 +151,13 @@ internal fun LibraryScreen() {
                         }
                         titles.orEmpty().isEmpty() -> {
                             fullLine("empty") {
+                                val cinema = settings?.cinemaMode == true
                                 GridMessage(
                                     stringResource(
-                                        if (query.filter == LibraryFilter.FAVORITES) {
-                                            R.string.app_favorites_empty
-                                        } else {
-                                            R.string.app_library_empty
+                                        when {
+                                            query.filter == LibraryFilter.FAVORITES -> R.string.app_favorites_empty
+                                            query.filter == LibraryFilter.ALL && cinema -> R.string.app_cinema_library_empty
+                                            else -> R.string.app_library_empty
                                         },
                                     ),
                                 )

@@ -1,6 +1,7 @@
 package com.frameglass.data.logic
 
 import com.frameglass.data.api.TitleKind
+import com.frameglass.data.db.MediaFile
 import com.frameglass.data.db.NameKinds
 import com.frameglass.parser.NameKind
 import com.frameglass.parser.ParsedName
@@ -126,6 +127,18 @@ internal object ParsePaths {
     fun join(a: String, b: String): String = if (a.isEmpty()) b else "$a/$b"
 
     fun extension(name: String): String = name.substringAfterLast('.', "").lowercase()
+}
+
+/** How a parse is kept on a MediaFile row. */
+internal object StoredParse {
+    fun tags(parsed: ParsedName): String? = parsed.releaseTags.joinToString(",").ifEmpty { null }
+
+    /**
+     * [file] with its tags and anime number taken from [parsed]. The parser once stored a name in round brackets at
+     * the start, as in (Name) Event 02.mp4, as a release tag with an anime number, so the row never counted as a
+     * plain number.
+     */
+    fun reread(file: MediaFile, parsed: ParsedName): MediaFile = file.copy(releaseTags = tags(parsed), parsedAbsolute = parsed.absolute)
 }
 
 /** A cleaned file name, used for an episode row only when no real episode title exists. */

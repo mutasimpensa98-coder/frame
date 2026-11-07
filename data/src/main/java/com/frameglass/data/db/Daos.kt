@@ -122,6 +122,9 @@ interface ScanDao {
     )
     suspend fun setClip(rowId: Long, titleId: Long, playableKey: String, nameKind: String)
 
+    @Query("UPDATE MediaFile SET releaseTags = :releaseTags, parsedAbsolute = :parsedAbsolute WHERE rowId = :rowId")
+    suspend fun setReading(rowId: Long, releaseTags: String?, parsedAbsolute: Int?)
+
     @Query("UPDATE MediaFile SET playableKey = :playableKey WHERE rowId = :rowId")
     suspend fun setPlayableKey(rowId: Long, playableKey: String)
 
@@ -217,6 +220,9 @@ interface TitleDao {
 
     @Query("UPDATE Title SET matchState = :state WHERE id = :id")
     suspend fun setMatchState(id: Long, state: MatchState)
+
+    @Query("UPDATE Title SET metaLanguage = :language WHERE id = :id")
+    suspend fun setMetaLanguage(id: Long, language: String)
 
     @Query("UPDATE Title SET framePath = :path WHERE id = :id AND framePath IS NULL")
     suspend fun fillFrame(id: Long, path: String)
@@ -387,6 +393,22 @@ interface MetaDao {
     /** A swipe to refresh fetches these again. */
     @Query("SELECT id FROM Title WHERE removed = 0 AND tmdbId IS NOT NULL AND (fetchedAt IS NULL OR fetchedAt <= :before)")
     suspend fun matchedFetchedBefore(before: Long): List<Long>
+
+    /** A new OMDb key fetches these again. A title with no file left waits until it has one. */
+    @Query(
+        "SELECT t.id FROM Title t WHERE t.removed = 0 AND t.tmdbId IS NOT NULL " +
+            "AND EXISTS (SELECT 1 FROM MediaFile f WHERE f.titleId = t.id) " +
+            "AND NOT EXISTS (SELECT 1 FROM Rating r WHERE r.titleId = t.id AND r.source = 'IMDB')",
+    )
+    suspend fun matchedWithoutImdb(): List<Long>
+
+    /** A new app language fetches these again. A title with no file left waits until it has one. */
+    @Query(
+        "SELECT t.id FROM Title t WHERE t.removed = 0 AND t.tmdbId IS NOT NULL " +
+            "AND (t.metaLanguage IS NULL OR t.metaLanguage != :language) " +
+            "AND EXISTS (SELECT 1 FROM MediaFile f WHERE f.titleId = t.id)",
+    )
+    suspend fun matchedNotIn(language: String): List<Long>
 
     /** A swipe to refresh searches for these again. Clips are UNMATCHED, so they stay out. */
     @Query("SELECT id FROM Title WHERE removed = 0 AND tmdbId IS NULL AND matchState = 'NONE_FOUND'")

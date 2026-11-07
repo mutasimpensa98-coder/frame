@@ -91,3 +91,13 @@ internal object TrackPicker {
         return if (best != null) SubtitleChoice.Track(best) else SubtitleChoice.Keep
     }
 }
+
+/** Subtitle files a reopen lists beyond the video's own sidecars. */
+internal object CopiedSubtitles {
+    /**
+     * The file chosen last, then every other file copied in for this video by name, each once and none already
+     * [listed]. A frame rate fix becomes the chosen file, so its original only stays in the list this way.
+     */
+    fun extra(listed: Collection<String>, chosen: String?, copied: List<String>): List<String> =
+        (listOfNotNull(chosen) + copied.sorted()).distinct().filterNot { it in listed }
+}

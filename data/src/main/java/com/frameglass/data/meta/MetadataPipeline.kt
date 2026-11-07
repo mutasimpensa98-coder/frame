@@ -1,5 +1,6 @@
 package com.frameglass.data.meta
 
+import android.app.LocaleManager
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -27,6 +28,7 @@ import com.frameglass.data.db.TitlePerson
 import com.frameglass.data.logic.CachePolicy
 import com.frameglass.data.logic.ClipRules
 import com.frameglass.data.logic.Clock
+import com.frameglass.data.logic.MetaLanguage
 import com.frameglass.data.logic.ParsePaths
 import com.frameglass.data.logic.RetryPolicy
 import com.frameglass.data.logic.SegmentRules
@@ -79,6 +81,20 @@ internal class NetworkCheck(context: Context) {
     }
 }
 
+/**
+ * The language the app shows. A language picked for the app lives in LocaleManager, which answers for any context,
+ * while the application context may still carry the phone's language in a process with no activity.
+ */
+internal class AppLanguage(context: Context) {
+    private val locales = context.getSystemService(LocaleManager::class.java)
+
+    fun current(): String {
+        val chosen = locales.applicationLocales
+        val list = if (chosen.isEmpty) locales.systemLocales else chosen
+        return MetaLanguage.of(list[0]?.toLanguageTag())
+    }
+}
+
 /** One episode to ask for skip times. */
 internal data class SegmentTarget(val episodeId: Long, val season: Int, val number: Int, val durationMs: Long)
 
@@ -88,7 +104,6 @@ internal data class SegmentTarget(val episodeId: Long, val season: Int, val numb
  * cannot overwrite a match or cover the owner set while its request was in flight.
  */
 internal class MetadataPipeline(
-    private val context: Context,
     private val db: FrameDb,
     private val clientProvider: Lazy<MetadataClient>,
     private val config: NetConfigImpl,
@@ -97,13 +112,12 @@ internal class MetadataPipeline(
     private val index: SearchIndexer,
     private val clock: Clock,
     private val network: NetworkCheck,
+    private val language: AppLanguage,
 ) {
     private val lock = Mutex()
     private val client get() = clientProvider.value
     private val titles get() = db.titles()
     private val meta get() = db.meta()
-
-    private fun language(): String = context.resources.configuration.locales[0].toLanguageTag()
 
     /**
      * Returns how long to wait before the next run, or null when nothing can run later. No key or Online off
@@ -126,12 +140,38 @@ internal class MetadataPipeline(
     suspend fun queueRefresh() {
         config.awaitLoaded()
         val now = clock.now()
-        meta.matchedFetchedBefore(now - REFRESH_GAP_MS).forEach { queueOnce(it, LookupJob.REFRESH, now) }
+        meta.matchedFetchedBefore(now - REFRESH_GAP_MS).forEach { queueFetch(it, now) }
         meta.notFoundTitles().forEach { queueOnce(it, LookupJob.MATCH, now) }
+    }
+
+    /** A new OMDb key: matched titles with no IMDb rating fetch again, however recently they were fetched. */
+    suspend fun queueMissingImdb() {
+        val now = clock.now()
+        meta.matchedWithoutImdb().forEach { queueFetch(it, now) }
+    }
+
+    /**
+     * Matched titles fetched in another language come again, however recently they were fetched. Each title records
+     * its own language, so a kill part way loses nothing and a title already done is not fetched twice. Returns how
+     * many titles still wait.
+     */
+    suspend fun queueLanguageRefresh(): Int {
+        val now = clock.now()
+        val stale = meta.matchedNotIn(language.current())
+        stale.forEach { queueFetch(it, now) }
+        return stale.size
     }
 
     private suspend fun queueOnce(titleId: Long, job: LookupJob, now: Long) {
         if (meta.queued(titleId) == null) meta.upsertQueue(LookupQueue(titleId, LookupState.QUEUED, 0, now, job))
+    }
+
+    /** A queued EPISODES job stops short of the title's own text and ratings, so it gives way. */
+    private suspend fun queueFetch(titleId: Long, now: Long) {
+        val queued = meta.queued(titleId)
+        if (queued == null || queued.job == LookupJob.EPISODES) {
+            meta.upsertQueue(LookupQueue(titleId, LookupState.QUEUED, 0, now, LookupJob.REFRESH))
+        }
     }
 
     /** Returns true when the whole queue should stop for now. */
@@ -170,6 +210,8 @@ internal class MetadataPipeline(
             }
             NetResult.Reason.NOT_FOUND -> {
                 meta.deleteQueue(row.titleId)
+                // Gone from TMDB in every language, so the next language check must not ask again.
+                titles.setMetaLanguage(row.titleId, language.current())
                 false
             }
             NetResult.Reason.NETWORK, NetResult.Reason.BAD_RESPONSE -> {
@@ -191,7 +233,8 @@ internal class MetadataPipeline(
         if (title.manualMatch) return false
         val files = db.scan().filesOfTitle(title.id)
         val clipName = files.any { it.nameKind == NameKinds.CLIP }
-        return ClipRules.skipsLookup(title.kind, title.localYear, clipName, files.maxOfOrNull { it.durationMs } ?: 0)
+        val plainNumber = files.all(ClipRules::plainNumber) && episodeCount(title.id) < ClipRules.SERIES_RUN
+        return ClipRules.skipsLookup(title.kind, title.localYear, clipName, files.maxOfOrNull { it.durationMs } ?: 0, plainNumber)
     }
 
     private suspend fun match(title: Title): NetResult.Failure? = when (val result = client.match(parsedFor(title))) {
@@ -250,7 +293,9 @@ internal class MetadataPipeline(
     private suspend fun fetch(title: Title): NetResult.Failure? {
         val tmdbId = title.tmdbId ?: return null
         val isMovie = title.tmdbIsMovie ?: (title.kind == TitleKind.MOVIE)
-        val details = when (val r = client.details(if (isMovie) MetaKind.MOVIE else MetaKind.TV, tmdbId, language())) {
+        // Recorded as asked for, so a language change during the request leaves this title due again.
+        val asked = language.current()
+        val details = when (val r = client.details(if (isMovie) MetaKind.MOVIE else MetaKind.TV, tmdbId, asked)) {
             is NetResult.Ok -> r.value
             is NetResult.Failure -> return r
         }
@@ -273,7 +318,7 @@ internal class MetadataPipeline(
         val logo = image(details.logoUrl, "logo")
         val colors = poster?.let(CoverColors::fromFile)
         savePeople(details.cast.take(MAX_CAST), stamp)
-        val stored = store(title, details, poster, backdrop, logo, colors?.dominant, colors?.luma, stamp) ?: return failure
+        val stored = store(title, details, poster, backdrop, logo, colors?.dominant, colors?.luma, stamp, asked) ?: return failure
         saveImdb(stored, details, stamp)
         index.index(stored.id)
         prune(stored.id)
@@ -307,6 +352,7 @@ internal class MetadataPipeline(
         color: Int?,
         luma: Int?,
         stamp: Long,
+        asked: String,
     ): Title? = db.withTransaction {
         val fresh = titles.title(title.id) ?: return@withTransaction null
         // Fix match may have changed the target while this request was in flight.
@@ -327,6 +373,7 @@ internal class MetadataPipeline(
             coverLuma = if (fresh.manualCover) fresh.coverLuma else luma ?: fresh.coverLuma,
             collectionId = details.collectionId,
             fetchedAt = stamp,
+            metaLanguage = asked,
             sortKey = Keys.normalize(name),
             creditsJson = Credits.encode(credits),
         )
@@ -371,7 +418,7 @@ internal class MetadataPipeline(
         if (title.tmdbIsMovie == true) return null
         mapAnime(title)?.let { return it }
         for (season in titles.ownedSeasons(title.id)) {
-            when (val r = client.season(tmdbId, season, language())) {
+            when (val r = client.season(tmdbId, season, language.current())) {
                 is NetResult.Ok -> saveSeason(title, r.value)
                 is NetResult.Failure -> if (r.reason != NetResult.Reason.NOT_FOUND) return r
             }
@@ -487,7 +534,7 @@ internal class MetadataPipeline(
         val candidates = if (typed == null && title.matchState == MatchState.NEEDS_CHOICE) {
             (client.match(parsedFor(title)) as? NetResult.Ok)?.value?.choices.orEmpty()
         } else {
-            (client.searchManual(typed ?: title.localName, language()) as? NetResult.Ok)?.value.orEmpty()
+            (client.searchManual(typed ?: title.localName, language.current()) as? NetResult.Ok)?.value.orEmpty()
         }
         return candidates.map(::choice)
     }
@@ -602,6 +649,7 @@ internal class CacheSweeper(
                     coverLuma = if (fresh.manualCover) fresh.coverLuma else null,
                     collectionId = null,
                     fetchedAt = null,
+                    metaLanguage = null,
                     sortKey = Keys.normalize(fresh.localName),
                     creditsJson = null,
                 ),

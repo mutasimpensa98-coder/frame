@@ -47,6 +47,23 @@ internal fun playable(number: Int, watched: Boolean = false, position: Long = 0,
     )
 }
 
+class MetaLanguageTest {
+    @Test
+    fun onlyTheLanguageCounts() {
+        assertEquals("ar", MetaLanguage.of("ar"))
+        assertEquals("ar", MetaLanguage.of("ar-LY"))
+        assertEquals("ar", MetaLanguage.of("ar-EG-u-nu-latn"))
+        assertEquals("en", MetaLanguage.of("en-US"))
+    }
+
+    @Test
+    fun noLanguageFallsBackToEnglish() {
+        assertEquals("en", MetaLanguage.of(null))
+        assertEquals("en", MetaLanguage.of(""))
+        assertEquals("en", MetaLanguage.of("und"))
+    }
+}
+
 class WatchRulesTest {
     private val key = "t:1"
 

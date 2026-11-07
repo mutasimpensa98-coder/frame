@@ -12,7 +12,10 @@ data class ParsedName(
     val episodeEnd: Int?,
     val absolute: Int?,
     val revision: Int?,
-    /** Bracket group, hash tag or absolute number was seen. */
+    /**
+     * A release sign: a [Group] bracket, a hash tag, the word anime, or a running number on a file that is not a
+     * bare phone video. A title with no such sign counts as anime only once a real match says so.
+     */
     val animeHint: Boolean,
     val subtitled: Boolean,
     val dubbed: Boolean,

@@ -41,6 +41,7 @@ import com.frameglass.glass.LandscapeCard
 import com.frameglass.glass.PosterCard
 import com.frameglass.glass.PressableGlass
 import com.frameglass.glass.ProgressLine
+import com.frameglass.glass.RatingBadge
 import com.frameglass.glass.bidiIsolate
 import com.frameglass.player.R
 import com.frameglass.player.nav.ArtRef
@@ -128,21 +129,30 @@ internal fun TitleListRow(card: TitleCard, source: String, modifier: Modifier = 
                     overflow = TextOverflow.Ellipsis,
                 )
                 val year = card.year?.let { localNumber(it) }
-                val rating = card.rating?.let { "${ratingText(it.value)} ${sourceLabel(it.source)}" }
                 val state = when {
                     card.unavailable -> stringResource(R.string.app_unavailable)
                     card.watched -> stringResource(R.string.app_watched)
                     else -> null
                 }
-                val meta = listOfNotNull(year, rating, state)
-                if (meta.isNotEmpty()) {
-                    Text(
-                        text = metaLine(meta),
-                        style = FrameType.Caption,
-                        color = FrameColors.SecondaryText,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                val meta = listOfNotNull(year, state)
+                val rating = card.rating
+                if (meta.isNotEmpty() || rating != null) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S8),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (meta.isNotEmpty()) {
+                            Text(
+                                text = metaLine(meta),
+                                style = FrameType.Caption,
+                                color = FrameColors.SecondaryText,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                        }
+                        rating?.let { RatingBadge(it.toCard()) }
+                    }
                 }
                 card.progress?.let {
                     Spacer(Modifier.height(FrameSpacing.S4))

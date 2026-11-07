@@ -54,6 +54,11 @@ data class HeroItem(
     val play: PlayRef?,
     /** A personal or social video, which must not be labelled a movie. */
     val clip: Boolean = false,
+    /**
+     * The Continue watching card this hero stands for, which [HomeFeed.continueWatching] leaves out. A screen that
+     * cannot draw the hero puts the card back, so a title in progress never leaves Home.
+     */
+    val continueItem: ContinueItem? = null,
 )
 
 data class ContinueItem(
@@ -79,7 +84,18 @@ data class HomeFeed(
     val rows: List<HomeRow>,
     /** True when nothing on Home can be played: no video was found, or none is available now. */
     val empty: Boolean,
-)
+    /**
+     * True when Cinema mode is on and videos exist, but none of them is a film, a series or an anime. [empty] is false
+     * then, and heroes, continueWatching and rows are all empty. Home says so plainly and offers to turn the mode off
+     * with SettingsRepository.update { it.copy(cinemaMode = false) }.
+     */
+    val cinemaEmpty: Boolean = false,
+) {
+    companion object {
+        /** F-U5: Continue watching and the title rows, together. The Videos row is not counted. */
+        const val MAX_AUTOMATIC_ROWS = 3
+    }
+}
 
 data class FolderEntry(
     val path: String,
@@ -281,6 +297,11 @@ data class AppSettings(
     val accent: AccentColor = AccentColor.WHITE,
     /** Soft colour from the cover behind Details and the hero. */
     val coverTint: Boolean = false,
+    /**
+     * Home and LibraryFilter.ALL hold only films, series and anime. LibraryFilter.VIDEOS then lists everything else, so
+     * random videos stay reachable. Favorites, Folders, Search and Media Manager do not change. Off by default.
+     */
+    val cinemaMode: Boolean = false,
     /** Decision D9: extra fields a tapped subtitle search may send. Both are on, and both can be turned off. */
     val sendReleaseName: Boolean = true,
     val sendFileHash: Boolean = true,

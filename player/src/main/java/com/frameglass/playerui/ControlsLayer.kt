@@ -117,6 +117,8 @@ private const val AutoHideMillis = 3_500L
 internal const val ControlsFadeMillis = 160
 
 private const val FeedbackMillis = 700L
+private const val LongFeedbackMillis = 3_500L
+private const val LongFeedbackLines = 3
 private const val UnlockMillis = 2_500L
 private const val HintMillis = 1_500L
 private const val BufferingDelayMillis = 400L
@@ -669,7 +671,7 @@ private fun FeedbackLayer(state: PlayerState, ui: PlayerUiState) {
     val feedback = ui.feedback
     LaunchedEffect(feedback) {
         if (feedback != null && feedback !is Feedback.Seek) {
-            delay(FeedbackMillis)
+            delay(if ((feedback as? Feedback.Message)?.longer == true) LongFeedbackMillis else FeedbackMillis)
             ui.feedback = null
         }
     }
@@ -681,7 +683,7 @@ private fun FeedbackLayer(state: PlayerState, ui: PlayerUiState) {
                 is Feedback.Brightness -> LevelMark(Icons.Rounded.BrightnessMedium, feedback.level, Modifier.align(Alignment.CenterStart))
                 is Feedback.Volume -> LevelMark(Icons.AutoMirrored.Rounded.VolumeUp, feedback.level, Modifier.align(Alignment.CenterEnd))
                 is Feedback.Zoom -> Chip(stringResource(R.string.player_times, formatSpeed(feedback.zoom)), Modifier.align(Alignment.TopCenter))
-                is Feedback.Message -> Chip(feedback.text, Modifier.align(Alignment.TopCenter))
+                is Feedback.Message -> Chip(feedback.text, Modifier.align(Alignment.TopCenter), if (feedback.longer) LongFeedbackLines else 1)
                 null -> Unit
             }
             if (state.heldSpeed) {
@@ -734,13 +736,13 @@ private fun LevelMark(icon: ImageVector, level: Float, modifier: Modifier) {
 }
 
 @Composable
-private fun Chip(text: String, modifier: Modifier) {
+private fun Chip(text: String, modifier: Modifier, maxLines: Int = 1) {
     GlassSurface(GlassKind.Control, FrameShapes.Chip, modifier = modifier, blur = false) {
         Text(
             text = bidiIsolate(text),
             style = FrameType.Label,
             color = FrameColors.OnMedia,
-            maxLines = 1,
+            maxLines = maxLines,
             modifier = Modifier.padding(horizontal = FrameSpacing.S16, vertical = FrameSpacing.S8),
         )
     }

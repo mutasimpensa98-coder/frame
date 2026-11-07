@@ -53,13 +53,15 @@ internal object TitleLists {
     private val BY_RECENT_TITLES_FIRST = compareBy<TitleInfo> { it.isClip }.then(BY_RECENT)
 
     fun library(s: Snapshot, filter: LibraryFilter, sort: LibrarySort): List<TitleCard> {
+        val cinema = s.settings.cinemaMode
         val pool = s.infos.values.filter(s::inLibrary).filter { info ->
             when (filter) {
-                LibraryFilter.ALL -> true
+                LibraryFilter.ALL -> !cinema || info.isRealTitle
                 LibraryFilter.MOVIES -> info.isFilm
-                LibraryFilter.SERIES -> info.title.kind == TitleKind.SERIES
-                LibraryFilter.ANIME -> info.title.kind == TitleKind.ANIME
-                LibraryFilter.VIDEOS -> info.isClip
+                LibraryFilter.SERIES -> info.title.kind == TitleKind.SERIES && !info.isClip
+                LibraryFilter.ANIME -> info.title.kind == TitleKind.ANIME && !info.isClip
+                // With All narrowed, this is the only list left for what All no longer holds.
+                LibraryFilter.VIDEOS -> if (cinema) !info.isRealTitle else info.isClip
                 LibraryFilter.FAVORITES -> info.title.favorite
                 LibraryFilter.FOLDERS -> false
             }
@@ -84,41 +86,59 @@ internal object TitleLists {
 internal object HomeBuilder {
     const val MIN_ROW_TITLES = 4
     const val ROW_TITLES = 10
-    const val MAX_ROWS = 3
+    const val MAX_ROWS = HomeFeed.MAX_AUTOMATIC_ROWS
     const val RECENT_HEROES = 4
 
-    fun build(s: Snapshot, labels: Labels): HomeFeed {
+    /** [onDisk] guards the hero, which fills the screen: a row is written before a file or an image can vanish. */
+    fun build(s: Snapshot, labels: Labels, onDisk: (String) -> Boolean = { true }): HomeFeed {
         val live = s.infos.values.filter { it.available }
-        val titles = live.filter { !it.isClip }
-        val pool = titles.ifEmpty { live }
-        val lastPlayed = pool.filter { it.lastPlayedAt > 0 }.maxByOrNull { it.lastPlayedAt }
+        val shown = s.forHome(live)
+        val titles = shown.filter { !it.isClip }
+        val pool = titles.ifEmpty { shown }
+        val fits = { info: TitleInfo -> fitsHero(s, info, onDisk) }
+        val lastPlayed = pool.filter { it.lastPlayedAt > 0 }.sortedByDescending { it.lastPlayedAt }.firstOrNull(fits)
         val recent = pool.filter { it !== lastPlayed }
             .sortedWith(compareByDescending<TitleInfo> { it.addedAt }.thenBy { it.id })
-            .take(RECENT_HEROES)
-        val heroes = (listOfNotNull(lastPlayed) + recent).map { hero(it) }
+            .asSequence().filter(fits).take(RECENT_HEROES).toList()
         val heroKey = lastPlayed?.let { heroPlayable(it)?.key }
-        val continuing = continueWatching(live, heroKey, labels)
+        val allContinuing = continueWatching(shown, labels)
+        // The app drops a hero whose art does not decode, and then needs this card back.
+        val heroCard = allContinuing.firstOrNull { it.play.playableKey == heroKey }
+        val continuing = allContinuing.filter { it !== heroCard }
+        val first = lastPlayed?.let { hero(it, onDisk).copy(continueItem = heroCard) }
+        val heroes = listOfNotNull(first) + recent.map { hero(it, onDisk) }
         val slots = MAX_ROWS - if (continuing.isEmpty()) 0 else 1
+        val empty = live.isEmpty() || (s.roots.isEmpty() && !s.settings.scanWholePhone)
         return HomeFeed(
             heroes = heroes,
             continueWatching = continuing,
-            rows = rows(titles, s).take(slots) + listOfNotNull(videosRow(live)),
-            empty = live.isEmpty() || (s.roots.isEmpty() && !s.settings.scanWholePhone),
+            rows = rows(titles, s).take(slots) + listOfNotNull(videosRow(shown)),
+            empty = empty,
+            cinemaEmpty = !empty && s.settings.cinemaMode && shown.isEmpty(),
         )
     }
 
     private fun heroPlayable(info: TitleInfo): Playable? =
         ResumeLogic.pick(info.playables) ?: info.playables.firstOrNull { it.available }
 
-    private fun hero(info: TitleInfo): HeroItem {
+    private fun fitsHero(s: Snapshot, info: TitleInfo, onDisk: (String) -> Boolean): Boolean {
+        val playable = heroPlayable(info) ?: return false
+        if (playable.broken || s.absolutePath(playable.best)?.let(onDisk) == false) return false
+        return wideImage(info, onDisk) != null || info.cover?.let(onDisk) == true
+    }
+
+    private fun wideImage(info: TitleInfo, onDisk: (String) -> Boolean): String? =
+        listOfNotNull(info.title.backdropPath, info.title.framePath).firstOrNull(onDisk)
+
+    private fun hero(info: TitleInfo, onDisk: (String) -> Boolean): HeroItem {
         val playable = heroPlayable(info)
         return HeroItem(
             titleId = info.id,
             kind = info.title.kind,
             name = info.title.name,
             logoPath = info.title.logoPath,
-            backdropPath = info.title.backdropPath ?: info.title.framePath,
-            coverPath = info.cover,
+            backdropPath = wideImage(info, onDisk),
+            coverPath = info.cover?.takeIf(onDisk),
             genre = info.genres.firstOrNull(),
             year = info.title.year,
             dominantColor = info.title.dominantColor,
@@ -130,7 +150,7 @@ internal object HomeBuilder {
 
     private class Continuing(val at: Long, val item: ContinueItem)
 
-    private fun continueWatching(live: List<TitleInfo>, heroKey: String?, labels: Labels): List<ContinueItem> =
+    private fun continueWatching(live: List<TitleInfo>, labels: Labels): List<ContinueItem> =
         live.mapNotNull { info ->
             val playable = if (info.isMovie) {
                 info.playables.firstOrNull { it.inProgress }
@@ -139,7 +159,7 @@ internal object HomeBuilder {
             } else {
                 null
             }
-            if (playable == null || playable.key == heroKey) null else Continuing(info.lastPlayedAt, item(info, playable, labels))
+            if (playable == null) null else Continuing(info.lastPlayedAt, item(info, playable, labels))
         }.sortedByDescending { it.at }.map { it.item }
 
     private fun item(info: TitleInfo, p: Playable, labels: Labels): ContinueItem {
@@ -191,12 +211,13 @@ internal object HomeBuilder {
 
     fun rowTitles(s: Snapshot, kind: HomeRowKind, label: String?): List<TitleCard> {
         val live = s.infos.values.filter { it.available }
+        val shown = s.forHome(live)
         val items = when (kind) {
-            HomeRowKind.TOP_RATED -> topRated(live)
-            HomeRowKind.GENRE -> label?.let { ofGenre(live, it) }.orEmpty()
-            HomeRowKind.COLLECTION -> s.collections.entries.firstOrNull { it.value == label }?.let { ofCollection(live, it.key) }.orEmpty()
+            HomeRowKind.TOP_RATED -> topRated(shown)
+            HomeRowKind.GENRE -> label?.let { ofGenre(shown, it) }.orEmpty()
+            HomeRowKind.COLLECTION -> s.collections.entries.firstOrNull { it.value == label }?.let { ofCollection(shown, it.key) }.orEmpty()
             HomeRowKind.VIDEOS -> clips(live)
-            HomeRowKind.RECENT -> TitleLists.recent(live.filter { !it.isClip })
+            HomeRowKind.RECENT -> TitleLists.recent(shown.filter { !it.isClip })
         }
         return items.map { it.card() }
     }

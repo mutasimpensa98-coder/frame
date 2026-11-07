@@ -86,6 +86,21 @@
     <string name="player_color_cyan">سماوي</string>
     <string name="player_color_green">أخضر</string>
 
+    <!-- Automatic subtitle sync -->
+    <string name="player_sync_now">مزامنة مع الكلام</string>
+    <string name="player_sync_now_note">يستمع إلى الفيديو ويضبط التأخير وحده، ولا يخرج شيء من الهاتف.</string>
+    <string name="player_sync_running">جارٍ تحديد مواضع الكلام…</string>
+    <string name="player_sync_applied">تمت المزامنة مع الكلام: %1$s ثانية</string>
+    <string name="player_sync_ratio">وصُحّحت السرعة من %1$s إلى %2$s إطارًا في الثانية</string>
+    <string name="player_sync_undo">التراجع عن المزامنة</string>
+    <string name="player_sync_already">التوقيت مطابق للكلام أصلًا</string>
+    <string name="player_sync_unsure">لم نتأكد من التوقيت، فلم نغيّر شيئًا</string>
+    <string name="player_sync_exact">هذه الترجمة مصنوعة لهذا الملف نفسه، فلا تحتاج إلى مزامنة</string>
+    <string name="player_sync_no_audio">تعذّرت قراءة صوت هذا الفيديو على الهاتف، فالمزامنة غير متاحة</string>
+    <string name="player_sync_no_cues">أسطر الحوار في هذه الترجمة أقل من أن تكفي للمزامنة</string>
+    <string name="player_sync_timed_out">طال الفحص أكثر من اللازم، فلم نغيّر شيئًا</string>
+    <string name="player_sync_retimed">%1$s، بعد ضبط السرعة</string>
+
     <!-- Online subtitles -->
     <string name="player_online_search">البحث عبر الإنترنت</string>
     <string name="player_online_title">ترجمات من الإنترنت</string>

@@ -220,6 +220,14 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         lifecycleScope.launch {
             snapshotFlow { state.refusedSeeks }.drop(1).collect { ui.show(getString(R.string.player_no_seek)) }
         }
+        // The sheet usually closes as a subtitle is chosen, so the result of its sync is said over the video.
+        lifecycleScope.launch {
+            snapshotFlow { state.sync }.drop(1).collect { sync ->
+                if (sync != null && sync != SyncState.Running && ui.sheet == null) {
+                    ui.show(SyncText.summary(resources, resources.configuration.locales[0], sync), longer = true)
+                }
+            }
+        }
         if (VideoBlurHook.ENABLED) {
             val density = resources.displayMetrics.density
             lifecycleScope.launch {
