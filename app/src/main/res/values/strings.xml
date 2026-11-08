@@ -484,4 +484,30 @@
         <item quantity="one">Use at least %d character</item>
         <item quantity="other">Use at least %d characters</item>
     </plurals>
+    <!-- Launcher shortcuts and the home-screen widget. -->
+    <string name="app_shortcut_resume">Resume %1$s</string>
+    <string name="app_shortcut_resume_episode">Resume %1$s, %2$s</string>
+    <string name="app_widget_description">Pick up where you stopped, right from the home screen</string>
+    <string name="app_widget_empty">Nothing to continue yet. Tap to open Frame Glass</string>
+
+    <!-- The next episode of a returning series, and its trailer. -->
+    <string name="app_upcoming_today">Episode %1$s of season %2$s comes out today</string>
+    <string name="app_upcoming_tomorrow">Episode %1$s of season %2$s comes out tomorrow</string>
+    <string name="app_upcoming_on">Episode %1$s of season %2$s comes out on %3$s</string>
+    <string name="app_upcoming_short_today">New episode today</string>
+    <string name="app_upcoming_short_tomorrow">New episode tomorrow</string>
+    <string name="app_upcoming_short_on">New episode on %1$s</string>
+    <string name="app_trailer">Trailer</string>
+    <string name="app_trailer_none">No app here can open the trailer</string>
+
+    <!-- What should I watch tonight? -->
+    <string name="app_tonight">What should I watch tonight?</string>
+    <string name="app_tonight_any">Any</string>
+    <string name="app_tonight_films">Film</string>
+    <string name="app_tonight_series">Series</string>
+    <string name="app_tonight_all_genres">All genres</string>
+    <string name="app_tonight_play">Play</string>
+    <string name="app_tonight_details">Details</string>
+    <string name="app_tonight_another">Another</string>
+    <string name="app_tonight_none">Nothing unwatched fits this choice</string>
 </resources>

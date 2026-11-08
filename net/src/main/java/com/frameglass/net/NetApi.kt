@@ -70,7 +70,16 @@ data class TitleMeta(
     val collectionId: Long?,
     val collectionName: String?,
     val seasons: List<Int>,
+    /** TMDB's series status, such as "Returning Series" or "Ended". Null for a movie. */
+    val status: String? = null,
+    /** The next episode TMDB lists for a series, or null when none is announced. */
+    val nextEpisode: NextEpisodeMeta? = null,
+    /** A YouTube video key. The app opens it with ACTION_VIEW and never calls YouTube itself. */
+    val trailerKey: String? = null,
 )
+
+/** [airDate] is yyyy-MM-dd. */
+data class NextEpisodeMeta(val season: Int, val number: Int, val airDate: String)
 
 data class EpisodeMeta(
     val season: Int,

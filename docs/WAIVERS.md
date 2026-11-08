@@ -59,3 +59,12 @@ After trying 1.0.104 the owner said there is no online subtitle search. They hav
 - Gestdown holds TV episodes only. Films still need a key. Arabic there was thin in the probes of 2026-11-08.
 - R2 still holds: only the show name, season, episode and language go out, never the release name or the hash. Clips and private-folder videos never reach any site, and Online features off still means no call.
 - F-S9: the "Search online" row always shows in the subtitle sheet, dimmed with a reason when it cannot search.
+
+## 2026-11-08: Shortcuts and widget
+
+The owner asked for a Continue watching widget on the home screen and for shortcuts on the launcher icon. This replaces "widgets" in brief section 8, for these two only:
+
+- Launcher shortcuts: dynamic shortcuts for the F-S10 resume item and up to two more Continue watching items, each opening the player at its saved place. No pinned or static shortcuts.
+- One widget, "Continue watching": up to three items with cover, title, episode label and progress line. A tap resumes in the player, and with nothing to resume it opens the app. Plain `RemoteViews`, no Glance or other new dependency.
+- Neither needs a new permission. Clips and private-folder videos never appear in either.
+- In the same request the owner asked for the next episode date and a trailer button on Details, and a "What should I watch tonight?" pick behind a menu. The trailer opens `www.youtube.com` in the YouTube app or the browser with `ACTION_VIEW`. The app's own HTTP client gains no host, and the button hides while Online features is off.

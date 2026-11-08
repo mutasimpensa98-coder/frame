@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="app_canvas">#0D0D0D</color>
+    <!-- The home-screen widget, from the dark tokens: elevated surface at 86%, a white rim at 18%. -->
+    <color name="app_widget_surface">#DB1A1A1A</color>
+    <color name="app_widget_rim">#2EFFFFFF</color>
+    <color name="app_widget_card">#242424</color>
+    <color name="app_widget_text">#FFFFFF</color>
+    <color name="app_widget_secondary">#B3FFFFFF</color>
+    <color name="app_widget_track">#33FFFFFF</color>
 </resources>

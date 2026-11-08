@@ -583,4 +583,30 @@
         <item quantity="many">استخدم %d حرفًا على الأقل</item>
         <item quantity="other">استخدم %d حرف على الأقل</item>
     </plurals>
+    <!-- Launcher shortcuts and the home-screen widget. -->
+    <string name="app_shortcut_resume">تابع %1$s</string>
+    <string name="app_shortcut_resume_episode">تابع %1$s، %2$s</string>
+    <string name="app_widget_description">تابع ما بدأته من الشاشة الرئيسية مباشرة</string>
+    <string name="app_widget_empty">لا شيء تتابعه الآن. اضغط لفتح Frame Glass</string>
+
+    <!-- The next episode of a returning series, and its trailer. -->
+    <string name="app_upcoming_today">الحلقة %1$s من الموسم %2$s تنزل اليوم</string>
+    <string name="app_upcoming_tomorrow">الحلقة %1$s من الموسم %2$s تنزل غدًا</string>
+    <string name="app_upcoming_on">الحلقة %1$s من الموسم %2$s تنزل %3$s</string>
+    <string name="app_upcoming_short_today">حلقة جديدة اليوم</string>
+    <string name="app_upcoming_short_tomorrow">حلقة جديدة غدًا</string>
+    <string name="app_upcoming_short_on">حلقة جديدة يوم %1$s</string>
+    <string name="app_trailer">الإعلان</string>
+    <string name="app_trailer_none">لا يوجد تطبيق يفتح الإعلان</string>
+
+    <!-- What should I watch tonight? -->
+    <string name="app_tonight">ماذا أشاهد الليلة؟</string>
+    <string name="app_tonight_any">أي شيء</string>
+    <string name="app_tonight_films">فيلم</string>
+    <string name="app_tonight_series">مسلسل</string>
+    <string name="app_tonight_all_genres">كل الأنواع</string>
+    <string name="app_tonight_play">شغّل</string>
+    <string name="app_tonight_details">تفاصيل</string>
+    <string name="app_tonight_another">غيره</string>
+    <string name="app_tonight_none">لا يوجد ما لم تشاهده بهذا الاختيار</string>
 </resources>

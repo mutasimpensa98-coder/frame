@@ -29,6 +29,7 @@ import com.frameglass.data.db.TitlePerson
 import com.frameglass.data.logic.CachePolicy
 import com.frameglass.data.logic.ClipRules
 import com.frameglass.data.logic.Clock
+import com.frameglass.data.logic.EpisodeRows
 import com.frameglass.data.logic.ImdbRules
 import com.frameglass.data.logic.MetaLanguage
 import com.frameglass.data.logic.MetaRoute
@@ -200,6 +201,8 @@ internal class MetadataPipeline(
         val now = clock.now()
         meta.matchedFetchedBefore(now - REFRESH_GAP_MS).forEach { queueFetch(it, now) }
         meta.omdbOnlyFetchedBefore(now - ImdbRules.FRESH_MS).forEach { queueFetch(it, now) }
+        // A series whose announced episode is out now has news, however recently it was fetched.
+        meta.nextEpisodeAiredBy(EpisodeRows.today(now)).forEach { queueFetch(it, now) }
         // While only OMDb can match, a title it could not settle this week would spend calls on the same answer.
         val tmdb = config.tmdbUsable
         meta.notFoundTitles()
@@ -485,6 +488,12 @@ internal class MetadataPipeline(
             metaLanguage = asked,
             sortKey = Keys.normalize(name),
             creditsJson = Credits.encode(credits),
+            // What TMDB says now replaces what it said before, so an ended series loses its date.
+            seriesStatus = details.status,
+            nextAirDate = details.nextEpisode?.airDate,
+            nextSeason = details.nextEpisode?.season,
+            nextEpisode = details.nextEpisode?.number,
+            trailerKey = details.trailerKey,
         )
         titles.update(updated)
         val id = updated.id
@@ -1008,6 +1017,11 @@ internal class CacheSweeper(
                     metaLanguage = null,
                     sortKey = Keys.normalize(fresh.localName),
                     creditsJson = null,
+                    seriesStatus = null,
+                    nextAirDate = null,
+                    nextSeason = null,
+                    nextEpisode = null,
+                    trailerKey = null,
                 ),
             )
             meta.deleteTitleGenres(title.id)

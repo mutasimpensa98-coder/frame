@@ -253,13 +253,15 @@ interface TitleDao {
 
     @Query(
         "SELECT id, kind, name, year, coverPath, framePath, backdropPath, logoPath, dominantColor, collectionId, " +
-            "matchState, sortKey, createdAt, favorite FROM Title WHERE removed = 0",
+            "matchState, sortKey, createdAt, favorite, seriesStatus, nextAirDate, nextSeason, nextEpisode FROM Title " +
+            "WHERE removed = 0",
     )
     suspend fun titleRows(): List<TitleRow>
 
     @Query(
         "SELECT id, kind, name, year, coverPath, framePath, backdropPath, logoPath, dominantColor, collectionId, " +
-            "matchState, sortKey, createdAt, favorite FROM Title WHERE removed = 1",
+            "matchState, sortKey, createdAt, favorite, seriesStatus, nextAirDate, nextSeason, nextEpisode FROM Title " +
+            "WHERE removed = 1",
     )
     suspend fun hiddenRows(): List<TitleRow>
 
@@ -420,6 +422,12 @@ interface MetaDao {
     /** A swipe to refresh fetches these again. */
     @Query("SELECT id FROM Title WHERE removed = 0 AND tmdbId IS NOT NULL AND (fetchedAt IS NULL OR fetchedAt <= :before)")
     suspend fun matchedFetchedBefore(before: Long): List<Long>
+
+    /** Series whose announced next episode has aired by [today], a yyyy-MM-dd date. */
+    @Query(
+        "SELECT id FROM Title WHERE removed = 0 AND tmdbId IS NOT NULL AND nextAirDate IS NOT NULL AND nextAirDate <= :today",
+    )
+    suspend fun nextEpisodeAiredBy(today: String): List<Long>
 
     /** Titles matched only through OMDb, which hold an IMDb id and no TMDB id, as ImdbRules.omdbOnly says. */
     @Query(

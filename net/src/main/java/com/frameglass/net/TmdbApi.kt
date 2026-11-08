@@ -64,6 +64,34 @@ internal fun pickLogo(logos: List<TmdbImage>, language: String): String? {
     return (best(languageCode(language)) ?: best("en"))?.filePath
 }
 
+/**
+ * The trailer to open on YouTube: a YouTube Trailer in the app's language, then English, then any, official ones
+ * first, then the newest. Teasers and clips are not trailers.
+ */
+internal fun pickTrailer(videos: List<TmdbVideo>, language: String): String? {
+    val trailers = videos.filter {
+        it.site.equals("YouTube", ignoreCase = true) && it.type.equals("Trailer", ignoreCase = true) && !it.key.isNullOrBlank()
+    }
+    val code = languageCode(language)
+    val rank = compareBy<TmdbVideo> {
+        when (it.language?.lowercase()) {
+            code -> 0
+            "en" -> 1
+            else -> 2
+        }
+    }.thenByDescending { it.official }.thenByDescending { it.publishedAt.orEmpty() }
+    return trailers.minWithOrNull(rank)?.key
+}
+
+private val FULL_DATE = Regex("""\d{4}-\d{2}-\d{2}""")
+
+/** The next episode TMDB lists. A date with no day cannot be worded, so it counts as unknown. */
+internal fun TmdbNextEpisode.toMeta(): NextEpisodeMeta? {
+    val date = airDate?.takeIf(FULL_DATE::matches) ?: return null
+    if (season < 0 || number <= 0) return null
+    return NextEpisodeMeta(season, number, date)
+}
+
 internal fun languageCode(language: String): String = language.substringBefore('-').lowercase()
 
 internal fun isEnglish(language: String): Boolean = languageCode(language) == "en"
@@ -109,9 +137,11 @@ internal class TmdbApi(private val http: Http, private val config: NetConfig) {
         val params = buildList {
             add("language" to language)
             if (full) {
-                val extras = if (kind == MetaKind.TV) "credits,images,external_ids" else "credits,images"
+                val extras = if (kind == MetaKind.TV) "credits,images,external_ids,videos" else "credits,images,videos"
                 add("append_to_response" to extras)
                 add("include_image_language" to listOf(languageCode(language), "en").distinct().joinToString(","))
+                // Trailers in the app's language, then English, then those with no language set.
+                add("include_video_language" to (listOf(languageCode(language), "en").distinct() + "null").joinToString(","))
             }
         }
         return get("${kind.path}/$id", params)
@@ -219,6 +249,9 @@ internal data class TmdbDetails(
     val runtime: Int? = null,
     @SerialName("episode_run_time") val episodeRunTime: List<Int> = emptyList(),
     @SerialName("last_episode_to_air") val lastEpisode: TmdbRuntime? = null,
+    @SerialName("next_episode_to_air") val nextEpisode: TmdbNextEpisode? = null,
+    val status: String? = null,
+    val videos: TmdbVideos? = null,
     val genres: List<TmdbNamed> = emptyList(),
     @SerialName("vote_average") val voteAverage: Double? = null,
     @SerialName("poster_path") val posterPath: String? = null,
@@ -256,6 +289,26 @@ internal data class TmdbDetails(
 
 @Serializable
 internal data class TmdbRuntime(val runtime: Int? = null)
+
+@Serializable
+internal data class TmdbNextEpisode(
+    @SerialName("air_date") val airDate: String? = null,
+    @SerialName("season_number") val season: Int = -1,
+    @SerialName("episode_number") val number: Int = 0,
+)
+
+@Serializable
+internal data class TmdbVideos(val results: List<TmdbVideo> = emptyList())
+
+@Serializable
+internal data class TmdbVideo(
+    @SerialName("iso_639_1") val language: String? = null,
+    val key: String? = null,
+    val site: String? = null,
+    val type: String? = null,
+    val official: Boolean = false,
+    @SerialName("published_at") val publishedAt: String? = null,
+)
 
 @Serializable
 internal data class TmdbNamed(val id: Long = 0, val name: String? = null)

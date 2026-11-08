@@ -40,6 +40,11 @@ import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import androidx.compose.material.icons.rounded.Theaters
+import com.frameglass.player.quick.Trailer
+import com.frameglass.player.quick.openTrailer
+import com.frameglass.player.quick.upcomingLine
+import com.frameglass.player.ui.rememberUiModel
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -638,6 +643,10 @@ private fun Facts(detail: TitleDetail) {
                 ratings.forEach { RatingBadge(it.toCard()) }
             }
         }
+        detail.upcoming?.let { upcomingLine(it) }?.let { line ->
+            Text(text = line, style = FrameType.Body, color = FrameColors.White)
+        }
+        TrailerButton(detail)
         val separator = stringResource(R.string.app_list_separator)
         detail.credits.groupBy({ it.first }, { it.second }).forEach { (job, names) ->
             Row(horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S8)) {
@@ -659,6 +668,20 @@ private fun Facts(detail: TitleDetail) {
         }
         detail.overview?.takeIf { it.isNotBlank() }?.let { Plot(it) }
     }
+}
+
+/** Opens the TMDB trailer outside the app. Hidden with no trailer, and while Online features is off. */
+@Composable
+private fun TrailerButton(detail: TitleDetail) {
+    val settings by rememberUiModel().settings.collectAsStateWithLifecycle()
+    val url = Trailer.url(detail.trailerKey) ?: return
+    if (settings?.onlineFeatures != true) return
+    val context = LocalContext.current
+    OutlinePill(
+        text = stringResource(R.string.app_trailer),
+        onClick = { context.openTrailer(url) },
+        icon = Icons.Rounded.Theaters,
+    )
 }
 
 @Composable

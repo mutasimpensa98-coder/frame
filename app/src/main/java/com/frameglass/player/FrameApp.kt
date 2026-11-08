@@ -15,6 +15,7 @@ import com.frameglass.data.api.FrameServicesOwner
 import com.frameglass.net.Net
 import com.frameglass.player.model.UiModel
 import com.frameglass.player.model.decodesArt
+import com.frameglass.player.quick.QuickResume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -33,6 +34,8 @@ class FrameApp : Application(), FrameServicesOwner, SingletonImageLoader.Factory
         super.onCreate()
         services = FrameData.create(this)
         registerActivityLifecycleCallbacks(CatchUpOnOpen { services.library.startCatchUp() })
+        // Launcher shortcuts and the widget follow progress and the library, after each quiet moment.
+        QuickResume.start(this, services.library, CoroutineScope(SupervisorJob() + Dispatchers.Default))
     }
 
     // The service loader stays off, so Coil cannot build its own client outside the allow-list. Only the

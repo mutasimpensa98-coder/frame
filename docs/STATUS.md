@@ -1,11 +1,12 @@
 # Status
 
-Updated 2026-11-08, after the owner's three requests on 1.0.104 were built, reviewed and the three review faults fixed. R9 applies.
+Updated 2026-11-08, after launcher shortcuts, the Continue watching widget, the next episode date, the trailer button and tonight's pick were built on branch `pack-home`. R9 applies.
 
 ## Read this first
 
 - **The phone runs 1.0.104,** which holds the owner-requests package and the TMDB and IMDb switches. The owner tried it and asked for three things. No phone check of 1.0.104 is recorded here, and its schema steps 2 to 3 and 3 to 4 ran on Android only in that install, unobserved.
-- **This round's answer to those three requests is built and unit tested, and nobody has seen it on a phone.** It is in the working tree only, not committed. Coloured Settings icons, a swipe to refresh that shows live progress, and subtitle search with no key for series through Gestdown. No schema change. The section "This round: the owner's three requests" lists each item.
+- **The answer to those three requests is committed** (`319d718`, version 1.0.105 in `65b53b6`), and nobody has seen it on a phone. The section "Earlier round: the owner's three requests" lists each item.
+- **This round is built and unit tested on branch `pack-home`, and nobody has seen it on a phone:** launcher shortcuts, a Continue watching widget, the next episode date and a trailer on Details, and "What should I watch tonight?". It brings schema 5. The section "This round" lists each item.
 - **The improvement package has run on the phone,** and the update kept the library, progress, settings and keys. `NEXT.md` section 1 lists what was seen and what was not. Screenshots of those checks stay in `D:\FrameGlass\shots`, because some show the owner's real videos. The tables below still describe filed evidence only.
 - **The last filed phone evidence is the first app build,** 18:19 to 18:22. Later phone checks are recorded in `NEXT.md` section 1 and in `phase-0-results.md`.
 - **Delete has not run on the phone, and the private folder ran only on the test copy.** Test delete with a clip the owner does not need.
@@ -30,6 +31,10 @@ First build only. Screenshots are in `evidence/phase-1/first-build/`, listed in 
 Phase 0 matrix, on the round 2 `qa` build (`evidence/phase-0/matrix.csv`): 50 of 53 Core rows passed. The results and the three open rows are in `phase-0-results.md`. Earlier runs are in `D:\FrameGlass\logs\`: `matrix-run1.csv` for run 1 and `matrix-run2.log` for run 2, 29 of 53.
 
 ## Build and tests
+
+This round, on this PC on 2026-11-08, with the build cache: `testDebugUnitTest`, `:parser:test`, `assembleRelease` and `:app:lintRelease` pass. Logs: `D:\FrameGlass\logs\build-quick-features.log` and `build-quick-features-lint.log`. Unit tests: 1,195 run, 1,194 passed, 0 failed, 1 skipped (the same `AnimeIndexTest`): parser 161, data 476, net 350, engine 67, player 41, app 67, glass 33. `:app` lint: 0 errors and the same 8 warnings as before. `tools/check_update.py`: pass, 4 steps (1 to 2 up to 4 to 5), 25 tables, 21 saved rows kept. The merged release manifest has the same permissions as before; the widget receiver needs none. Release APK 23,286,928 bytes. `fg.ps1 build`, `assembleQa` and lint of the other modules were not run in this round. Nothing was installed.
+
+The table below is from the earlier round.
 
 Run on this PC on 2026-11-08, after the three review faults of this round were fixed, with `--rerun-tasks --no-build-cache`: 799 tasks, all executed, none from a cache. Log: `D:\FrameGlass\logs\build-integrate3-full.log`. `fg.ps1 build` and the APK rows below it were not run again in this round.
 
@@ -250,9 +255,25 @@ Four faults from the review of this package were fixed, each with a JVM test of 
 
 `Api.kt` gained `AppSettings.cinemaMode`, `HomeFeed.cinemaEmpty`, `HomeFeed.MAX_AUTOMATIC_ROWS` and `HeroItem.continueItem`, all with defaults beside the fixed contract.
 
-## This round: the owner's three requests
+## This round: shortcuts, widget, next episode, trailer and tonight's pick
 
-The owner's words after trying 1.0.104, in short: the Settings icons are not coloured; make the refresh more interactive, not just a moving icon; there is no online subtitle search. They have no subtitle key. Not committed, not installed, and not seen on a phone, in either theme or in Arabic.
+The owner asked for a Continue watching widget and launcher shortcuts (waiver of 2026-11-08), the next episode date and a trailer on Details, and a random pick for tonight. Built and unit tested on branch `pack-home`. Not installed and not seen on a phone, in either theme or in Arabic.
+
+| Request | Status | Notes |
+|---|---|---|
+| Launcher shortcuts | UNIT TESTED | `QuickResumeTest` (`:data`, which items), `ShortcutPlanTest` (`:app`, ids, ranks, limit). Dynamic shortcuts "Resume <title>" for the F-S10 resume item and up to two more titles in progress, newest first, each opening `PlayerActivity` through `PlayerRoute.intent` at the saved place. Icon: the stored poster cropped square, else the app icon. Clips and private-folder videos never appear. Updated 8 s after progress, files or titles stop changing, so nothing runs while a video plays. The `ShortcutManager` calls have no test. |
+| Continue watching widget | UNIT TESTED | `WidgetSlotsTest` for the rows and progress, `QuickResumeTest` for the items. `ContinueWidget` with plain `RemoteViews`, no new dependency: up to three rows of cover, title, episode label and progress line, a tap resumes in the player, and an empty text opens the app. Translucent dark panel, 24 dp corners, thin white rim. Updated with the shortcuts and on the system period of 30 minutes. No permission added. Its look on One UI is unseen. |
+| Next episode air date | UNIT TESTED | `TmdbDetailsTest` (parsing `next_episode_to_air` and `status`), `UpcomingTest` (ended, unknown and passed dates hidden; only the newest owned episode's Home card), `AirDatesTest` (today, tomorrow, weekday, localized date, year only when it differs). Details shows «الحلقة 6 من الموسم 2 تنزل الخميس 12 نوفمبر». The Home Continue card of the newest owned episode shows «حلقة جديدة يوم …» in place of the episode title. OMDb matches show nothing. |
+| Trailer | UNIT TESTED | `TmdbDetailsTest` (`pickTrailer`: YouTube Trailer only, app language then English then any, official first, then newest), `TrailerTest` (only a plain YouTube key makes a link). Details has a «الإعلان» pill that opens `https://www.youtube.com/watch?v=<key>` with `ACTION_VIEW`. No host was added to `HttpCore`, and the pill hides while Online features is off. |
+| What should I watch tonight? | UNIT TESTED | `TonightPoolTest` (`:data`: unstarted available films and series only, no clips; private-folder videos are not in the snapshot), `TonightPickTest` (`:app`: kind and genre filters, never the same title twice in a row, walks through the rest, genre chips). Behind the new ⋮ menu of the Library top bar, as R13 asks. A glass sheet with Any, Film and Series chips, genre chips, poster, title, year, rating badge, runtime, a four-line plot, and «شغّل», «تفاصيل», «غيره». The sheet has no UI test. |
+
+Schema 5: `Title` gains `seriesStatus`, `nextAirDate`, `nextSeason`, `nextEpisode` and `trailerKey`, all nullable, through `STATEMENTS_4_5` and `MIGRATION_4_5`, registered in `FrameDb.open`. `MigrationSchemaTest` holds them against the exported `5.json`, and `tools/check_update.py` passes. The F-M11 purge clears them with the other TMDB fields. The backup format carries no TMDB text, so it is unchanged. A swipe to refresh refetches every TMDB title fetched more than 10 minutes before, which fills these fields for titles already in the library, and also every series whose announced date has passed. The TMDB details call now appends `videos` and sends `include_video_language`.
+
+`Api.kt` gained `TitleDetail.upcoming`, `TitleDetail.trailerKey`, `ContinueItem.upcoming`, `UpcomingEpisode`, `ResumeEntry`, `PickOption`, and `LibraryRepository.quickResume()`, `resumeChanges` and `tonightPool`, all with defaults.
+
+## Earlier round: the owner's three requests
+
+The owner's words after trying 1.0.104, in short: the Settings icons are not coloured; make the refresh more interactive, not just a moving icon; there is no online subtitle search. They have no subtitle key. Committed in `319d718`, version 1.0.105 in `65b53b6`. Not seen on a phone, in either theme or in Arabic.
 
 | Request | Status | Notes |
 |---|---|---|
@@ -314,6 +335,8 @@ From `WAIVERS.md`.
 | Favourites, hide title, exclude folder | UNIT TESTED | `FavoritesFilterTest`, `HiddenTitlesTest`, `ExclusionsTest`. The long-press menu has no test, and `:glass` cards have no long press, so `CardMenu` watches from outside. |
 | Swipe to refresh | UNIT TESTED | `RefreshFlowTest`, the swipe tests in `data/src/test/.../scan/`, `LockWithinTest`. Live stages and an exact summary replace the before-and-after count. The pill has no UI test. |
 | Private items in the player | BUILT | Code review only: FLAG_SECURE, recents, blank notification metadata, no screenshots, background audio or online search. |
+| Launcher shortcuts and the Continue watching widget | UNIT TESTED | Waiver of 2026-11-08. See "This round". Never run. |
+| Next episode date, trailer, tonight's pick | UNIT TESTED | See "This round". Never run. |
 
 ## Gates
 

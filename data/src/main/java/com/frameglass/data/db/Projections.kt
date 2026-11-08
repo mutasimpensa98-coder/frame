@@ -20,6 +20,10 @@ data class TitleRow(
     val sortKey: String,
     val createdAt: Long,
     val favorite: Boolean = false,
+    val seriesStatus: String? = null,
+    val nextAirDate: String? = null,
+    val nextSeason: Int? = null,
+    val nextEpisode: Int? = null,
 )
 
 data class EpisodeLite(

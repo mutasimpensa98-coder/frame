@@ -118,7 +118,7 @@ internal object HomeBuilder {
             .sortedWith(compareByDescending<TitleInfo> { it.addedAt }.thenBy { it.id })
             .asSequence().filter(fits).take(RECENT_HEROES).toList()
         val heroKey = lastPlayed?.let { heroPlayable(it)?.key }
-        val allContinuing = continueWatching(shown, labels)
+        val allContinuing = continueWatching(shown, labels, EpisodeRows.today(s.now))
         // The app drops a hero whose art does not decode, and then needs this card back.
         val heroCard = allContinuing.firstOrNull { it.play.playableKey == heroKey }
         val continuing = allContinuing.filter { it !== heroCard }
@@ -168,7 +168,7 @@ internal object HomeBuilder {
 
     private class Continuing(val at: Long, val item: ContinueItem)
 
-    private fun continueWatching(live: List<TitleInfo>, labels: Labels): List<ContinueItem> =
+    private fun continueWatching(live: List<TitleInfo>, labels: Labels, today: String): List<ContinueItem> =
         live.mapNotNull { info ->
             val playable = if (info.isMovie) {
                 info.playables.firstOrNull { it.inProgress }
@@ -177,12 +177,14 @@ internal object HomeBuilder {
             } else {
                 null
             }
-            if (playable == null) null else Continuing(info.lastPlayedAt, item(info, playable, labels))
+            if (playable == null) null else Continuing(info.lastPlayedAt, item(info, playable, labels, today))
         }.sortedByDescending { it.at }.map { it.item }
 
-    private fun item(info: TitleInfo, p: Playable, labels: Labels): ContinueItem {
+    private fun item(info: TitleInfo, p: Playable, labels: Labels, today: String): ContinueItem {
         val total = p.durationMs
         val position = if (p.inProgress) p.watch?.positionMs ?: 0 else 0
+        // Only the newest episode the owner has gets the hint, so a card deep in a season stays as it was.
+        val newest = !info.isMovie && info.playables.lastOrNull { it.season != 0 && it.numbered }?.key == p.key
         return ContinueItem(
             titleId = info.id,
             play = p.ref(),
@@ -193,6 +195,7 @@ internal object HomeBuilder {
             progress = p.partial ?: 0f,
             timeLeftMs = (total - position).coerceAtLeast(0),
             newEpisode = !p.inProgress && !info.isMovie && p.firstSeenAt > info.lastPlayedAt && info.lastPlayedAt > 0,
+            upcoming = if (newest) Upcoming.of(info, today) else null,
         )
     }
 

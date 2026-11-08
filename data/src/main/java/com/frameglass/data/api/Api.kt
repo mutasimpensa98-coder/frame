@@ -3,6 +3,8 @@ package com.frameglass.data.api
 import android.content.Context
 import android.net.Uri
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 
 /*
  * The contract between :data and the screens in :app and :player.
@@ -72,7 +74,32 @@ data class ContinueItem(
     val progress: Float,
     val timeLeftMs: Long,
     val newEpisode: Boolean,
+    /**
+     * Set only when this card is the newest episode the owner has and the series announced the next one, which is not
+     * out yet. Home words it as a short hint in place of the episode title.
+     */
+    val upcoming: UpcomingEpisode? = null,
 )
+
+/** An episode a series announced on TMDB and has not aired yet. [airDate] is yyyy-MM-dd in the phone's time zone. */
+data class UpcomingEpisode(val season: Int, val number: Int, val airDate: String)
+
+/** One item for the launcher shortcuts and the home-screen widget. Never a clip or a private-folder video. */
+data class ResumeEntry(
+    val titleId: Long,
+    val play: PlayRef,
+    val name: String,
+    /** "S1 E2", or null for a movie. */
+    val episodeLabel: String?,
+    /** The poster, or the video frame when there is none. */
+    val coverPath: String?,
+    /** A 16:9 image: the episode still, the backdrop or the frame. */
+    val imagePath: String?,
+    val progress: Float,
+)
+
+/** A title "What should I watch tonight?" may pick: an unstarted available film or series. */
+data class PickOption(val titleId: Long, val isMovie: Boolean, val genres: List<String>)
 
 enum class HomeRowKind { TOP_RATED, GENRE, COLLECTION, VIDEOS, RECENT }
 
@@ -147,6 +174,10 @@ data class TitleDetail(
     val favorite: Boolean = false,
     /** Facts about the files behind this title, shown on Details, most useful for unmatched videos. */
     val files: List<FileFacts> = emptyList(),
+    /** The next episode of a returning series, while it is still to come. Null for films, ended series and OMDb matches. */
+    val upcoming: UpcomingEpisode? = null,
+    /** A YouTube video key for the trailer button, from TMDB. The app opens it outside, with ACTION_VIEW. */
+    val trailerKey: String? = null,
 )
 
 data class EpisodeRow(
@@ -203,6 +234,21 @@ interface LibraryRepository {
     fun person(personId: Long): Flow<PersonView?>
     fun genre(name: String): Flow<List<TitleCard>>
     fun rowTitles(row: HomeRowKind, label: String?): Flow<List<TitleCard>>
+
+    /**
+     * Up to three items to resume, read straight from the database, for the launcher shortcuts and the widget. The
+     * first is the F-S10 resume item.
+     */
+    suspend fun quickResume(): List<ResumeEntry> = emptyList()
+
+    /**
+     * Emits when progress, files or titles change. It loads nothing itself, so a listener can wait for a quiet moment
+     * before it calls quickResume.
+     */
+    val resumeChanges: Flow<Unit> get() = emptyFlow()
+
+    /** Titles "What should I watch tonight?" may pick from. */
+    val tonightPool: Flow<List<PickOption>> get() = flowOf(emptyList())
 
     /** Called on every app open. Must return quickly and never delay the first screen. */
     fun startCatchUp()

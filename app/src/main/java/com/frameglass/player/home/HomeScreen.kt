@@ -71,6 +71,7 @@ import com.frameglass.player.folders.openAllFilesAccess
 import com.frameglass.player.folders.rememberAllFilesAccess
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Route
+import com.frameglass.player.quick.upcomingHint
 import com.frameglass.player.ui.ArtUnderStatusBar
 import com.frameglass.player.ui.CardTarget
 import com.frameglass.player.ui.CenteredMessage
@@ -340,7 +341,8 @@ private fun ContinueRow(items: List<ContinueItem>, cardWidth: Dp) {
                         .width(cardWidth)
                         .cardMenu { CardTarget.Title(item.titleId, item.name) },
                     episodeLabel = item.episodeLabel,
-                    subtitle = item.episodeTitle,
+                    // The newest episode the owner has can say when the next one comes instead.
+                    subtitle = item.upcoming?.let { upcomingHint(it) } ?: item.episodeTitle,
                     progress = item.progress.takeIf { it > 0f },
                     timeLeftMs = item.timeLeftMs.takeIf { item.progress > 0f },
                     newEpisode = item.newEpisode,

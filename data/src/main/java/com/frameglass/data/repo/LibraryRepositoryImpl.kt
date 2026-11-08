@@ -16,6 +16,8 @@ import com.frameglass.data.api.LibrarySort
 import com.frameglass.data.api.MatchChoice
 import com.frameglass.data.api.MatchState
 import com.frameglass.data.api.PersonView
+import com.frameglass.data.api.PickOption
+import com.frameglass.data.api.ResumeEntry
 import com.frameglass.data.api.RatingInfo
 import com.frameglass.data.api.RatingSource
 import com.frameglass.data.api.RefreshProgress
@@ -47,6 +49,9 @@ import com.frameglass.data.logic.HomeBuilder
 import com.frameglass.data.logic.Labels
 import com.frameglass.data.logic.ParsePaths
 import com.frameglass.data.logic.PathRange
+import com.frameglass.data.logic.QuickResume
+import com.frameglass.data.logic.TonightPool
+import com.frameglass.data.logic.Upcoming
 import com.frameglass.data.logic.PathScope
 import com.frameglass.data.logic.PlayableKeys
 import com.frameglass.data.logic.ResumeLogic
@@ -105,6 +110,14 @@ internal class LibraryRepositoryImpl(
 
     override val home: Flow<HomeFeed> = view { HomeBuilder.build(it, labels) { path -> File(path).exists() } }
 
+    override suspend fun quickResume(): List<ResumeEntry> = withContext(Dispatchers.Default) {
+        QuickResume.build(snapshots.fresh(), labels)
+    }
+
+    override val resumeChanges: Flow<Unit> = db.invalidationTracker.createFlow("WatchState", "MediaFile", "Title").map { }
+
+    override val tonightPool: Flow<List<PickOption>> = view { TonightPool.build(it) }
+
     override val scanState: Flow<ScanState> = combine(
         progress.state,
         db.meta().pendingCount(),
@@ -162,6 +175,8 @@ internal class LibraryRepositoryImpl(
             unavailable = !info.available,
             favorite = title.favorite,
             files = FileFactsBuilder.of(s, id),
+            upcoming = Upcoming.of(info, EpisodeRows.today(s.now)),
+            trailerKey = title.trailerKey,
         )
     }
 

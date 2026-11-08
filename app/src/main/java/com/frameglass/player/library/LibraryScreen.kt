@@ -12,9 +12,14 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ViewList
 import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -26,6 +31,11 @@ import com.frameglass.glass.FilterChips
 import com.frameglass.glass.FrameSizes
 import com.frameglass.glass.FrameSpacing
 import com.frameglass.glass.GlassIconButton
+import com.frameglass.glass.GlassMenu
+import com.frameglass.glass.GlassRow
+import com.frameglass.glass.GlassSheetState
+import com.frameglass.glass.glassSheetOrigin
+import com.frameglass.glass.rememberGlassSheetState
 import com.frameglass.glass.GlassSource
 import com.frameglass.glass.Skeleton
 import com.frameglass.glass.SortDropdown
@@ -35,6 +45,7 @@ import com.frameglass.player.R
 import com.frameglass.player.folders.AddFolderButton
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Route
+import com.frameglass.player.quick.TonightSheet
 import com.frameglass.player.ui.GridColumnGap
 import com.frameglass.player.ui.GridLineGap
 import com.frameglass.player.ui.GridMessage
@@ -63,6 +74,7 @@ internal fun LibraryScreen() {
     val root by model.rootFolder.collectAsStateWithLifecycle()
     val settings by model.settings.collectAsStateWithLifecycle()
     val grid = rememberLazyGridState()
+    val tonight = rememberGlassSheetState()
     val folders = query.filter == LibraryFilter.FOLDERS
     val frames = query.filter == LibraryFilter.VIDEOS && !query.asList
 
@@ -181,9 +193,35 @@ internal fun LibraryScreen() {
                         onClick = { model.changeQuery { it.copy(asList = !it.asList) } },
                     )
                 }
+                LibraryMenu(tonight)
                 AddFolderButton()
             },
         )
+    }
+    TonightSheet(tonight)
+}
+
+/** R13: the random pick lives behind this menu, so the bar keeps its two buttons in view. */
+@Composable
+private fun LibraryMenu(tonight: GlassSheetState) {
+    Box {
+        var open by remember { mutableStateOf(false) }
+        GlassIconButton(
+            icon = Icons.Rounded.MoreVert,
+            contentDescription = stringResource(R.string.app_more),
+            onClick = { open = true },
+            modifier = Modifier.glassSheetOrigin(tonight),
+        )
+        GlassMenu(expanded = open, onDismiss = { open = false }) {
+            GlassRow(
+                text = stringResource(R.string.app_tonight),
+                icon = Icons.Rounded.Shuffle,
+                onClick = {
+                    open = false
+                    tonight.open()
+                },
+            )
+        }
     }
 }
 

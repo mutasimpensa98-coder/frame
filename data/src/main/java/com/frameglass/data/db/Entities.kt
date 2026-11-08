@@ -148,6 +148,14 @@ data class Title(
      * within ImdbRules.FRESH_MS would get the same answer and spend the daily calls.
      */
     val omdbTriedAt: Long? = null,
+    /** TMDB's series status, such as "Returning Series" or "Ended". Null for a movie and for OMDb matches. */
+    val seriesStatus: String? = null,
+    /** The next episode TMDB lists, as yyyy-MM-dd with its season and number. All three are null when none is known. */
+    val nextAirDate: String? = null,
+    val nextSeason: Int? = null,
+    val nextEpisode: Int? = null,
+    /** A YouTube video key from TMDB, opened outside the app. */
+    val trailerKey: String? = null,
 )
 
 @Entity(tableName = "Episode", indices = [Index(value = ["titleId", "season", "number"], unique = true)])

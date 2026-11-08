@@ -105,8 +105,9 @@ class TmdbDetailsTest {
         rig.server.on("$TMDB/tv/10", Reply(body = fullTv), Reply(body = englishTv))
         blocking { rig.client.details(MetaKind.TV, 10, "ar") }.value()
         val request = rig.server.hits("$TMDB/tv/10").first()
-        assertEquals("credits,images,external_ids", request.url.queryParameter("append_to_response"))
+        assertEquals("credits,images,external_ids,videos", request.url.queryParameter("append_to_response"))
         assertEquals("ar,en", request.url.queryParameter("include_image_language"))
+        assertEquals("ar,en,null", request.url.queryParameter("include_video_language"))
     }
 
     @Test
@@ -137,9 +138,56 @@ class TmdbDetailsTest {
         assertNull(meta.tmdbRating)
         assertTrue(meta.seasons.isEmpty())
         assertEquals(
-            "credits,images",
+            "credits,images,videos",
             rig.server.hits("$TMDB/movie/5").single().url.queryParameter("append_to_response"),
         )
+        assertNull(meta.status)
+        assertNull(meta.nextEpisode)
+        assertNull(meta.trailerKey)
+    }
+
+    @Test
+    fun aReturningSeriesCarriesItsNextEpisodeStatusAndTrailer() {
+        val returning = fullTv.replace(
+            "\"seasons\":",
+            """"status":"Returning Series","next_episode_to_air":{"air_date":"2026-11-12","season_number":2,"episode_number":6},
+               "videos":{"results":[
+                 {"iso_639_1":"en","key":"teaser1","site":"YouTube","type":"Teaser","official":true},
+                 {"iso_639_1":"en","key":"enTrailer","site":"YouTube","type":"Trailer","official":true},
+                 {"iso_639_1":"ar","key":"vimeo1","site":"Vimeo","type":"Trailer","official":true}]},
+               "seasons":""",
+        )
+        rig.server.on("$TMDB/tv/10", Reply(body = returning), Reply(body = englishTv))
+        val meta = blocking { rig.client.details(MetaKind.TV, 10, "ar") }.value()
+        assertEquals("Returning Series", meta.status)
+        assertEquals(NextEpisodeMeta(2, 6, "2026-11-12"), meta.nextEpisode)
+        assertEquals("enTrailer", meta.trailerKey)
+    }
+
+    @Test
+    fun aNextEpisodeWithoutAFullDateIsUnknown() {
+        assertNull(TmdbNextEpisode("2026", 2, 6).toMeta())
+        assertNull(TmdbNextEpisode(null, 2, 6).toMeta())
+        assertNull(TmdbNextEpisode("2026-11-12", 2, 0).toMeta())
+        assertEquals(NextEpisodeMeta(0, 1, "2026-11-12"), TmdbNextEpisode("2026-11-12", 0, 1).toMeta())
+    }
+
+    @Test
+    fun theTrailerPrefersTheAppLanguageThenEnglishThenAnyAndOfficialOnes() {
+        fun trailer(lang: String?, key: String, official: Boolean = false, at: String? = null, type: String = "Trailer") =
+            TmdbVideo(lang, key, "YouTube", type, official, at)
+        val videos = listOf(
+            trailer("ja", "ja"),
+            trailer("en", "enFan"),
+            trailer("en", "enOfficial", official = true),
+            trailer("ar", "arOld", at = "2024-01-01T00:00:00.000Z"),
+            trailer("ar", "arNew", at = "2025-01-01T00:00:00.000Z"),
+            trailer("ar", "arTeaser", official = true, type = "Teaser"),
+        )
+        assertEquals("arNew", pickTrailer(videos, "ar-LY"))
+        assertEquals("enOfficial", pickTrailer(videos, "fr"))
+        assertEquals("ja", pickTrailer(videos.filter { it.language == "ja" }, "ar"))
+        assertNull(pickTrailer(listOf(trailer("ar", " "), TmdbVideo("ar", "k", "Vimeo", "Trailer")), "ar"))
     }
 
     @Test

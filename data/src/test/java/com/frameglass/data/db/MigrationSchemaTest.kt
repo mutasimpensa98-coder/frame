@@ -61,7 +61,7 @@ class MigrationSchemaTest {
     @Test
     fun noStatementTouchesAnExistingRow() {
         val addColumn = Regex("""^ALTER TABLE `\w+` ADD COLUMN """)
-        (Migrations.STATEMENTS_1_2 + Migrations.STATEMENTS_2_3 + Migrations.STATEMENTS_3_4).forEach { sql ->
+        (Migrations.STATEMENTS_1_2 + Migrations.STATEMENTS_2_3 + Migrations.STATEMENTS_3_4 + Migrations.STATEMENTS_4_5).forEach { sql ->
             assertTrue(sql, sql.startsWith("CREATE ") || addColumn.containsMatchIn(sql))
         }
     }
@@ -94,6 +94,35 @@ class MigrationSchemaTest {
             listOf("ALTER TABLE `Episode` ADD COLUMN `imdbRating` REAL", "ALTER TABLE `Title` ADD COLUMN `omdbTriedAt` INTEGER"),
             Migrations.STATEMENTS_3_4,
         )
+    }
+
+    @Test
+    fun stepFiveOnlyAddsTheTmdbScheduleAndTrailerToTitle() {
+        val old = entities(4)
+        val new = entities(5)
+        assertEquals(old.keys, new.keys)
+        val changed = old.keys.filter { old.getValue(it).createSql(it) != new.getValue(it).createSql(it) }
+        assertEquals(listOf("Title"), changed)
+        val added = listOf("seriesStatus", "nextAirDate", "nextSeason", "nextEpisode", "trailerKey")
+        assertEquals(columns(old.getValue("Title")) + added, columns(new.getValue("Title")))
+        assertEquals(old.getValue("Title").indexSql("Title"), new.getValue("Title").indexSql("Title"))
+    }
+
+    @Test
+    fun theStepFiveColumnsMatchRoomsDefinition() {
+        val types = mapOf(
+            "seriesStatus" to "TEXT", "nextAirDate" to "TEXT", "nextSeason" to "INTEGER", "nextEpisode" to "INTEGER",
+            "trailerKey" to "TEXT",
+        )
+        for ((column, type) in types) {
+            val field = field(5, "Title", column)
+            assertEquals(type, field.getValue("affinity").jsonPrimitive.content)
+            assertTrue(field["notNull"]?.jsonPrimitive?.content != "true")
+            assertTrue("ALTER TABLE `Title` ADD COLUMN `$column` $type" in Migrations.STATEMENTS_4_5)
+        }
+        assertEquals(types.size, Migrations.STATEMENTS_4_5.size)
+        assertEquals(4, Migrations.MIGRATION_4_5.startVersion)
+        assertEquals(5, Migrations.MIGRATION_4_5.endVersion)
     }
 
     @Test

@@ -50,4 +50,17 @@ internal object Migrations {
     val MIGRATION_3_4 = object : Migration(3, 4) {
         override fun migrate(db: SupportSQLiteDatabase) = STATEMENTS_3_4.forEach(db::execSQL)
     }
+
+    /** The next episode a series has announced, its status, and a trailer, all from TMDB and all nullable. */
+    val STATEMENTS_4_5: List<String> = listOf(
+        "ALTER TABLE `Title` ADD COLUMN `seriesStatus` TEXT",
+        "ALTER TABLE `Title` ADD COLUMN `nextAirDate` TEXT",
+        "ALTER TABLE `Title` ADD COLUMN `nextSeason` INTEGER",
+        "ALTER TABLE `Title` ADD COLUMN `nextEpisode` INTEGER",
+        "ALTER TABLE `Title` ADD COLUMN `trailerKey` TEXT",
+    )
+
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) = STATEMENTS_4_5.forEach(db::execSQL)
+    }
 }

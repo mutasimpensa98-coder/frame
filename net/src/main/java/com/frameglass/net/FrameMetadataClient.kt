@@ -255,6 +255,9 @@ internal class FrameMetadataClient(
         collectionId = primary.collection?.id,
         collectionName = primary.collection?.name.orBlankTo(english?.collection?.name),
         seasons = primary.seasons.map(TmdbSeasonRef::number).sorted(),
+        status = primary.status?.takeIf { kind == MetaKind.TV && it.isNotBlank() },
+        nextEpisode = primary.nextEpisode?.takeIf { kind == MetaKind.TV }?.toMeta(),
+        trailerKey = pickTrailer(primary.videos?.results.orEmpty(), language),
     )
 
     /** With no translation TMDB returns the original title, so English goes first for those. */

@@ -1,6 +1,6 @@
 # Next
 
-Updated 2026-11-08, after the owner's three requests on 1.0.104 were built (coloured Settings icons, a livelier swipe to refresh, subtitle search with no key) and the three faults of their review were fixed. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
+Updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
 The history must stay fit to publish. `.gitignore` and `tools/hooks/pre-commit`, set through `core.hooksPath`, keep out what the waiver bans. A new clone needs `git config core.hooksPath tools/hooks`.
 
@@ -10,7 +10,9 @@ Testing stays small: essentials only, and long runs such as the soak only when t
 
 The phone runs 1.0.104, which holds the owner-requests package and the TMDB and IMDb switches (`361e7b6`, version commit `db09ff3`). The owner tried it and sent three requests: the Settings icons are not coloured, the swipe to refresh should be more than a moving icon, and there is no online subtitle search. No answers to items 20 to 43 of section 2 are recorded yet.
 
-The answer to those three requests is in the working tree only: not committed, not installed and not seen on any phone. `STATUS.md`, section "This round", lists it. Shipping it is step 1 of section 7.
+The answer to those three requests is committed (`319d718`) with version 1.0.105 (`65b53b6`). Whether the phone runs 1.0.105 is not recorded here, and none of it has been seen on a phone.
+
+The owner then asked for launcher shortcuts, a Continue watching widget, the next episode date and a trailer on Details, and a "What should I watch tonight?" pick. They are built and unit tested on branch `pack-home`, with schema 5, and not seen on any phone. `STATUS.md`, section "This round", lists them. Shipping them is step 1 of section 7.
 
 The release build is on the phone, updated in place from the first install, with the library, progress, settings and keys intact. `firstInstallTime` did not change.
 
@@ -85,6 +87,21 @@ Send this to the owner as it stands, and record the answers in `docs/evidence/ph
 52. طفّي «الميزات المتصلة» وافتح الترجمة. هل سطر البحث باهت ومكتوب إن ميزات الإنترنت متوقفة؟ وشغّل فيديو من المجلد الخاص: هل السطر باهت ومكتوب إنه غير متاح للمجلد الخاص؟
 53. افتح الإعدادات › الميزات المتصلة والمفاتيح. هل مكتوب إن المسلسلات ما تحتاجش مفتاح؟
 
+طلبك الجديد: الاختصارات والويدجت وموعد الحلقة الجاية والإعلان و«ماذا أشاهد الليلة؟». جرّبها بعد النسخة اللي فيها هذي الإضافات. التحديث يغيّر قاعدة البيانات (من 4 لـ5)، فأول شيء تأكد إن مكتبتك ومكان وقوفك والمفضلة بقوا زي ما هم:
+
+54. اضغط ضغطة طويلة على أيقونة Frame Glass في شاشة التلفون. هل ظهر «تابع» واسم آخر شيء كنت تتفرج عليه، ومعاه لين اثنين ثانيين من «تابع المشاهدة»، وكل واحد بصورة غلافه؟ اضغط واحد: هل فتح المشغّل على طول من نفس المكان اللي وقفت فيه؟
+55. تفرّج شوي على حلقة ثانية ووقّف، وارجع لشاشة التلفون واستنى حوالي 10 ثواني. هل الاختصارات تبدّلت، واللي تفرجت عليه آخر شيء صار الأول؟
+56. ضيف ويدجت «تابع المشاهدة» (ضغطة طويلة على مكان فاضي › الأدوات › Frame Glass). هل شكلها داكن وشفاف شوي بحواف مدوّرة، وفيها لين 3 عناوين بالغلاف والاسم ورقم الحلقة وخط التقدّم؟ اضغط عنوان: هل فتح المشغّل من مكان وقوفك؟
+57. قبل ما يكون عندك شيء تتابعه، أو بعد ما تكمّل كل شيء: هل الويدجت كاتبة «لا شيء تتابعه الآن» وتفتح التطبيق لما تضغطها؟
+58. حرّك فيديو من «تابع المشاهدة» للمجلد الخاص. بعد شوي، هل اختفى من الاختصارات ومن الويدجت؟ وهل المقاطع الشخصية عمرها ما ظهرت فيهم؟
+59. اسحب الشاشة للتحديث واستنى لين يكمّل. بعدها افتح تفاصيل مسلسل لسه يعرض وحلقته الجاية ما نزلتش. هل فيه سطر زي «الحلقة 6 من الموسم 2 تنزل الخميس 12 نوفمبر»، واليوم والشهر صح بالعربي؟ ولو نازلة اليوم أو بكرة، هل كتب «اليوم» أو «غدًا»؟
+60. افتح مسلسل انتهى عرضه. هل السطر مش موجود؟
+61. في التفاصيل، هل فيه زر «الإعلان»؟ اضغطه: هل فتح الإعلان في يوتيوب أو المتصفح؟ وهل جاب الإعلان العربي لو موجود، وإلا الإنجليزي؟ طفّي «الميزات المتصلة»: هل الزر اختفى؟
+62. فيلم أو مسلسل تعرّف عليه IMDb وTMDB طافي: هل الصفحة سليمة، بدون سطر الحلقة الجاية وبدون زر الإعلان؟
+63. مسلسل وصلت فيه لآخر حلقة عندك ولسه ما كمّلتهاش، والحلقة الجاية ما نزلتش: في «تابع المشاهدة» هل تحت اسمه مكتوب «حلقة جديدة يوم …» بدل اسم الحلقة؟ يبان مزحوم ولا مقبول؟
+64. في المكتبة، اضغط زر النقاط الثلاث فوق › «ماذا أشاهد الليلة؟». هل طلع لك فيلم أو مسلسل ما بدأتهوش، بغلافه واسمه وسنته وتقييمه ومدته وقصة قصيرة؟ اضغط «غيره» كم مرة: هل كل مرة يجيب حاجة ثانية، وما يعاودش نفس العنوان ورا بعض؟
+65. جرّب «فيلم» و«مسلسل» وتصنيف من التصنيفات. هل الاختيار يلتزم بيهم؟ وهل «شغّل» يشغّله على طول، و«تفاصيل» يفتح صفحته؟ وهل عمره طلع لك فيديو من المجلد الخاص أو مقطع شخصي؟
+
 مفاتيح TMDB وIMDb. جرّبها بعد نفس التحديث:
 
 34. افتح الإعدادات › الميزات المتصلة والمفاتيح. هل فيه مفتاح تشغيل جنب TMDB وجنب «IMDb عبر OMDb»؟ طفّي واحد ورجّعه: هل المفتاح المحفوظ بقى، وما طلب منك تكتبه من جديد؟ وهل تحت كل واحد سطر يشرح شن يصير لما يطفى، بالعربي وبالإنجليزي؟
@@ -146,6 +163,14 @@ From this round's three requests, read in the code and never run:
 
 ## 4. Known limits in this build
 
+Shortcuts, widget, next episode, trailer and tonight's pick (this round, not seen on a phone):
+
+- Shortcuts and the widget refresh about 8 s after the last progress save, file change or title change, and only while the app's process is alive. Otherwise the widget asks on the system period of 30 minutes. Android may rate-limit `setDynamicShortcuts` for an app in the background, which would leave the old shortcuts until the next time the app is in front.
+- Titles already in the library have no next-episode date or trailer until a swipe to refresh fetches them again, or the 150-day refresh does. A swipe refetches every TMDB title fetched more than 10 minutes before, and every series whose announced date has passed.
+- The TMDB request asks for videos in the app language, English and no language (`include_video_language`). A trailer only in a third language is not found.
+- The Home hint shows only on the card of the newest episode the owner has. A series whose every owned episode is watched has no card, so it shows no hint.
+- Widget covers and shortcut icons are decoded from the stored poster on each update. Their look on One UI is unseen.
+
 - A cut MKV plays to the cut, then shows a friendly message. It cannot seek or resume, and a refused seek shows a message.
 - A cut MKV with cues at the front, cut exactly between clusters, holds the last frame with no message.
 - The delayed error that reaches the player for a cut file was read from bytecode only. Matrix row C2 is the real check.
@@ -192,7 +217,7 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 
 ## 7. Build next, in order
 
-1. **Ship the answer to the owner's three requests.** Write `docs/RELEASE-NOTES.md` in Arabic, commit and push `main`, run `.\fg.ps1 release`, and send the checklist of section 2, items 44 to 53, with items 20 to 43 if the owner has not answered them. No schema change in this round. `fg.ps1 release` refuses a tree with anything but `version.properties` changed, then commits `version.properties` and pushes `main` by itself.
+1. **Ship the shortcuts, widget, next episode, trailer and tonight's pick.** Merge `pack-home` into `main`, write `docs/RELEASE-NOTES.md` in Arabic, push `main`, run `.\fg.ps1 release`, and send the checklist of section 2, items 54 to 65, with items 20 to 53 if the owner has not answered them. This round has schema step 4 to 5: five nullable `Title` columns, replayed by `tools/check_update.py`, and never run on Android yet. `fg.ps1 release` refuses a tree with anything but `version.properties` changed, then commits `version.properties` and pushes `main` by itself.
 2. **Make the sites line open the keys page.** `FrameApp` implements `com.frameglass.playerui.PlayerHost.subtitleKeysIntent()`, returning the intent of Settings › Online features and keys.
 3. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
 4. **F-S4 local intro detection.** Phase 7b.
