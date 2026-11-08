@@ -18,6 +18,9 @@ import com.frameglass.data.api.MatchState
 import com.frameglass.data.api.PersonView
 import com.frameglass.data.api.RatingInfo
 import com.frameglass.data.api.RatingSource
+import com.frameglass.data.api.RefreshProgress
+import com.frameglass.data.api.RefreshSkip
+import com.frameglass.data.api.RefreshSource
 import com.frameglass.data.api.RootFolderInfo
 import com.frameglass.data.api.ScanState
 import com.frameglass.data.api.SearchResults
@@ -64,10 +67,14 @@ import com.frameglass.data.scan.CatchUp
 import com.frameglass.data.scan.CoverColors
 import com.frameglass.data.scan.ImageStore
 import com.frameglass.data.scan.ScanProgress
+import com.frameglass.data.scan.ScanTally
 import com.frameglass.data.scan.Scanner
+import com.frameglass.data.scan.SwipeRefresh
+import com.frameglass.data.scan.SwipeSteps
 import com.frameglass.data.scan.Volumes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
@@ -75,8 +82,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
-
-private const val REFRESH_WAIT_MS = 8_000L
 
 internal class LibraryRepositoryImpl(
     private val context: Context,
@@ -93,7 +98,7 @@ internal class LibraryRepositoryImpl(
     private val backup: BackupManager,
     private val clock: Clock,
     private val vault: Lazy<VaultPlayback>,
-) : LibraryRepository, VersionSource {
+) : LibraryRepository, VersionSource, RefreshSource {
 
     private fun <T> view(block: suspend (Snapshot) -> T): Flow<T> =
         snapshots.flow.map(block).distinctUntilChanged().flowOn(Dispatchers.Default)
@@ -247,13 +252,19 @@ internal class LibraryRepositoryImpl(
 
     override suspend fun rescan() = withContext(Dispatchers.IO) { catchUp.scanNow() }
 
-    override suspend fun refreshAll() = withContext(Dispatchers.IO) {
-        catchUp.scanNow()
-        pipeline.queueRefresh()
-        // The swipe waits for the first results. Anything left carries on in the background.
-        runCatching { pipeline.drain(REFRESH_WAIT_MS) }
-        catchUp.continueMetadata()
-    }
+    override suspend fun refreshAll() = refreshProgress().collect()
+
+    private val swipe = SwipeRefresh(object : SwipeSteps {
+        override suspend fun scan(tally: ScanTally) = catchUp.scanNow(tally)
+        override suspend fun queueRefresh() = pipeline.queueRefresh()
+        override suspend fun blocker(): RefreshSkip? = pipeline.blocker()
+        override suspend fun drain(budgetMs: Long) = pipeline.drainWithin(budgetMs)
+        override suspend fun titlesLeft(): Int = pipeline.titlesDue()
+        override val titlesUpdated: Int get() = pipeline.updatedTitles
+        override fun continueInBackground() = catchUp.continueMetadata()
+    })
+
+    override fun refreshProgress(): Flow<RefreshProgress> = swipe.run().flowOn(Dispatchers.IO)
 
     override suspend fun setManualCover(titleId: Long, image: Uri) = withContext(Dispatchers.IO) {
         val target = images.coverFile(titleId, clock.now())

@@ -14,7 +14,7 @@ import org.junit.Test
 
 class SubtitleClientTest {
     private val config = FakeConfig(tmdb = null, openSubtitles = OS_KEY, subDl = SUBDL_KEY, subSource = SUBSOURCE_KEY)
-    private val rig = Rig(config)
+    private val rig = Rig(config, keyless = true)
     private val server = rig.server
     private val folder = File(rig.dir, "subs")
     private val query = subtitleQuery(season = 1, episode = 2, tmdbId = 77, imdbId = "tt0133093", languages = listOf("ar"))
@@ -26,12 +26,14 @@ class SubtitleClientTest {
 
     private fun hosts() = server.requests.map { it.url.host }.toSet()
 
-    /** Any of the three providers with one good row. */
+    /** Any of the four providers with one good row. */
     private fun offerEverything() {
         server.json(OS_SEARCH, osSearch(osItem(1)))
         server.json(SUBDL_SEARCH, subDlReply(subDlItem()))
         server.json(SUBSOURCE_MOVIES, ssMovies(ssMovie(11)))
         server.json(SUBSOURCE_LIST, ssList(ssSubtitle(501)))
+        server.json(GD_SHOWS, gdShows(gdShow()))
+        server.json(gdEpisodePath(1, 2, "ar"), gdEpisode(gdSubtitle()))
     }
 
     @Test
@@ -43,20 +45,30 @@ class SubtitleClientTest {
     }
 
     @Test
-    fun noKeyAtAllAsksNothing() {
+    fun withNoKeyAFilmAsksNothing() {
         config.openSubtitles = null
         config.subDl = null
         config.subSource = null
-        assertEquals(Reason.NO_KEY, (search() as Failure).reason)
+        assertEquals(Reason.NO_KEY, (search(subtitleQuery(tmdbId = 603, languages = listOf("ar"))) as Failure).reason)
         assertTrue(server.requests.isEmpty())
     }
 
     @Test
-    fun onlyProvidersWithAKeyAreAsked() {
+    fun withNoKeyAnEpisodeAsksOnlyTheSiteThatNeedsNone() {
+        config.openSubtitles = null
+        config.subDl = null
+        config.subSource = null
+        offerEverything()
+        assertEquals(listOf(PROVIDER_GESTDOWN), search().value().map { it.provider })
+        assertEquals(setOf(GD_HOST), hosts())
+    }
+
+    @Test
+    fun onlyProvidersWithAKeyAndTheKeylessSiteAreAsked() {
         config.subSource = null
         offerEverything()
         search()
-        assertEquals(setOf("api.opensubtitles.com", "api.subdl.com"), hosts())
+        assertEquals(setOf("api.opensubtitles.com", "api.subdl.com", GD_HOST), hosts())
     }
 
     @Test
@@ -72,37 +84,43 @@ class SubtitleClientTest {
     @Test
     fun providersRunAtTheSameTime() {
         offerEverything()
-        val allThree = CountDownLatch(3)
+        val allFour = CountDownLatch(4)
         val met = CopyOnWriteArrayList<Boolean>()
         server.onRequest = { request ->
-            if (!request.url.encodedPath.endsWith("/subtitles") || request.url.host != "api.subsource.net") {
-                allThree.countDown()
-                met += allThree.await(10, TimeUnit.SECONDS)
+            val path = request.url.encodedPath
+            val second = (request.url.host == "api.subsource.net" && path.endsWith("/subtitles")) ||
+                (request.url.host == GD_HOST && "/subtitles/get/" in path)
+            if (!second) {
+                allFour.countDown()
+                met += allFour.await(10, TimeUnit.SECONDS)
             }
         }
         search()
-        assertEquals(listOf(true, true, true), met)
+        assertEquals(listOf(true, true, true, true), met)
     }
 
     @Test
     fun oneProviderFailingKeepsTheOthers() {
         offerEverything()
         server.on(SUBDL_SEARCH, Reply(500, "down"))
-        assertEquals(setOf(PROVIDER_OPENSUBTITLES, PROVIDER_SUBSOURCE), search().value().map { it.provider }.toSet())
+        assertEquals(
+            setOf(PROVIDER_OPENSUBTITLES, PROVIDER_SUBSOURCE, PROVIDER_GESTDOWN),
+            search().value().map { it.provider }.toSet(),
+        )
     }
 
     @Test
     fun aRefusedKeyOnOneProviderKeepsTheOthers() {
         offerEverything()
         server.on(OS_SEARCH, Reply(403, "{}"))
-        assertEquals(setOf(PROVIDER_SUBDL, PROVIDER_SUBSOURCE), search().value().map { it.provider }.toSet())
+        assertEquals(setOf(PROVIDER_SUBDL, PROVIDER_SUBSOURCE, PROVIDER_GESTDOWN), search().value().map { it.provider }.toSet())
     }
 
     @Test
     fun aBrokenReplyFromOneProviderKeepsTheOthers() {
         offerEverything()
         server.json(SUBSOURCE_MOVIES, "<html>maintenance</html>")
-        assertEquals(setOf(PROVIDER_OPENSUBTITLES, PROVIDER_SUBDL), search().value().map { it.provider }.toSet())
+        assertEquals(setOf(PROVIDER_OPENSUBTITLES, PROVIDER_SUBDL, PROVIDER_GESTDOWN), search().value().map { it.provider }.toSet())
     }
 
     @Test
@@ -119,6 +137,7 @@ class SubtitleClientTest {
         server.json(OS_SEARCH, osSearch())
         server.json(SUBDL_SEARCH, subDlReply())
         server.json(SUBSOURCE_MOVIES, ssMovies())
+        server.json(GD_SHOWS, gdShows())
         assertEquals(emptyList<SubtitleHit>(), search().value())
     }
 
@@ -127,6 +146,7 @@ class SubtitleClientTest {
         server.on(OS_SEARCH, Reply(500, "down"))
         server.on(SUBDL_SEARCH, Reply(500, "down"))
         server.on(SUBSOURCE_MOVIES, Reply(500, "down"))
+        server.on(GD_SHOWS, Reply(500, "down"))
         assertEquals(Reason.NETWORK, (search() as Failure).reason)
     }
 
@@ -140,7 +160,7 @@ class SubtitleClientTest {
         }
         val hits = blocking { impatient.search(query) }.value()
         release.countDown()
-        assertEquals(setOf(PROVIDER_OPENSUBTITLES, PROVIDER_SUBSOURCE), hits.map { it.provider }.toSet())
+        assertEquals(setOf(PROVIDER_OPENSUBTITLES, PROVIDER_SUBSOURCE, PROVIDER_GESTDOWN), hits.map { it.provider }.toSet())
     }
 
     @Test

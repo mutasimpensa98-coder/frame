@@ -114,6 +114,36 @@ internal fun ssSubtitle(
 internal fun ssList(vararg rows: String) =
     """{"success":true,"data":[${rows.joinToString(",")}],"pagination":{"page":1,"limit":100,"total":${rows.size},"pages":1}}"""
 
+internal const val GD_HOST = "api.gestdown.info"
+internal const val GD_SHOW_ID = "4QuietCoastShow00000a"
+internal const val GD_SHOWS = "$GD_HOST/shows/search/Quiet%20Coast"
+
+internal fun gdEpisodePath(season: Int, episode: Int, language: String, show: String = GD_SHOW_ID) =
+    "$GD_HOST/subtitles/get/$show/$season/$episode/$language"
+
+internal fun gdShow(
+    id: String = GD_SHOW_ID,
+    name: String = "Quiet Coast",
+    tmdb: String = "77",
+    seasons: List<Int> = listOf(1, 2),
+) = """{"id":"$id","name":"$name","nbSeasons":${seasons.size},"seasons":$seasons,"tvDbId":null,""" +
+    """"tmdbId":$tmdb,"slug":"quiet-coast"}"""
+
+internal fun gdShows(vararg rows: String) = """{"shows":[${rows.joinToString(",")}]}"""
+
+internal fun gdSubtitle(
+    id: String = "7SubOne0000000000000a",
+    version: String = "WEB-DL GROUP",
+    completed: Boolean = true,
+    downloads: Int = 40,
+) = """{"subtitleId":"$id","version":"$version","completed":$completed,"hearingImpaired":false,"corrected":true,""" +
+    """"hd":true,"downloadUri":"/subtitles/download/$id","language":"Arabic","discovered":"2024-03-01T10:00:00Z",""" +
+    """"downloadCount":$downloads,"source":"Addic7ed","qualities":["1080p"],"release":null}"""
+
+internal fun gdEpisode(vararg subtitles: String) =
+    """{"matchingSubtitles":[${subtitles.joinToString(",")}],""" +
+        """"episode":{"season":1,"number":2,"title":"Harbour","show":"Quiet Coast","discovered":"2024-03-01T10:00:00Z"}}"""
+
 internal fun zipOf(vararg files: Pair<String, String>, charset: Charset = Charsets.UTF_8): ByteArray =
     zipBytesOf(files.map { (name, text) -> name to text.toByteArray() }, charset)
 

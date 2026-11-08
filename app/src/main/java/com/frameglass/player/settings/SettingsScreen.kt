@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import com.frameglass.glass.FrameSizes
 import com.frameglass.glass.FrameSpacing
 import com.frameglass.glass.GlassSource
+import com.frameglass.glass.TileHue
 import com.frameglass.glass.TopGlassBar
 import com.frameglass.glass.glassScrolled
 import com.frameglass.player.R
@@ -56,6 +57,7 @@ internal fun SettingsScreen() {
                     SettingsSection(stringResource(R.string.app_settings_group_general)) {
                         SettingsLink(
                             icon = Icons.Rounded.Palette,
+                            hue = TileHue.Pink,
                             title = stringResource(R.string.app_settings_appearance),
                             description = stringResource(R.string.app_settings_appearance_hint),
                             onClick = { navigator.push(Route.Settings(SettingsTopic.APPEARANCE)) },
@@ -63,6 +65,7 @@ internal fun SettingsScreen() {
                         SettingsDivider(LinkDividerInset)
                         SettingsLink(
                             icon = Icons.Rounded.Language,
+                            hue = TileHue.Blue,
                             title = stringResource(R.string.app_settings_language),
                             description = stringResource(R.string.app_settings_language_hint),
                             value = language,
@@ -74,6 +77,7 @@ internal fun SettingsScreen() {
                     SettingsSection(stringResource(R.string.app_settings_group_watching)) {
                         SettingsLink(
                             icon = Icons.Rounded.VideoLibrary,
+                            hue = TileHue.Indigo,
                             title = stringResource(R.string.app_settings_library),
                             description = stringResource(R.string.app_settings_library_hint),
                             onClick = { navigator.push(Route.Settings(SettingsTopic.LIBRARY)) },
@@ -81,6 +85,7 @@ internal fun SettingsScreen() {
                         SettingsDivider(LinkDividerInset)
                         SettingsLink(
                             icon = Icons.Rounded.PlayCircle,
+                            hue = TileHue.Red,
                             title = stringResource(R.string.app_settings_playback),
                             description = stringResource(R.string.app_settings_playback_hint),
                             onClick = { navigator.push(Route.Settings(SettingsTopic.PLAYBACK)) },
@@ -88,6 +93,7 @@ internal fun SettingsScreen() {
                         SettingsDivider(LinkDividerInset)
                         SettingsLink(
                             icon = Icons.Rounded.Subtitles,
+                            hue = TileHue.Teal,
                             title = stringResource(R.string.app_settings_subtitles),
                             description = stringResource(R.string.app_settings_subtitles_hint),
                             onClick = { navigator.push(Route.Settings(SettingsTopic.SUBTITLES)) },
@@ -98,6 +104,7 @@ internal fun SettingsScreen() {
                     SettingsSection(stringResource(R.string.app_settings_group_storage)) {
                         SettingsLink(
                             icon = Icons.Rounded.Storage,
+                            hue = TileHue.Orange,
                             title = stringResource(R.string.app_settings_media),
                             description = stringResource(R.string.app_settings_media_hint),
                             onClick = { navigator.push(Route.MediaManager) },
@@ -105,6 +112,7 @@ internal fun SettingsScreen() {
                         SettingsDivider(LinkDividerInset)
                         SettingsLink(
                             icon = Icons.Rounded.Lock,
+                            hue = TileHue.Violet,
                             title = stringResource(R.string.app_settings_private),
                             description = stringResource(R.string.app_settings_private_hint),
                             onClick = { navigator.push(Route.PrivateFolder) },
@@ -115,6 +123,7 @@ internal fun SettingsScreen() {
                     SettingsSection(stringResource(R.string.app_settings_group_app)) {
                         SettingsLink(
                             icon = Icons.Rounded.Key,
+                            hue = TileHue.Amber,
                             title = stringResource(R.string.app_settings_online),
                             description = stringResource(R.string.app_settings_online_hint),
                             onClick = { navigator.push(Route.Settings(SettingsTopic.ONLINE)) },
@@ -122,6 +131,7 @@ internal fun SettingsScreen() {
                         SettingsDivider(LinkDividerInset)
                         SettingsLink(
                             icon = Icons.Rounded.Restore,
+                            hue = TileHue.Green,
                             title = stringResource(R.string.app_settings_backup),
                             description = stringResource(R.string.app_settings_backup_hint),
                             onClick = { navigator.push(Route.Settings(SettingsTopic.BACKUP)) },
@@ -129,6 +139,7 @@ internal fun SettingsScreen() {
                         SettingsDivider(LinkDividerInset)
                         SettingsLink(
                             icon = Icons.Rounded.Info,
+                            hue = TileHue.Grey,
                             title = stringResource(R.string.app_settings_about),
                             description = stringResource(R.string.app_about_hint),
                             onClick = { navigator.push(Route.About) },

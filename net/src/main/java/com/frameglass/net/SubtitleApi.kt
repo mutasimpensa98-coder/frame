@@ -47,13 +47,24 @@ data class SubtitleHit(
     val seasonPack: Boolean,
 )
 
+/**
+ * One subtitle site as the sheet names it. [key] is null for a site that needs no key, which is searched whenever
+ * Online features are on. [episodesOnly] marks a site that holds TV episodes and no films.
+ */
+data class SubtitleSite(val name: String, val key: ApiKey?, val episodesOnly: Boolean)
+
 interface SubtitleClient {
     /** The providers with a key, in the default order. Gate 6 may change that order. */
     val configuredProviders: List<ApiKey>
 
+    /** Every site, keyed or not, in the default order. Reading it costs nothing and sends nothing. */
+    val sites: List<SubtitleSite>
+
     /**
-     * All [configuredProviders] at once. A provider that fails is left out, and a failure comes back
-     * only when every provider failed. Search spends no OpenSubtitles quota.
+     * The sites that need no key, and those in [configuredProviders], at once. A site that cannot hold the query,
+     * such as a film on an episodes-only site, is not asked. A provider that fails is left out, and a failure comes
+     * back only when every provider failed. [NetResult.Reason.NO_KEY] means no site could be asked at all. Search
+     * spends no OpenSubtitles quota.
      */
     suspend fun search(query: SubtitleQuery): NetResult<List<SubtitleHit>>
 

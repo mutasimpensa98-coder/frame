@@ -24,23 +24,28 @@ private const val MAX_ID_IN_NAME = 80
 private val NOT_A_NAME_CHAR = Regex("[^A-Za-z0-9]+")
 private val RELEASE_WORD = Regex("[a-z0-9]+")
 
+/** The default order. The keyless site comes last, because the keyed ones hold far more Arabic. */
+internal fun subtitleProviders(http: Http, config: NetConfig): List<SubtitleProvider> = listOf(
+    OpenSubtitlesApi(http, config),
+    SubDlApi(http, config),
+    SubSourceApi(http, config),
+    GestdownApi(http),
+)
+
 internal class FrameSubtitleClient(
     private val config: NetConfig,
     http: Http,
     private val scratchDir: File,
     private val deadlineMs: Long = PROVIDER_DEADLINE_MS,
+    private val providers: List<SubtitleProvider> = subtitleProviders(http, config),
 ) : SubtitleClient {
-    private val providers: List<SubtitleProvider> = listOf(
-        OpenSubtitlesApi(http, config),
-        SubDlApi(http, config),
-        SubSourceApi(http, config),
-    )
-
     override val configuredProviders: List<ApiKey>
-        get() = providers.map(SubtitleProvider::keyKind).filter { config.keyOf(it) != null }
+        get() = providers.mapNotNull(SubtitleProvider::keyKind).filter { config.keyOf(it) != null }
+
+    override val sites: List<SubtitleSite> = providers.map { SubtitleSite(it.name, it.keyKind, it.episodesOnly) }
 
     override suspend fun search(query: SubtitleQuery): NetResult<List<SubtitleHit>> = online {
-        val active = providers.filter { config.keyOf(it.keyKind) != null }
+        val active = providers.filter { config.ready(it) && it.serves(query) }
         if (active.isEmpty()) return@online Failure(Reason.NO_KEY)
         val languages = SubtitleRanking.languages(query.languages)
         val results = coroutineScope {
@@ -64,7 +69,7 @@ internal class FrameSubtitleClient(
         online {
             val provider = providers.firstOrNull { it.name == hit.provider }
                 ?: return@online Failure(Reason.BAD_RESPONSE, "unknown provider")
-            if (config.keyOf(provider.keyKind) == null) return@online Failure(Reason.NO_KEY)
+            if (!config.ready(provider)) return@online Failure(Reason.NO_KEY)
             val stem = stemOf(hit, season, episode)
             withContext(Dispatchers.IO) { SubtitleArchive.saved(targetDir, stem) }?.let { return@online Ok(it) }
 

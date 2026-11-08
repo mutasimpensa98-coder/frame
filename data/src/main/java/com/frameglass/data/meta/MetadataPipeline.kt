@@ -8,6 +8,7 @@ import androidx.room.withTransaction
 import com.frameglass.data.api.MatchChoice
 import com.frameglass.data.api.MatchState
 import com.frameglass.data.api.RatingSource
+import com.frameglass.data.api.RefreshSkip
 import com.frameglass.data.api.SegmentKind
 import com.frameglass.data.api.TitleKind
 import com.frameglass.data.db.AnimeMap
@@ -65,6 +66,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 @Serializable
 internal data class CreditJson(val job: String, val name: String)
@@ -138,23 +140,59 @@ internal class MetadataPipeline(
     @Volatile
     private var imdbPausedUntil: Long? = null
 
+    private val updated = AtomicInteger()
+
+    /** Matched titles that got fresh data from a service since the process started, whichever run did it. */
+    val updatedTitles: Int get() = updated.get()
+
     /**
      * Returns how long to wait before the next run, or null when nothing can run later. No key or Online off
      * parks the rows until the owner changes that. No network returns 0, for a job that waits for the network.
      */
-    suspend fun drain(budgetMs: Long = BUDGET_MS): Long? = lock.withLock {
+    suspend fun drain(budgetMs: Long = BUDGET_MS): Long? = lock.withLock { drainLocked(deadlineAfter(budgetMs)) }
+
+    /**
+     * A swipe's share of the queue. Waiting for a run already in progress counts against [budgetMs], because that run
+     * is draining the same rows and a swipe must end on time.
+     */
+    suspend fun drainWithin(budgetMs: Long) {
+        val deadline = deadlineAfter(budgetMs)
+        if (!lock.lockWithin(budgetMs)) return
+        try {
+            drainLocked(deadline)
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    private fun deadlineAfter(budgetMs: Long): Long = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(budgetMs)
+
+    private suspend fun drainLocked(deadline: Long): Long? {
         config.awaitLoaded()
-        if (!config.tmdbUsable && !config.omdbUsable) return@withLock null
+        if (!config.tmdbUsable && !config.omdbUsable) return null
         resumeImdbIfDue()
-        val deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(budgetMs)
         while (System.nanoTime() < deadline) {
             currentCoroutineContext().ensureActive()
-            if (!network.isOnline()) return@withLock 0
+            if (!network.isOnline()) return 0
             val row = meta.nextDue(clock.now()) ?: break
             if (process(row)) break
         }
-        meta.earliestRetry()?.let { (it - clock.now()).coerceAtLeast(MIN_RERUN_MS) }
+        return meta.earliestRetry()?.let { (it - clock.now()).coerceAtLeast(MIN_RERUN_MS) }
     }
+
+    /** Why no details could be fetched now, or null when they can. */
+    suspend fun blocker(): RefreshSkip? {
+        config.awaitLoaded()
+        return when {
+            !config.onlineEnabled -> RefreshSkip.ONLINE_OFF
+            !config.tmdbUsable && !config.omdbUsable -> RefreshSkip.NO_SERVICE
+            !network.isOnline() -> RefreshSkip.NO_NETWORK
+            else -> null
+        }
+    }
+
+    /** Rows due now, including matches still waiting for a file's duration. */
+    suspend fun titlesDue(): Int = meta.dueCount(clock.now())
 
     /** A swipe to refresh: titles fetched a while ago come again, and titles with no match search again. */
     suspend fun queueRefresh() {
@@ -233,12 +271,14 @@ internal class MetadataPipeline(
             meta.upsertQueue(row.copy(state = LookupState.RETRY, retryAt = pausedUntil()))
             return false
         }
+        var local = false
         val failure = when (route) {
             MetaRoute.TMDB_FETCH -> fetch(title)
             MetaRoute.TMDB_EPISODES -> episodes(title)
             MetaRoute.TMDB_MATCH, MetaRoute.OMDB_MATCH -> when {
                 staysLocal(title) -> {
                     titles.setMatchState(title.id, MatchState.UNMATCHED)
+                    local = true
                     null
                 }
                 route == MetaRoute.TMDB_MATCH -> match(title)
@@ -252,6 +292,9 @@ internal class MetadataPipeline(
         }
         if (failure == null) {
             meta.deleteQueue(row.titleId)
+            // A match that found nothing, or a merge whose survivor queues again, is not an update yet.
+            val fresh = !local && route != MetaRoute.DROP && titles.title(row.titleId)?.isMatched == true
+            if (fresh) updated.incrementAndGet()
             return false
         }
         return onFailure(row, failure)
@@ -987,3 +1030,5 @@ internal class CacheSweeper(
         if (title.tmdbId != null) queueRefresh(title.id, clock.now())
     }
 }
+
+private val Title.isMatched: Boolean get() = matchState == MatchState.AUTO || matchState == MatchState.MANUAL

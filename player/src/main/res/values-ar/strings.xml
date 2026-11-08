@@ -117,6 +117,12 @@
     <string name="player_online_limit">انتهى الحد المتاح في هذا الموقع حاليًا. جرّب نتيجة أخرى أو عُد لاحقًا.</string>
     <string name="player_online_missing">هذه الحزمة لا تضم هذه الحلقة. جرّب نتيجة أخرى.</string>
     <string name="player_online_bad">تعذّرت قراءة هذه الترجمة. جرّب نتيجة أخرى.</string>
+    <string name="player_online_private">غير متاح لفيديوهات المجلد الخاص</string>
+    <string name="player_online_films_key">المواقع التي لا تحتاج مفتاحًا فيها مسلسلات فقط. أضف مفتاحًا مجانيًا من الإعدادات لتظهر ترجمات الأفلام.</string>
+    <string name="player_online_searched">بحثنا في %1$s.</string>
+    <string name="player_online_series_only">%1$s (للمسلسلات فقط)</string>
+    <string name="player_online_more_sites">مفتاح مجاني من الإعدادات يضيف %1$s.</string>
+    <string name="player_online_open_keys">فتح مفاتيح الترجمة</string>
 
     <!-- Audio -->
     <string name="player_audio_delay">تأخير الصوت</string>

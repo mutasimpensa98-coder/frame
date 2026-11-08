@@ -186,8 +186,8 @@ internal class CatchUp(
         }
     }
 
-    suspend fun scanNow() {
-        scanner.scan()
+    suspend fun scanNow(tally: ScanTally? = null) {
+        scanner.scan(tally)
         settings.setMediaSignal(signal.read())
         framesLane.kick()
         metadataLane.kick()

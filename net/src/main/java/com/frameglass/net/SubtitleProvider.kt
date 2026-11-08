@@ -16,7 +16,15 @@ internal const val MAX_PAYLOAD_BYTES = 50L * 1024 * 1024
 
 internal interface SubtitleProvider {
     val name: String
-    val keyKind: ApiKey
+
+    /** Null for a site that needs no key. */
+    val keyKind: ApiKey?
+
+    /** A site that holds TV episodes and nothing else. */
+    val episodesOnly: Boolean get() = false
+
+    /** False when this site cannot hold what [query] asks for, so it is not asked at all. */
+    fun serves(query: SubtitleQuery): Boolean = true
 
     /** [languages] is never empty. */
     suspend fun search(query: SubtitleQuery, languages: List<String>): NetResult<List<SubtitleHit>>
@@ -26,6 +34,9 @@ internal interface SubtitleProvider {
 }
 
 internal fun NetConfig.keyOf(kind: ApiKey): String? = key(kind)?.trim()?.takeIf(String::isNotEmpty)
+
+/** A site with no key is always ready. Online features are checked elsewhere, for every site at once. */
+internal fun NetConfig.ready(provider: SubtitleProvider): Boolean = provider.keyKind?.let { keyOf(it) != null } ?: true
 
 internal val SubtitleQuery.isEpisodic: Boolean get() = season != null || episode != null
 

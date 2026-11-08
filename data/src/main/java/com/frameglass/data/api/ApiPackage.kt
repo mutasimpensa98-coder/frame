@@ -130,7 +130,7 @@ data class SubtitleResult(
 )
 
 interface OnlineSubtitles {
-    /** True when at least one subtitle key is set and online features are on. */
+    /** True while online features are on. A site that needs no key searches episodes, so no key is required. */
     val available: Flow<Boolean>
     suspend fun search(item: PlaybackItem): Result<List<SubtitleResult>>
     /** Saves under app storage for this file and returns it ready to load. */

@@ -1,7 +1,11 @@
 package com.frameglass.data.logic
 
+import com.frameglass.data.api.ApiKeyKind
 import com.frameglass.data.api.AppSettings
+import com.frameglass.data.api.SubtitleSiteInfo
+import com.frameglass.data.api.SubtitleSites
 import com.frameglass.net.SubtitleQuery
+import com.frameglass.net.SubtitleSite
 
 /** What is known about the file on screen. Nothing here leaves the phone until [SubtitleQueries.build] lets it. */
 internal data class SubtitleFacts(
@@ -34,5 +38,14 @@ internal object SubtitleQueries {
             fileSize = facts.fileSize.takeIf { hash != null },
             releaseName = facts.releaseName.takeIf { settings.sendReleaseName },
         )
+    }
+}
+
+internal object SubtitleSiteList {
+    /** [sites] in their default order. A site that needs no key is always active. */
+    fun of(sites: List<SubtitleSite>, savedKeys: Set<ApiKeyKind>): SubtitleSites {
+        val infos = sites.map { SubtitleSiteInfo(it.name, it.key?.let { key -> ApiKeyKind.valueOf(key.name) }, it.episodesOnly) }
+        val (active, locked) = infos.partition { it.key == null || it.key in savedKeys }
+        return SubtitleSites(active = active, withFreeKey = locked)
     }
 }

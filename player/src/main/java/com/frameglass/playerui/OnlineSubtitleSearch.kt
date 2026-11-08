@@ -1,8 +1,11 @@
 package com.frameglass.playerui
 
 import androidx.annotation.StringRes
+import com.frameglass.data.api.PlaybackItem
 import com.frameglass.data.api.SubtitleFailure
 import com.frameglass.data.api.SubtitleResult
+import com.frameglass.data.api.SubtitleSiteInfo
+import com.frameglass.data.api.SubtitleSites
 import com.frameglass.net.NetResult
 
 /** F-S9 as the sheet shows it. Kept per item, so coming back to the sheet costs no second search. */
@@ -45,3 +48,23 @@ internal object OnlineOrder {
 
 /** Search found nothing, which is an answer and not a failure. */
 internal fun Throwable.meansNothingFound(): Boolean = (this as? SubtitleFailure)?.reason == NetResult.Reason.NOT_FOUND
+
+/** The quiet line under the results: where this search looked, and what a free key would add. */
+internal data class SitesNote(
+    val searched: List<SubtitleSiteInfo>,
+    val withFreeKey: List<SubtitleSiteInfo>,
+    /** A film skipped an active site because that site has series only. */
+    val skippedSeriesOnly: Boolean = false,
+) {
+    /** NO_KEY then means "films need a key", which says more than the generic words. */
+    val filmsNeedKey: Boolean get() = searched.isEmpty() && skippedSeriesOnly
+
+    companion object {
+        /** A series-only site is not asked for a film, so naming it as searched would be wrong. */
+        fun of(sites: SubtitleSites, item: PlaybackItem?): SitesNote {
+            val episode = item?.episode != null
+            val (searched, skipped) = sites.active.partition { episode || !it.seriesOnly }
+            return SitesNote(searched, sites.withFreeKey, skipped.isNotEmpty())
+        }
+    }
+}

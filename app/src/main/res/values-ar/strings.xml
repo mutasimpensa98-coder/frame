@@ -270,7 +270,20 @@
     <string name="app_fact_folder">المجلد</string>
     <string name="app_fact_modified">آخر تعديل</string>
 
-    <string name="app_refresh_none">تم تحديث المكتبة</string>
+    <string name="app_refresh_pull">اسحب للتحديث</string>
+    <string name="app_refresh_release">أفلِت للتحديث</string>
+    <string name="app_refresh_starting">جارٍ التحديث…</string>
+    <string name="app_refresh_scanning_start">جارٍ البحث عن فيديوهات جديدة…</string>
+    <string name="app_refresh_details_start">جارٍ تحديث التفاصيل…</string>
+    <string name="app_refresh_details">جارٍ تحديث التفاصيل… %1$d من %2$d</string>
+    <string name="app_refresh_both">%1$s، و%2$s</string>
+    <string name="app_refresh_no_new">لا توجد فيديوهات جديدة</string>
+    <string name="app_refresh_up_to_date">كل شيء محدَّث</string>
+    <string name="app_refresh_skip_offline">لا تُجلب التفاصيل ما دامت الميزات عبر الإنترنت متوقفة</string>
+    <string name="app_refresh_skip_network">لا يوجد اتصال، وستُحدَّث التفاصيل لاحقًا</string>
+    <string name="app_refresh_skip_service">ستُحدَّث التفاصيل لاحقًا</string>
+    <string name="app_online_subtitles_keyless_title">المسلسلات لا تحتاج مفتاحًا</string>
+    <string name="app_online_subtitles_keyless">يُبحث عن ترجمات حلقات المسلسلات دون مفتاح، ويضيف المفتاح المجاني الأفلام ومواقع أخرى.</string>
 
     <string name="app_media_used_free">المستخدم %1$s، والمتاح %2$s</string>
     <string name="app_media_legend_videos">الفيديوهات</string>
@@ -425,6 +438,30 @@
         <item quantity="few">جارٍ مطابقة %d عناوين</item>
         <item quantity="many">جارٍ مطابقة %d عنوانًا</item>
         <item quantity="other">جارٍ مطابقة %d عنوان</item>
+    </plurals>
+    <plurals name="app_refresh_scanning">
+        <item quantity="zero">جارٍ البحث عن فيديوهات جديدة…</item>
+        <item quantity="one">جارٍ البحث عن فيديوهات جديدة… ملف واحد</item>
+        <item quantity="two">جارٍ البحث عن فيديوهات جديدة… ملفان</item>
+        <item quantity="few">جارٍ البحث عن فيديوهات جديدة… %d ملفات</item>
+        <item quantity="many">جارٍ البحث عن فيديوهات جديدة… %d ملفًا</item>
+        <item quantity="other">جارٍ البحث عن فيديوهات جديدة… %d ملف</item>
+    </plurals>
+    <plurals name="app_refresh_updated">
+        <item quantity="zero">لم يُحدَّث أي عنوان</item>
+        <item quantity="one">تم تحديث عنوان واحد</item>
+        <item quantity="two">تم تحديث عنوانين</item>
+        <item quantity="few">تم تحديث %d عناوين</item>
+        <item quantity="many">تم تحديث %d عنوانًا</item>
+        <item quantity="other">تم تحديث %d عنوان</item>
+    </plurals>
+    <plurals name="app_refresh_left">
+        <item quantity="zero">لا عناوين أخرى قيد التحديث</item>
+        <item quantity="one">يستمر تحديث عنوان آخر في الخلفية</item>
+        <item quantity="two">يستمر تحديث عنوانين آخرين في الخلفية</item>
+        <item quantity="few">يستمر تحديث %d عناوين أخرى في الخلفية</item>
+        <item quantity="many">يستمر تحديث %d عنوانًا آخر في الخلفية</item>
+        <item quantity="other">يستمر تحديث %d عنوان آخر في الخلفية</item>
     </plurals>
     <plurals name="app_refresh_new">
         <item quantity="zero">لا توجد فيديوهات جديدة</item>

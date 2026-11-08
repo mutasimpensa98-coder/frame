@@ -9,29 +9,22 @@ import com.frameglass.data.api.LibrarySort
 import com.frameglass.data.api.RootFolderInfo
 import com.frameglass.data.api.ScanState
 import com.frameglass.data.api.TitleCard
+import com.frameglass.data.api.refreshWithProgress
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 
 private const val KeepAliveMillis = 5_000L
-
-// Longer than the 400 ms throttle of SnapshotSource, so the count after a scan reads the new rows.
-private const val SnapshotSettleMillis = 900L
-private const val NewCountMillis = 3_000L
-private const val CountWaitMillis = 2_000L
 
 /** What the Library tab shows, kept for the session. */
 internal data class LibraryQuery(
@@ -93,32 +86,6 @@ internal class UiModel(
     val deletes = DeleteFlow(services, scope)
     val vault = VaultFlow(services, scope)
 
-    private val refreshingNow = MutableStateFlow(false)
-    private val newCount = MutableStateFlow<Int?>(null)
-
-    /** True while a swipe to refresh runs. */
-    val refreshing: StateFlow<Boolean> = refreshingNow.asStateFlow()
-
-    /** How many videos the last swipe found, for a few seconds after it ends. */
-    val newVideos: StateFlow<Int?> = newCount.asStateFlow()
-
-    // Bounded, so a library view that never loads cannot leave the refresh spinning.
-    private suspend fun videoCount(): Int =
-        withTimeoutOrNull(CountWaitMillis) { services.media.summary.first().videoCount } ?: 0
-
-    /** A general refresh. It returns nothing, so the new-video count is the library before and after it. */
-    fun refresh() {
-        if (!refreshingNow.compareAndSet(expect = false, update = true)) return
-        scope.launch {
-            newCount.value = null
-            val before = videoCount()
-            runCatching { library.refreshAll() }
-            delay(SnapshotSettleMillis)
-            val found = (videoCount() - before).coerceAtLeast(0)
-            refreshingNow.value = false
-            newCount.value = found
-            delay(NewCountMillis)
-            newCount.value = null
-        }
-    }
+    /** The swipe to refresh of Home and Library, with live progress and then its summary. */
+    val refreshes = RefreshFlow(scope, start = { library.refreshWithProgress() })
 }

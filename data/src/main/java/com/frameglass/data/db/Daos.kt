@@ -390,6 +390,9 @@ interface MetaDao {
     @Query("SELECT COUNT(*) FROM LookupQueue")
     fun pendingCount(): Flow<Int>
 
+    @Query("SELECT COUNT(*) FROM LookupQueue WHERE retryAt <= :now")
+    suspend fun dueCount(now: Long): Int
+
     /** A match waits for the file's duration, because a short video with a plain name must not reach TMDB. */
     @Query(
         "SELECT q.* FROM LookupQueue q WHERE q.retryAt <= :now AND NOT (q.job = 'MATCH' AND EXISTS (" +

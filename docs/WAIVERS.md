@@ -50,3 +50,12 @@ The owner asked for an on/off switch for TMDB and for IMDb on the keys page, eac
 - F-M11 is TMDB's rule. OMDb data is refreshed on the same clock but never purged by it.
 
 Turning TMDB back on looks up each OMDb title by its IMDb id, and keeps progress, favourites, manual covers and manual matches.
+
+## 2026-11-08: Subtitle search with no key
+
+After trying 1.0.104 the owner said there is no online subtitle search. They have no subtitle key, and the search row hid when no key was saved. This changes the brief as follows:
+
+- Section 4.9 "Do not use keyless aggregators" no longer holds for Gestdown, a public API in front of Addic7ed that needs no key. `api.gestdown.info` joins the allow-list. Podnapisi was the first choice, but its hosts had no DNS records on 2026-11-08. The Wyzie risk stands: if Gestdown starts asking for a key or goes away, keyless search for series stops, and the keyed sites still work.
+- Gestdown holds TV episodes only. Films still need a key. Arabic there was thin in the probes of 2026-11-08.
+- R2 still holds: only the show name, season, episode and language go out, never the release name or the hash. Clips and private-folder videos never reach any site, and Online features off still means no call.
+- F-S9: the "Search online" row always shows in the subtitle sheet, dimmed with a reason when it cannot search.

@@ -1,11 +1,11 @@
 # Status
 
-Updated 2026-11-08, after the TMDB and IMDb switches were built, reviewed and their six review faults fixed. R9 applies.
+Updated 2026-11-08, after the owner's three requests on 1.0.104 were built, reviewed and the three review faults fixed. R9 applies.
 
 ## Read this first
 
-- **The TMDB and IMDb switches are built and unit tested, and nobody has seen them on a phone.** They are in the working tree only, not committed. They hold schema 4, OMDb as a second metadata source while TMDB is off, and the whole poster in Hero and Details. The section "This round: TMDB and IMDb switches" lists each item.
-- **The owner-requests package is committed and pushed as `37da6d3`, and nobody has seen it on a phone.** No release holds it: `version.properties` is still 103, and the phone runs 1.0.103. It holds schema 3, two one-time passes over the owner's rows, Cinema mode, automatic subtitle sync, the hero rules, the refetch on a language change and the Details top bar. The migration and the passes have run only on the JVM and on desktop SQLite. The section "Previous round" below lists each item.
+- **The phone runs 1.0.104,** which holds the owner-requests package and the TMDB and IMDb switches. The owner tried it and asked for three things. No phone check of 1.0.104 is recorded here, and its schema steps 2 to 3 and 3 to 4 ran on Android only in that install, unobserved.
+- **This round's answer to those three requests is built and unit tested, and nobody has seen it on a phone.** It is in the working tree only, not committed. Coloured Settings icons, a swipe to refresh that shows live progress, and subtitle search with no key for series through Gestdown. No schema change. The section "This round: the owner's three requests" lists each item.
 - **The improvement package has run on the phone,** and the update kept the library, progress, settings and keys. `NEXT.md` section 1 lists what was seen and what was not. Screenshots of those checks stay in `D:\FrameGlass\shots`, because some show the owner's real videos. The tables below still describe filed evidence only.
 - **The last filed phone evidence is the first app build,** 18:19 to 18:22. Later phone checks are recorded in `NEXT.md` section 1 and in `phase-0-results.md`.
 - **Delete has not run on the phone, and the private folder ran only on the test copy.** Test delete with a clip the owner does not need.
@@ -31,18 +31,18 @@ Phase 0 matrix, on the round 2 `qa` build (`evidence/phase-0/matrix.csv`): 50 of
 
 ## Build and tests
 
-Run on this PC on 2026-11-08, after the six review faults of the switches were fixed, with `--rerun-tasks --no-build-cache`: 815 tasks, all executed, none from a cache. Log: `D:\FrameGlass\logs\build-integrate2-full.log`.
+Run on this PC on 2026-11-08, after the three review faults of this round were fixed, with `--rerun-tasks --no-build-cache`: 799 tasks, all executed, none from a cache. Log: `D:\FrameGlass\logs\build-integrate3-full.log`. `fg.ps1 build` and the APK rows below it were not run again in this round.
 
 | Check | Result |
 |---|---|
 | `assembleQa`, `assembleRelease` | Pass, R8 included. |
-| Unit tests | 1,122 run, 1,121 passed, 0 failed, 1 skipped: parser 161, data 453, net 329, engine 67, player 37, app 45, glass 30. |
+| Unit tests | 1,169 run, 1,168 passed, 0 failed, 1 skipped: parser 161, data 467, net 347 (1 skipped), engine 67, player 41, app 53, glass 33. |
 | Skipped test | `AnimeIndexTest.theRealFileParses` needs a local copy of the mappings file. |
 | No tests at all | `:qa`, `:third_party:ass-media`. |
 | Android lint | `lintRelease` on `:app`, `:player`, `:data`, `:glass`, `:engine`, `:net`, `:qa`: 0 errors, 17 warnings (app 8, qa 5, player 4), the same 17 as before, `MissingTranslation` 0. `:third_party:ass-media` is not in this set: its own lint stops on 7 `UnsafeOptInUsageError` errors in the upstream code, which this round did not touch. |
-| `tools/check_update.py` | Pass: 3 steps (1 to 2, 2 to 3, 3 to 4), 25 tables, 21 saved rows kept. This is desktop SQLite, not Android. |
-| `.\fg.ps1 build` | Pass: signature, 16 KB alignment, size, `lib/` listing. Local only: nothing was installed or published. |
-| Release APK | 23,179,780 bytes (22.1 MiB), budget 60 MB, only `lib/arm64-v8a`. Not installed and not saved as a release. |
+| `tools/check_update.py` | Pass: 3 steps (1 to 2, 2 to 3, 3 to 4), 25 tables, 21 saved rows kept. This is desktop SQLite, not Android. Log: `check-update-integrate3.log`. |
+| `.\fg.ps1 build` | Last run in the switches round. Pass: signature, 16 KB alignment, size, `lib/` listing. Local only: nothing was installed or published. |
+| Release APK, switches round | 23,179,780 bytes (22.1 MiB), budget 60 MB, only `lib/arm64-v8a`. Not installed and not saved as a release. |
 | `qa` APK | 23,212,584 bytes (22.1 MiB), same certificate. |
 | Certificate SHA-256 | `6517fbf832436c7cb106855c03d8b8b1d94816517b2f4328279fb9a051354d67` |
 | Permissions in the release APK | The list in section 4.10 plus `USE_BIOMETRIC`. `USE_FINGERPRINT` is removed. No manifest changed in this round, and the list was not read again. |
@@ -207,7 +207,7 @@ Glass over video is off: `VideoBlurHook.ENABLED` is false until step 0.7 is meas
 | F-S6 | Series memory | UNIT TESTED | Not seen | `TrackPickerTest`. |
 | F-S7 | Sidecars | UNIT TESTED | Not seen | `SidecarMatcherTest`. |
 | F-S8 | Night audio | UNIT TESTED | Not seen | `NightCompressorTest`. Owner listening check not done. |
-| F-S9 | Online subtitle search | UNIT TESTED | Not seen | `OnlineSubtitleQueryTest`, `OnlineSubtitleSearchTest`. Now reachable from the subtitle sheet. No real provider has been called. |
+| F-S9 | Online subtitle search | UNIT TESTED | Not seen | `OnlineSubtitleQueryTest`, `OnlineSubtitleSearchTest`, `GestdownApiTest`, `SubtitleSiteListTest`, `SitesNoteTest`. The row always shows. Series search with no key through Gestdown (`WAIVERS.md`, 2026-11-08). Gestdown replies are fixtures; no download has run live. |
 | F-S10 | Resume logic | UNIT TESTED | Not seen | `ResumeLogicTest`. |
 
 ### Professional tools
@@ -222,9 +222,9 @@ Glass over video is off: `VideoBlurHook.ENABLED` is false until step 0.7 is meas
 | F-T6 | Sleep timer | BUILT | Not seen | |
 | F-T7 | Anime4K | NOT BUILT (allowed) | Not seen | Needs mpv, Phase 8. |
 
-## Previous round: the owner-requests package
+## Earlier round: the owner-requests package
 
-Built after 1.0.103 and committed as `37da6d3`. Not released, not installed, and not seen on a phone, in either theme or in Arabic.
+Built after 1.0.103 and committed as `37da6d3`. Shipped in 1.0.104. No phone check of it is recorded, in either theme or in Arabic.
 
 | Request | Status | Notes |
 |---|---|---|
@@ -250,9 +250,29 @@ Four faults from the review of this package were fixed, each with a JVM test of 
 
 `Api.kt` gained `AppSettings.cinemaMode`, `HomeFeed.cinemaEmpty`, `HomeFeed.MAX_AUTOMATIC_ROWS` and `HeroItem.continueItem`, all with defaults beside the fixed contract.
 
-## This round: TMDB and IMDb switches
+## This round: the owner's three requests
 
-From `OWNER-REQUESTS.md`, now removed there. Not committed, not installed, and not seen on a phone, in either theme or in Arabic. No real TMDB or OMDb call has been made: the tests use a fake server.
+The owner's words after trying 1.0.104, in short: the Settings icons are not coloured; make the refresh more interactive, not just a moving icon; there is no online subtitle search. They have no subtitle key. Not committed, not installed, and not seen on a phone, in either theme or in Arabic.
+
+| Request | Status | Notes |
+|---|---|---|
+| Coloured Settings icons | UNIT TESTED | `IconTileTest`. Each row of the root Settings page has its own colour tile with a white glyph, from `glass/.../IconTiles.kt`. White reaches 4.5:1 on every tile. Sub-pages have no tiles. |
+| A swipe to refresh that is more than a moving icon | UNIT TESTED | `RefreshFlowTest` and the `:data` swipe tests. On Home and Library a glass pill follows the finger, turns "Pull to refresh" into "Release to refresh" with a haptic tick, and the list stretches slightly. Then it shows the stages with counts (files checked, details done of total), a thin line, and the result: new videos, titles updated, titles left, or why details were skipped. Reduced motion drops the stretch and the moving line. The wait for details stays under 8 s, then the rest carries on. `UiModel.newVideos` and its before-and-after count are gone. |
+| Subtitle search with no key | UNIT TESTED | `GestdownApiTest`, `SubtitleSiteListTest`, `SitesNoteTest`. Gestdown (`api.gestdown.info`), a public API in front of Addic7ed, needs no key and holds TV episodes only. Only the show name, season, episode and language go out. Clips return nothing with no request. The "Search online" row always shows: dimmed with a reason when Online features are off or the video is in the private folder. A film with only keyless sites gets its own message, and a quiet line under the results names the sites searched and those a free key adds. The Online page says series need no key. Podnapisi had no DNS records on 2026-11-08. |
+
+Three faults from the review of this round were fixed:
+
+| Fault | Fix |
+|---|---|
+| `MetadataPipeline.drainWithin` could keep the lock for good: if the caller was cancelled after `lock()` resumed but before `withTimeoutOrNull` returned, the exception came before the `try`, so every later drain waited forever and no details were fetched until the process restarted. | `Mutex.lockWithin` gives the lock back on that path. `LockWithinTest` cancels the caller at exactly that point; it failed with the old code and passes now. |
+| For the 3.5 s the result stays up, a new pull gave no tick, and the pill kept the old result instead of following the finger, though letting go still refreshed. | A pull counts whenever no refresh runs and the box has come to rest after the last one. The pill then shows the pull row over the result, and the tick and the stretch work as when idle. No UI test. |
+| Gestdown downloads sent `Accept: application/json` to an endpoint that returns plain SRT, so a server that negotiates could refuse every download. | Downloads send `Accept: */*`; search still asks for JSON. `GestdownApiTest` checks the header. No download has been tried live. |
+
+Not done: nothing in `:app` implements `PlayerHost.subtitleKeysIntent()`, so the sites line cannot open the keys page and is text only. `NEXT.md` section 7, step 2.
+
+## Earlier round: TMDB and IMDb switches
+
+From `OWNER-REQUESTS.md`, now removed there. Shipped in 1.0.104. No phone check of it is recorded, in either theme or in Arabic. No real TMDB or OMDb call has been made: the tests use a fake server.
 
 | Item | Status | Notes |
 |---|---|---|
@@ -292,7 +312,7 @@ From `WAIVERS.md`.
 | Private folder | UNIT TESTED | `VaultFilesTest`, `VaultAuthTest`, `VaultRulesTest`, `VaultFlowTest`. No move, biometric prompt, FLAG_SECURE or recovery has run. |
 | Themes and colours | UNIT TESTED | See F-U12. |
 | Favourites, hide title, exclude folder | UNIT TESTED | `FavoritesFilterTest`, `HiddenTitlesTest`, `ExclusionsTest`. The long-press menu has no test, and `:glass` cards have no long press, so `CardMenu` watches from outside. |
-| Swipe to refresh | BUILT | The new-video count is approximate. |
+| Swipe to refresh | UNIT TESTED | `RefreshFlowTest`, the swipe tests in `data/src/test/.../scan/`, `LockWithinTest`. Live stages and an exact summary replace the before-and-after count. The pill has no UI test. |
 | Private items in the player | BUILT | Code review only: FLAG_SECURE, recents, blank notification metadata, no screenshots, background audio or online search. |
 
 ## Gates

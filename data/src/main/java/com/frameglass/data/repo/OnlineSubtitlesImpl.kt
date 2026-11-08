@@ -1,16 +1,22 @@
 package com.frameglass.data.repo
 
 import com.frameglass.data.api.ApiKeyKind
+import com.frameglass.data.api.MatchState
 import com.frameglass.data.api.OnlineSubtitles
 import com.frameglass.data.api.PlaybackItem
 import com.frameglass.data.api.SidecarSubtitle
 import com.frameglass.data.api.SubtitleFailure
 import com.frameglass.data.api.SubtitleResult
+import com.frameglass.data.api.SubtitleSiteSource
+import com.frameglass.data.api.SubtitleSites
 import com.frameglass.data.db.FrameDb
+import com.frameglass.data.db.NameKinds
+import com.frameglass.data.logic.ClipRules
 import com.frameglass.data.logic.FileIdentity
 import com.frameglass.data.logic.ParsePaths
 import com.frameglass.data.logic.SubtitleFacts
 import com.frameglass.data.logic.SubtitleQueries
+import com.frameglass.data.logic.SubtitleSiteList
 import com.frameglass.net.NetResult
 import com.frameglass.net.SubtitleClient
 import com.frameglass.net.SubtitleHit
@@ -19,6 +25,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -29,17 +37,26 @@ internal class OnlineSubtitlesImpl(
     private val config: NetConfigImpl,
     private val client: Lazy<SubtitleClient>,
     private val labels: SidecarLabels,
-) : OnlineSubtitles {
-    override val available: Flow<Boolean> = combine(
-        settings.settings,
+) : OnlineSubtitles, SubtitleSiteSource {
+    override val available: Flow<Boolean> = settings.settings.map { it.onlineFeatures }.distinctUntilChanged()
+
+    override val sites: Flow<SubtitleSites> = combine(
         settings.hasKey(ApiKeyKind.OPENSUBTITLES),
         settings.hasKey(ApiKeyKind.SUBDL),
         settings.hasKey(ApiKeyKind.SUBSOURCE),
-    ) { s, openSubtitles, subDl, subSource -> s.onlineFeatures && (openSubtitles || subDl || subSource) }
-        .distinctUntilChanged()
+    ) { openSubtitles, subDl, subSource ->
+        val saved = buildSet {
+            if (openSubtitles) add(ApiKeyKind.OPENSUBTITLES)
+            if (subDl) add(ApiKeyKind.SUBDL)
+            if (subSource) add(ApiKeyKind.SUBSOURCE)
+        }
+        SubtitleSiteList.of(client.value.sites, saved)
+    }.distinctUntilChanged().flowOn(Dispatchers.Default)
 
     override suspend fun search(item: PlaybackItem): Result<List<SubtitleResult>> = withContext(Dispatchers.IO) {
         if (item.isPrivate) return@withContext Result.failure(PrivateItemException())
+        // A site that needs no key would otherwise get a home video's name on every tap.
+        if (isClip(item)) return@withContext Result.success(emptyList())
         config.awaitLoaded()
         when (val found = client.value.search(queryFor(item))) {
             is NetResult.Failure -> Result.failure(SubtitleFailure(found.reason))
@@ -57,6 +74,21 @@ internal class OnlineSubtitlesImpl(
         format = hit.format,
         seasonPack = hit.seasonPack,
     )
+
+    /** The same test the library uses, so a clip that Fix match turned into a title searches like any other. */
+    private suspend fun isClip(item: PlaybackItem): Boolean {
+        val titleId = item.titleId ?: item.fileRowId?.let { db.scan().file(it)?.titleId } ?: return false
+        val title = db.titles().title(titleId) ?: return false
+        val files = db.scan().filesOfTitle(titleId)
+        val matched = title.matchState == MatchState.AUTO || title.matchState == MatchState.MANUAL
+        return ClipRules.isClip(
+            kind = title.kind,
+            matched = matched,
+            clipName = files.any { it.nameKind == NameKinds.CLIP },
+            durationMs = files.maxOfOrNull { it.durationMs } ?: 0,
+            plainNumber = files.all(ClipRules::plainNumber),
+        )
+    }
 
     /** The parser's title goes out, as for every lookup: the display name may be Arabic and the provider's English. */
     private suspend fun queryFor(item: PlaybackItem): SubtitleQuery {

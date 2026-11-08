@@ -174,10 +174,11 @@ class GuardTest {
     /** No login means no VIP host, and any host added for subtitles must be one the code really uses. */
     @Test
     fun noSubtitleHostIsListedBeyondTheConfirmedOnes() {
-        val subtitleHosts = ALLOWED_HOSTS.filter { "subtitles" in it || "subdl" in it || "subsource" in it }.toSet()
+        val subtitleHosts = ALLOWED_HOSTS
+            .filter { "subtitles" in it || "subdl" in it || "subsource" in it || "gestdown" in it }.toSet()
         val confirmed = setOf(
             "api.opensubtitles.com", "www.opensubtitles.com", "dl.opensubtitles.com",
-            "api.subdl.com", "dl.subdl.com", "api.subsource.net",
+            "api.subdl.com", "dl.subdl.com", "api.subsource.net", "api.gestdown.info",
         )
         assertEquals(confirmed, subtitleHosts)
     }

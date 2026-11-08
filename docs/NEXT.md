@@ -1,6 +1,6 @@
 # Next
 
-Updated 2026-11-08, after the TMDB and IMDb switches were built and the six faults of their review were fixed. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
+Updated 2026-11-08, after the owner's three requests on 1.0.104 were built (coloured Settings icons, a livelier swipe to refresh, subtitle search with no key) and the three faults of their review were fixed. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
 The history must stay fit to publish. `.gitignore` and `tools/hooks/pre-commit`, set through `core.hooksPath`, keep out what the waiver bans. A new clone needs `git config core.hooksPath tools/hooks`.
 
@@ -8,7 +8,9 @@ Testing stays small: essentials only, and long runs such as the soak only when t
 
 ## 1. State of the phone
 
-The phone runs 1.0.103. The owner-requests package of `STATUS.md` is committed and pushed as `37da6d3`, but no release holds it: `version.properties` is still 103. The TMDB and IMDb switches are in the working tree only: not committed, not installed and not seen on any phone. Shipping both together is step 1 of section 7.
+The phone runs 1.0.104, which holds the owner-requests package and the TMDB and IMDb switches (`361e7b6`, version commit `db09ff3`). The owner tried it and sent three requests: the Settings icons are not coloured, the swipe to refresh should be more than a moving icon, and there is no online subtitle search. No answers to items 20 to 43 of section 2 are recorded yet.
+
+The answer to those three requests is in the working tree only: not committed, not installed and not seen on any phone. `STATUS.md`, section "This round", lists it. Shipping it is step 1 of section 7.
 
 The release build is on the phone, updated in place from the first install, with the library, progress, settings and keys intact. `firstInstallTime` did not change.
 
@@ -20,8 +22,8 @@ Not seen yet:
 
 1. Fingerprint unlock. It needs the owner's finger.
 2. Delete to the phone's trash. The test clips were pushed by adb and have no MediaStore row, so the app called the delete permanent and it was cancelled. Try a real clip the owner does not need.
-3. Online subtitle search. It needs a subtitle key.
-4. The general swipe to refresh in 1.0.103. It scans, fetches art, text and ratings again for titles older than 10 minutes, retries titles with no match, and waits up to 8 s before the rest carries on in the background. The owner was using the phone, so it has not been seen.
+3. Online subtitle search. With no key, only series episodes can now be searched, through Gestdown. A film still needs a key.
+4. The general swipe to refresh, from 1.0.103 on, and its new pill from this round. It scans, fetches art, text and ratings again for titles older than 10 minutes, retries titles with no match, and waits up to 8 s before the rest carries on in the background. The owner was using the phone, so it has not been seen.
 5. The yellow IMDb badge. The general refresh should fetch ratings for titles matched before the OMDb key was added.
 
 The 2 demo folders on the phone are already empty. The owner still has to delete `Movies/FrameGlassTest` from My Files, and empty `D:\FrameGlass\_to-delete`. Test clips on the PC went there, so a matrix run first needs `tools/make_testmedia.py`, `python tools/matrix.py push` and `.\fg.ps1 qa`.
@@ -69,6 +71,19 @@ Send this to the owner as it stands, and record the answers in `docs/evidence/ph
 31. حط على نفس الفيلم ترجمة فيلم ثاني. هل قال إنه مش متأكد، وما غيّر التوقيت؟
 32. لو عندك ترجمة تمشي صح في الأول وتتأخر شوي شوي لين آخر الفيلم: هل صحّحها، وكتب إنه صحّح السرعة؟ سكّر الفيديو وافتحه: هل الترجمة الأصلية لسه في القائمة جنب النسخة المصحّحة؟
 33. التأخير اليدوي للترجمة صار يوصل لدقيقة قدّام أو ورا. هل يشتغل زي قبل؟
+
+طلباتك الثلاث على 1.0.104. جرّبها بعد النسخة الجاية، اللي تنزل فوق 1.0.104:
+
+44. افتح الإعدادات. هل كل سطر في الصفحة الأولى جنبه مربع ملوّن، وكل واحد بلون غير الثاني، والرمز أبيض وواضح فيه؟ جرّب الداكن والفاتح والعربي. (الصفحات اللي داخلها ما فيهاش مربعات ملوّنة، وهذا مقصود.)
+45. في الرئيسية أو المكتبة، اسحب الشاشة لتحت ببطء. هل ظهر فوق شريط زجاجي صغير ينزل مع صبعك ومكتوب فيه «اسحب للتحديث»؟ كمّل السحب: هل تبدّل لـ«أفلِت للتحديث» وحسّيت برجّة خفيفة في التلفون، والقائمة تمطّطت شوي؟
+46. أفلِت. هل الشريط ورّاك المراحل وهي تمشي، مثل عدد الملفات اللي تفحّصت وبعدها تحديث التفاصيل بالعدد، مع خط رفيع يتعبّى؟ وفي الآخر، هل كتب النتيجة: كم فيديو جديد وكم عنوان تحدّث، أو «كل شيء محدَّث»؟ كم ثانية تقريبًا أخذ؟
+47. والنتيجة لسه ظاهرة، اسحب مرة ثانية على طول. هل الشريط رجع يتبع صبعك ويقول «اسحب» ثم «أفلِت» مع الرجّة؟
+48. من إعدادات التلفون › تسهيل الاستخدام، شغّل تقليل الحركة، وارجع اسحب. هل القائمة ما عادت تتمطّط، والشريط لسه يورّي المراحل؟
+49. شغّل حلقة من مسلسل معروف، وافتح الترجمة. هل فيه سطر «البحث عبر الإنترنت» حتى بدون مفتاح ترجمة؟ اضغطه: هل جاب نتائج، وجنب كل نتيجة اسم الموقع؟ وتحت النتائج، هل فيه سطر صغير يقول وين بحث، وإن الموقع اللي بدون مفتاح للمسلسلات فقط؟ اكتب كم نتيجة عربية لقى، لأن العربي قليل في هذا الموقع.
+50. اختار نتيجة. هل نزلت الترجمة واشتغلت على الحلقة، والتوقيت صح أو اتزامن وحده؟
+51. شغّل فيلم، وابحث أونلاين بدون مفتاح. هل قال إن المواقع اللي بدون مفتاح فيها مسلسلات بس، وإن مفتاح مجاني من الإعدادات يجيب ترجمات الأفلام؟
+52. طفّي «الميزات المتصلة» وافتح الترجمة. هل سطر البحث باهت ومكتوب إن ميزات الإنترنت متوقفة؟ وشغّل فيديو من المجلد الخاص: هل السطر باهت ومكتوب إنه غير متاح للمجلد الخاص؟
+53. افتح الإعدادات › الميزات المتصلة والمفاتيح. هل مكتوب إن المسلسلات ما تحتاجش مفتاح؟
 
 مفاتيح TMDB وIMDb. جرّبها بعد نفس التحديث:
 
@@ -121,6 +136,14 @@ From the TMDB and IMDb switches, read in the code and never run:
 - **TMDB turned back on** costs one TMDB find call per OMDb title, then its full fetch.
 - **Hero and Details show the poster** for every matched title with no backdrop, TMDB titles included, instead of a video frame. A manual cover on an unmatched title keeps the frame.
 
+From this round's three requests, read in the code and never run:
+
+- **Gestdown live.** Its replies come from fixtures written from live searches on 2026-11-08. No download has been tried live: downloads now send `Accept: */*` instead of JSON, in case the server negotiates. Status 423 for an unknown language is `[UNVERIFIED]`. If Gestdown starts asking for a key, keyless search for series stops, as Wyzie did in mpvEx.
+- **A show is found by name.** The show's TMDB id picks among the answers. With no TMDB id, a name that matches two shows gives nothing, on purpose.
+- **The pill's haptic** uses `SegmentTick`. Whether the S26 Ultra plays it as a light tick, and whether the stretch of 3.5 % looks like rubber or like a jump, needs the phone.
+- **A pull while the box is still springing back** from the last refresh gives no "Release" and no tick until the box has come to rest, but letting go still refreshes.
+- **The sites line under subtitle results** is text only. Nothing in `:app` implements `PlayerHost.subtitleKeysIntent()`, so it cannot open the keys page.
+
 ## 4. Known limits in this build
 
 - A cut MKV plays to the cut, then shows a friendly message. It cannot seek or resume, and a refused seek shows a message.
@@ -128,7 +151,8 @@ From the TMDB and IMDb switches, read in the code and never run:
 - The delayed error that reaches the player for a cut file was read from bytecode only. Matrix row C2 is the real check.
 - `ScanState.currentFolder` is filled in, but no screen shows it.
 - Changing subtitle encoding or adding a subtitle file still reopens the video. Online results load live.
-- The new-video count after a swipe is a before-and-after difference, so it is approximate.
+- Gestdown holds TV episodes only. A film, or a file with no episode number, needs a subtitle key, and Arabic on Gestdown was thin in the probes.
+- Settings sub-pages have no colour tiles. Only the root page has them.
 - HDR contrast under the 0.78 player sheet scrim is unmeasured.
 - A kill between a copy reaching the private folder and its row committing leaves an unlisted file there. It costs space only, and the original stays. It is not swept on purpose: if the database were ever lost, a sweep would destroy the only copies.
 - If the private copy is damaged and the original is already gone, nothing can restore it. The card stays in the folder.
@@ -168,11 +192,12 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 
 ## 7. Build next, in order
 
-1. **Ship the owner-requests package and the switches together.** Write `docs/RELEASE-NOTES.md` in Arabic, commit and push `main`, run `.\fg.ps1 release`, and send the checklist of section 2, items 20 to 43. Watch the first open after the update closely, because schemas 3 and 4 and both one-time passes run on the owner's library there. `fg.ps1 release` was changed in the working tree before this round, outside this item: it now refuses a tree with anything but `version.properties` changed, then commits `version.properties` and pushes `main` by itself. Read that change before its first use.
-2. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
-3. **F-S4 local intro detection.** Phase 7b.
-4. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3 and 3 to 4, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
-5. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
+1. **Ship the answer to the owner's three requests.** Write `docs/RELEASE-NOTES.md` in Arabic, commit and push `main`, run `.\fg.ps1 release`, and send the checklist of section 2, items 44 to 53, with items 20 to 43 if the owner has not answered them. No schema change in this round. `fg.ps1 release` refuses a tree with anything but `version.properties` changed, then commits `version.properties` and pushes `main` by itself.
+2. **Make the sites line open the keys page.** `FrameApp` implements `com.frameglass.playerui.PlayerHost.subtitleKeysIntent()`, returning the intent of Settings › Online features and keys.
+3. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
+4. **F-S4 local intro detection.** Phase 7b.
+5. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3 and 3 to 4, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
+6. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
 
 ## 8. Missing project files
 

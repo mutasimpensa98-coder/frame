@@ -91,6 +91,11 @@ internal fun OnlineSettingsScreen() {
         }
         item(key = "subtitles") {
             SettingsSection(stringResource(R.string.app_online_subtitles)) {
+                SettingRow(
+                    title = stringResource(R.string.app_online_subtitles_keyless_title),
+                    description = stringResource(R.string.app_online_subtitles_keyless),
+                )
+                SettingsDivider()
                 KeyRow(
                     ApiKeyKind.OPENSUBTITLES,
                     stringResource(R.string.app_key_opensubtitles),

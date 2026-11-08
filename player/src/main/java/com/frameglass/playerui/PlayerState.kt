@@ -14,6 +14,7 @@ import androidx.media3.common.text.Cue
 import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.PlaybackItem
 import com.frameglass.data.api.SkipSegment
+import com.frameglass.data.api.SubtitleSites
 
 internal enum class FailureKind { MISSING, UNSUPPORTED, DAMAGED, INCOMPLETE, OTHER }
 
@@ -65,8 +66,9 @@ internal class PlayerState {
     /** Product name of the Bluetooth output, when one is connected. */
     var audioDevice by mutableStateOf<String?>(null)
 
-    /** A subtitle key is set and online features are on. */
+    /** Online features are on. Sites that need no key search episodes, so no key is required. */
     var onlineAvailable by mutableStateOf(false)
+    var onlineSites by mutableStateOf(SubtitleSites(emptyList(), emptyList()))
     var online by mutableStateOf(OnlineSearch())
 
     var segment by mutableStateOf<SkipSegment?>(null)

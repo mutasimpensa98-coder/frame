@@ -1,10 +1,12 @@
 package com.frameglass.playerui
 
 import android.content.res.Resources
+import android.icu.text.ListFormatter
 import android.os.SystemClock
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -50,6 +52,9 @@ import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
@@ -207,17 +212,7 @@ private fun SubtitlesSheet(session: PlayerSession, ui: PlayerUiState, actions: P
         session.selectTrack(C.TRACK_TYPE_TEXT, row)
         ui.closeSheet()
     }
-    // A private item never reaches a subtitle provider.
-    if (state.onlineAvailable && state.item?.isPrivate == false) {
-        GlassRow(
-            text = stringResource(R.string.player_online_search),
-            icon = Icons.Rounded.Search,
-            onClick = {
-                session.searchOnline()
-                ui.openSheet(PlayerSheet.SUBTITLE_ONLINE)
-            },
-        )
-    }
+    OnlineSearchRow(session, ui)
     GlassRow(
         text = stringResource(R.string.player_add_subtitle),
         icon = Icons.Rounded.FolderOpen,
@@ -241,6 +236,37 @@ private fun SubtitlesSheet(session: PlayerSession, ui: PlayerUiState, actions: P
             onClick = { ui.openSheet(PlayerSheet.SUBTITLE_ENCODING) },
         )
     }
+}
+
+/** Always shown, so the search is never missing: when it cannot run, the row says why instead. */
+@Composable
+private fun OnlineSearchRow(session: PlayerSession, ui: PlayerUiState) {
+    val state = session.state
+    val item = state.item ?: return
+    // A private item never reaches a subtitle provider.
+    val blocked = when {
+        item.isPrivate -> R.string.player_online_private
+        !state.onlineAvailable -> R.string.player_online_off
+        else -> null
+    }
+    if (blocked != null) {
+        GlassRow(
+            text = stringResource(R.string.player_online_search),
+            supporting = stringResource(blocked),
+            icon = Icons.Rounded.Search,
+            modifier = Modifier.alpha(DIMMED).semantics { disabled() },
+            onClick = {},
+        )
+        return
+    }
+    GlassRow(
+        text = stringResource(R.string.player_online_search),
+        icon = Icons.Rounded.Search,
+        onClick = {
+            session.searchOnline()
+            ui.openSheet(PlayerSheet.SUBTITLE_ONLINE)
+        },
+    )
 }
 
 /** Automatic sync: what it found or why it changed nothing, Undo after a change, and a row to run it again. */
@@ -273,9 +299,11 @@ private fun SyncSection(session: PlayerSession) {
 private fun OnlineSheet(session: PlayerSession, ui: PlayerUiState) {
     val online = session.state.online
     val results = online.results
+    val note = SitesNote.of(session.state.onlineSites, session.state.item)
     online.failure?.let { failure ->
+        val message = if (failure == OnlineFailure.NO_KEY && note.filmsNeedKey) R.string.player_online_films_key else failure.message
         Text(
-            text = stringResource(failure.message),
+            text = stringResource(message),
             style = FrameType.Label,
             color = FrameTheme.colors.error,
             modifier = Modifier.padding(horizontal = FrameSpacing.S12, vertical = FrameSpacing.S4),
@@ -294,6 +322,43 @@ private fun OnlineSheet(session: PlayerSession, ui: PlayerUiState) {
         results.isEmpty() -> Note(stringResource(R.string.player_online_none))
         else -> results.forEach { result -> OnlineRow(session, ui, result) }
     }
+    if (!online.searching && (results != null || online.failure == OnlineFailure.NO_KEY)) SitesLine(note, ui)
+}
+
+/** One quiet line. It opens the keys page only when the app offers a safe way there; otherwise it is just text. */
+@Composable
+private fun SitesLine(note: SitesNote, ui: PlayerUiState) {
+    val context = LocalContext.current
+    val locale = LocalLocale.current.platformLocale
+    val searched = note.searched.map { site ->
+        val name = bidiIsolate(site.name)
+        if (site.seriesOnly) stringResource(R.string.player_online_series_only, name) else name
+    }
+    val parts = buildList {
+        if (searched.isNotEmpty()) add(stringResource(R.string.player_online_searched, ListFormatter.getInstance(locale).format(searched)))
+        if (note.withFreeKey.isNotEmpty()) {
+            val names = ListFormatter.getInstance(locale).format(note.withFreeKey.map { bidiIsolate(it.name) })
+            add(stringResource(R.string.player_online_more_sites, names))
+        }
+    }
+    if (parts.isEmpty()) return
+    val keysPage = remember(context) { context.subtitleKeysIntent() }
+    val text = parts.joinToString(" ")
+    if (keysPage == null || note.withFreeKey.isEmpty()) {
+        Note(text)
+        return
+    }
+    Text(
+        text = text,
+        style = FrameType.Caption,
+        color = FrameTheme.colors.accent,
+        modifier = Modifier
+            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.player_online_open_keys)) {
+                // A stale or foreign target must not crash the player.
+                runCatching { context.startActivity(keysPage) }.onSuccess { ui.closeSheet() }
+            }
+            .padding(horizontal = FrameSpacing.S12, vertical = FrameSpacing.S4),
+    )
 }
 
 @Composable

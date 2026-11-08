@@ -279,7 +279,20 @@
     <string name="app_fact_folder">Folder</string>
     <string name="app_fact_modified">Modified</string>
 
-    <string name="app_refresh_none">Library refreshed</string>
+    <string name="app_refresh_pull">Pull to refresh</string>
+    <string name="app_refresh_release">Release to refresh</string>
+    <string name="app_refresh_starting">Refreshing…</string>
+    <string name="app_refresh_scanning_start">Looking for new videos…</string>
+    <string name="app_refresh_details_start">Updating details…</string>
+    <string name="app_refresh_details">Updating details… %1$d of %2$d</string>
+    <string name="app_refresh_both">%1$s, %2$s</string>
+    <string name="app_refresh_no_new">No new videos</string>
+    <string name="app_refresh_up_to_date">Everything is up to date</string>
+    <string name="app_refresh_skip_offline">Details are not fetched while online features are off</string>
+    <string name="app_refresh_skip_network">No connection. Details will update later</string>
+    <string name="app_refresh_skip_service">Details will update later</string>
+    <string name="app_online_subtitles_keyless_title">Series need no key</string>
+    <string name="app_online_subtitles_keyless">Series episodes are searched with no key. A free key adds films and more sites.</string>
 
     <string name="app_media_used_free">%1$s used, %2$s free</string>
     <string name="app_media_legend_videos">Videos</string>
@@ -398,6 +411,18 @@
     <plurals name="app_scan_matching">
         <item quantity="one">Matching %d title</item>
         <item quantity="other">Matching %d titles</item>
+    </plurals>
+    <plurals name="app_refresh_scanning">
+        <item quantity="one">Looking for new videos… %d file</item>
+        <item quantity="other">Looking for new videos… %d files</item>
+    </plurals>
+    <plurals name="app_refresh_updated">
+        <item quantity="one">%d title updated</item>
+        <item quantity="other">%d titles updated</item>
+    </plurals>
+    <plurals name="app_refresh_left">
+        <item quantity="one">%d more title is updating in the background</item>
+        <item quantity="other">%d more titles are updating in the background</item>
     </plurals>
     <plurals name="app_refresh_new">
         <item quantity="one">%d new video</item>

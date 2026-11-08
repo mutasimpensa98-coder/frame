@@ -45,6 +45,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 /** `matching` is filled in by the repository, which also knows the queue and the key. */
 internal class ScanProgress {
@@ -78,6 +79,23 @@ internal class ScanProgress {
     }
 }
 
+/** One caller's own count of the scan it asked for. [ScanProgress] shows whichever scan runs, for every screen. */
+internal class ScanTally {
+    private val checked = AtomicInteger()
+    private val added = AtomicInteger()
+
+    val filesChecked: Int get() = checked.get()
+    val newVideos: Int get() = added.get()
+
+    fun checked(count: Int) {
+        checked.addAndGet(count)
+    }
+
+    fun added() {
+        added.incrementAndGet()
+    }
+}
+
 /**
  * Section 4.6 as changed by the 2026-11-07 waiver. With whole-phone search on, every mounted volume is walked
  * with no folder choice, and folders added by hand keep their own run. One code path serves them all: a first
@@ -99,20 +117,31 @@ internal class Scanner(
 ) {
     private val lock = Mutex()
 
+    /** Set only while the lock is held, so it belongs to the scan in progress. */
+    @Volatile
+    private var tally: ScanTally? = null
+
     val running: Boolean get() = progress.running
 
-    /** Hops to the IO pool itself, because Settings calls this from a screen. */
-    suspend fun scan() = withContext(Dispatchers.IO) {
+    /** Hops to the IO pool itself, because Settings calls this from a screen. [tally] counts this scan alone. */
+    suspend fun scan(tally: ScanTally? = null) = withContext(Dispatchers.IO) {
         lock.withLock {
             // Without All Files access every list call fails, and that must not look like deleted files.
             if (!Environment.isExternalStorageManager()) return@withLock
+            this@Scanner.tally = tally
             progress.begin()
             try {
                 scanAll()
             } finally {
                 progress.end()
+                this@Scanner.tally = null
             }
         }
+    }
+
+    private fun counted(count: Int = 1) {
+        progress.found(count)
+        tally?.checked(count)
     }
 
     private suspend fun scanAll() {
@@ -345,7 +374,7 @@ internal class Scanner(
                     else -> updateChanged(cached, file, rel, size, mtime, hasSidecar)
                 }
             }
-            if (known > 0) progress.found(known)
+            if (known > 0) counted(known)
             flushBatches()
         }
 
@@ -387,7 +416,7 @@ internal class Scanner(
                 dao.updatePath(gone.rowId, volume.uuid, rel, size, mtime, now, hasSidecar)
                 if (gone.volumeUuid == volume.uuid) cache.remove(gone.relPath)
                 moved++
-                progress.found()
+                counted()
                 return
             }
             val twin = twins.firstOrNull { it.titleId != null }
@@ -436,7 +465,8 @@ internal class Scanner(
                 }
             }
             added++
-            progress.found()
+            counted()
+            tally?.added()
             onNewRows()
         }
 

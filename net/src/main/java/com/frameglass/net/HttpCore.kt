@@ -56,6 +56,7 @@ internal val NetJson = Json {
  * OpenSubtitles' download links are www.opensubtitles.com/download/.../subfile/..., and
  * dl.opensubtitles.com answers 301 to the same path. dl.subdl.com serves its zips with no redirect.
  * SubSource serves downloads from its API host, per subsource.net/api-docs.
+ * Gestdown serves search and SRT downloads from its API host with no redirect, read live on 2026-11-08.
  * The custom TMDB base URL is added at check time because it can change in Settings.
  * OMDb's poster links point at [OMDB_POSTER_HOST]. That host was not read from a live reply [UNVERIFIED].
  */
@@ -74,6 +75,7 @@ internal val ALLOWED_HOSTS: Set<String> = setOf(
     "api.subdl.com",
     "dl.subdl.com",
     "api.subsource.net",
+    "api.gestdown.info",
     "www.omdbapi.com",
     OMDB_POSTER_HOST,
 )

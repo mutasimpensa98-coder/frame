@@ -105,9 +105,14 @@ internal class FakeServer : Interceptor {
     private fun keyOf(request: Request): String = request.url.host + request.url.encodedPath
 }
 
+/**
+ * [keyless] adds the sites that need no key. Off by default, so a test of one keyed provider sees only that
+ * provider's requests.
+ */
 internal class Rig(
     val config: FakeConfig = FakeConfig(),
     val dir: File = File(System.getProperty("java.io.tmpdir"), "fg-net-${System.nanoTime()}"),
+    keyless: Boolean = false,
 ) {
     val server = FakeServer()
     val pauses = CopyOnWriteArrayList<Long>()
@@ -121,7 +126,8 @@ internal class Rig(
     }
     val mappings = AnimeMappings(dir, http, config, { wifi }, { now })
     val client = FrameMetadataClient(config, http, mappings)
-    val subtitles = FrameSubtitleClient(config, http, File(dir, "scratch"))
+    val providers = subtitleProviders(http, config).filter { keyless || it.keyKind != null }
+    val subtitles = FrameSubtitleClient(config, http, File(dir, "scratch"), providers = providers)
 
     fun clean() {
         dir.deleteRecursively()

@@ -38,6 +38,7 @@ import com.frameglass.data.api.TrackPrefs
 import com.frameglass.data.api.WatchTarget
 import com.frameglass.data.api.frameServices
 import com.frameglass.data.api.segmentsAfterFetch
+import com.frameglass.data.api.sites
 import com.frameglass.engine.CueTimeline
 import com.frameglass.engine.DecoderLadder
 import com.frameglass.engine.DecoderProbe
@@ -232,6 +233,7 @@ internal class PlayerSession(context: Context) {
         refreshAudioRoute()
         main.launch { services.settings.settings.collect { applySettings(it) } }
         main.launch { services.subtitles.available.collect { state.onlineAvailable = it } }
+        main.launch { services.subtitles.sites.collect { state.onlineSites = it } }
     }
 
     // ---- Window --------------------------------------------------------------------------------

@@ -109,6 +109,12 @@
     <string name="player_online_limit">That site\'s limit is used up for now. Try another result, or come back later.</string>
     <string name="player_online_missing">This pack doesn\'t have this episode. Try another result.</string>
     <string name="player_online_bad">That subtitle couldn\'t be read. Try another result.</string>
+    <string name="player_online_private">Not available for videos in the private folder</string>
+    <string name="player_online_films_key">The sites that need no key only have series. A free key in Settings adds films.</string>
+    <string name="player_online_searched">Searched %1$s.</string>
+    <string name="player_online_series_only">%1$s (series only)</string>
+    <string name="player_online_more_sites">A free key in Settings adds %1$s.</string>
+    <string name="player_online_open_keys">Open subtitle keys</string>
 
     <!-- Audio -->
     <string name="player_audio_delay">Audio delay</string>

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.HorizontalDivider
@@ -36,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.frameglass.glass.ColorIconTile
 import com.frameglass.glass.FrameColors
 import com.frameglass.glass.FrameShapes
 import com.frameglass.glass.FrameSizes
@@ -44,6 +44,7 @@ import com.frameglass.glass.FrameType
 import com.frameglass.glass.GlassMenu
 import com.frameglass.glass.GlassRow
 import com.frameglass.glass.GlassSource
+import com.frameglass.glass.TileHue
 import com.frameglass.glass.TopGlassBar
 import com.frameglass.glass.bidiIsolate
 import com.frameglass.glass.glassScrolled
@@ -55,7 +56,6 @@ private val RowMinHeight = 64.dp
 private const val ValueMaxShare = 0.45f
 private val RowTitle = FrameType.Body.copy(fontWeight = FontWeight.W500)
 private val IconTile = 40.dp
-private val IconTileShape = RoundedCornerShape(12.dp)
 private val TileIcon = 22.dp
 private val ChevronSize = 24.dp
 
@@ -122,10 +122,11 @@ internal fun SettingsDivider(start: Dp = FrameSpacing.S24) {
     HorizontalDivider(Modifier.padding(start = start), 0.5.dp, FrameColors.Divider)
 }
 
-/** A row of the main list: icon, title, short description, the value if there is one, and a chevron. */
+/** A row of the main list: a coloured icon tile, title, short description, the value if there is one, and a chevron. */
 @Composable
 internal fun SettingsLink(
     icon: ImageVector,
+    hue: TileHue,
     title: String,
     description: String,
     onClick: () -> Unit,
@@ -140,12 +141,7 @@ internal fun SettingsLink(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S12),
     ) {
-        Box(
-            modifier = Modifier.size(IconTile).background(FrameColors.Elevated, IconTileShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(icon, null, Modifier.size(TileIcon), tint = FrameColors.White)
-        }
+        ColorIconTile(icon, hue, size = IconTile, glyph = TileIcon)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 text = bidiIsolate(title),
