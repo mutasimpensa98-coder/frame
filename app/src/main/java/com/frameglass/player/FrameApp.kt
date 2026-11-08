@@ -2,6 +2,8 @@ package com.frameglass.player
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -16,13 +18,15 @@ import com.frameglass.net.Net
 import com.frameglass.player.model.UiModel
 import com.frameglass.player.model.decodesArt
 import com.frameglass.player.quick.QuickResume
+import com.frameglass.player.nav.AppLinks
+import com.frameglass.playerui.PlayerHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
 private const val MaxImageMemoryBytes = 256L * 1024 * 1024
 
-class FrameApp : Application(), FrameServicesOwner, SingletonImageLoader.Factory {
+class FrameApp : Application(), FrameServicesOwner, SingletonImageLoader.Factory, PlayerHost {
     override lateinit var services: FrameServices
         private set
 
@@ -37,6 +41,9 @@ class FrameApp : Application(), FrameServicesOwner, SingletonImageLoader.Factory
         // Launcher shortcuts and the widget follow progress and the library, after each quiet moment.
         QuickResume.start(this, services.library, CoroutineScope(SupervisorJob() + Dispatchers.Default))
     }
+
+    /** The sites line under the online subtitle results opens the keys page through this. */
+    override fun subtitleKeysIntent(context: Context): Intent = AppLinks.subtitleKeys(context)
 
     // The service loader stays off, so Coil cannot build its own client outside the allow-list. Only the
     // Fix match choices load over the network, and Coil keeps nothing from TMDB on disk (F-M11).

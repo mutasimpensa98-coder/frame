@@ -14,6 +14,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.frameglass.data.api.AccentColor
 import com.frameglass.data.api.ApiKeyKind
 import com.frameglass.data.api.AppSettings
+import com.frameglass.data.api.AutoSubtitleMode
 import com.frameglass.data.api.SettingsRepository
 import com.frameglass.data.api.ThemeMode
 import com.frameglass.data.logic.ServiceUse
@@ -59,6 +60,7 @@ private object Prefs {
     val cinemaMode = booleanPreferencesKey("cinemaMode")
     val sendReleaseName = booleanPreferencesKey("sendReleaseName")
     val sendFileHash = booleanPreferencesKey("sendFileHash")
+    val autoSubtitles = stringPreferencesKey("autoSubtitles")
     val vaultLockSeconds = intPreferencesKey("vaultLockSeconds")
     val neverSleeping = booleanPreferencesKey("neverSleepingHintDone")
     val onboarding = booleanPreferencesKey("onboardingDone")
@@ -125,6 +127,7 @@ internal class SettingsStore(
             cinemaMode = p[Prefs.cinemaMode] ?: d.cinemaMode,
             sendReleaseName = p[Prefs.sendReleaseName] ?: d.sendReleaseName,
             sendFileHash = p[Prefs.sendFileHash] ?: d.sendFileHash,
+            autoSubtitles = AutoSubtitleMode.parse(p[Prefs.autoSubtitles]),
             vaultLockSeconds = p[Prefs.vaultLockSeconds] ?: d.vaultLockSeconds,
             neverSleepingHintDone = p[Prefs.neverSleeping] ?: d.neverSleepingHintDone,
             onboardingDone = p[Prefs.onboarding] ?: d.onboardingDone,
@@ -156,6 +159,7 @@ internal class SettingsStore(
         p[Prefs.cinemaMode] = s.cinemaMode
         p[Prefs.sendReleaseName] = s.sendReleaseName
         p[Prefs.sendFileHash] = s.sendFileHash
+        p[Prefs.autoSubtitles] = s.autoSubtitles.name
         p[Prefs.vaultLockSeconds] = s.vaultLockSeconds
         p[Prefs.neverSleeping] = s.neverSleepingHintDone
         p[Prefs.onboarding] = s.onboardingDone

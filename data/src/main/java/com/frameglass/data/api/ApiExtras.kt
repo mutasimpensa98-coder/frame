@@ -82,8 +82,11 @@ fun MediaManager.answerTrashConsent(confirmed: Boolean) {
     (this as? TrashConsentSource)?.answerTrashConsent(confirmed)
 }
 
-/** One subtitle site, as the sheet names it. [key] is null for a site that needs no key. */
-data class SubtitleSiteInfo(val name: String, val key: ApiKeyKind?, val seriesOnly: Boolean)
+/**
+ * One subtitle site, as the sheet names it. [key] is null for a site that needs no key. [tapOnly] marks a site whose
+ * small quota only the owner's tap may spend, so the automatic download never uses it.
+ */
+data class SubtitleSiteInfo(val name: String, val key: ApiKeyKind?, val seriesOnly: Boolean, val tapOnly: Boolean = false)
 
 /**
  * Where a tapped search looks, in the default order, whatever the Online features switch says: OnlineSubtitles.available
@@ -97,6 +100,30 @@ data class SubtitleSites(val active: List<SubtitleSiteInfo>, val withFreeKey: Li
 interface SubtitleSiteSource {
     val sites: Flow<SubtitleSites>
 }
+
+/** What the automatic download did for one file. Only [Loaded] is ever shown; the rest stay silent (brief 4.9). */
+sealed interface AutoSubtitleOutcome {
+    /** Saved per file like a tapped download. [result] says which site and language it came from. */
+    data class Loaded(val sidecar: SidecarSubtitle, val result: SubtitleResult) : AutoSubtitleOutcome
+
+    /** The sites answered and nothing fitted. Remembered, so this file is not searched by itself again. */
+    data object NothingFound : AutoSubtitleOutcome
+
+    /** Not tried: tried before, private, a clip, online off, no site could be asked, or the network failed. */
+    data object Skipped : AutoSubtitleOutcome
+}
+
+/**
+ * Implemented by the object behind [OnlineSubtitles]. The waiver of 2026-11-08: one search per file that the owner
+ * did not tap, sending only title, year, season, episode and IDs, never to a [SubtitleSiteInfo.tapOnly] site.
+ */
+interface AutoSubtitleSource {
+    /** [languages] in order of preference, such as `ar` then `en`. Never throws. */
+    suspend fun autoFetch(item: PlaybackItem, languages: List<String>): AutoSubtitleOutcome
+}
+
+suspend fun OnlineSubtitles.autoFetch(item: PlaybackItem, languages: List<String>): AutoSubtitleOutcome =
+    (this as? AutoSubtitleSource)?.autoFetch(item, languages) ?: AutoSubtitleOutcome.Skipped
 
 /** For the subtitle sheet: which sites search now, and which a free key would add. Reading it sends nothing. */
 val OnlineSubtitles.sites: Flow<SubtitleSites>

@@ -325,6 +325,12 @@
 
     <string name="app_playback_section">المشغّل</string>
     <string name="app_subtitle_section">مظهر الترجمة</string>
+    <string name="app_subtitle_online_section">الترجمة من الإنترنت</string>
+    <string name="app_auto_subtitles">ترجمة تلقائية من النت</string>
+    <string name="app_auto_subtitles_hint">إذا لم يكن للفيديو ترجمة عربية، نبحث مرة واحدة لكل فيديو في المواقع التي حفظت مفتاحها وفي موقع المسلسلات المجاني. لا نرسل إلا الاسم والسنة والموسم والحلقة، ولا نستخدم ⁦OpenSubtitles⁩، ولا نبحث للمقاطع أو المجلد الخاص.</string>
+    <string name="app_auto_subtitles_off">متوقفة</string>
+    <string name="app_auto_subtitles_arabic">العربية</string>
+    <string name="app_auto_subtitles_both">العربية ثم الإنجليزية</string>
 
     <string name="app_private_intro">الفيديوهات التي تنقلها إلى هنا تختفي من المكتبة والبحث ومدير الوسائط، ولا تُفتح هذه الصفحة إلا بكلمة مرورك أو بصمتك.</string>
     <string name="app_private_uninstall_warning">إلغاء تثبيت Frame Glass يحذف المجلد الخاص وكل ما فيه.</string>

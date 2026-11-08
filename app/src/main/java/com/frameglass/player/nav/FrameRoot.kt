@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -124,10 +125,13 @@ private fun popTransform(rtl: Boolean, reduced: Boolean): ContentTransform {
     )
 }
 
-/** The whole app below the theme: every route inside one shared transition layout. */
+/**
+ * The whole app below the theme: every route inside one shared transition layout. [link] is a page an intent asked
+ * for; it opens on top of the restored stack, never over onboarding, and [onLinkOpened] then clears it.
+ */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-internal fun FrameRoot() {
+internal fun FrameRoot(link: Route? = null, onLinkOpened: () -> Unit = {}) {
     val model = rememberUiModel()
     val settings by model.settings.collectAsStateWithLifecycle()
 
@@ -139,6 +143,11 @@ internal fun FrameRoot() {
         }
         val context = LocalContext.current
         val navigator = remember(stack, context) { Navigator(stack, context) }
+        LaunchedEffect(link) {
+            val route = link ?: return@LaunchedEffect
+            if (stack.lastOrNull() != Route.Onboarding) navigator.push(route)
+            onLinkOpened()
+        }
         var tab by rememberSaveable { mutableIntStateOf(0) }
         val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
         val reduced = rememberEffectsLevel() == EffectsLevel.Degraded

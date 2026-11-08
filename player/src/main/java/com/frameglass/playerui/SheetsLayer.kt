@@ -325,7 +325,10 @@ private fun OnlineSheet(session: PlayerSession, ui: PlayerUiState) {
     if (!online.searching && (results != null || online.failure == OnlineFailure.NO_KEY)) SitesLine(note, ui)
 }
 
-/** One quiet line. It opens the keys page only when the app offers a safe way there; otherwise it is just text. */
+/**
+ * One quiet line naming the sites. A tap leaves the player for the keys page in Settings, when the app offers a safe
+ * way there; otherwise it is just text. With no key saved it also suggests the free SubDL key.
+ */
 @Composable
 private fun SitesLine(note: SitesNote, ui: PlayerUiState) {
     val context = LocalContext.current
@@ -340,11 +343,12 @@ private fun SitesLine(note: SitesNote, ui: PlayerUiState) {
             val names = ListFormatter.getInstance(locale).format(note.withFreeKey.map { bidiIsolate(it.name) })
             add(stringResource(R.string.player_online_more_sites, names))
         }
+        if (note.noKey) add(stringResource(R.string.player_online_subdl_hint))
     }
     if (parts.isEmpty()) return
     val keysPage = remember(context) { context.subtitleKeysIntent() }
     val text = parts.joinToString(" ")
-    if (keysPage == null || note.withFreeKey.isEmpty()) {
+    if (keysPage == null) {
         Note(text)
         return
     }

@@ -23,6 +23,7 @@ import com.frameglass.data.meta.NetworkCheck
 import com.frameglass.data.meta.SearchIndexer
 import com.frameglass.data.meta.TitleOps
 import com.frameglass.data.meta.TitleResolver
+import com.frameglass.data.repo.AutoTried
 import com.frameglass.data.repo.LibraryRepositoryImpl
 import com.frameglass.data.repo.MediaManagerImpl
 import com.frameglass.data.repo.NetConfigImpl
@@ -54,6 +55,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.io.File
 
 object FrameData {
     @Volatile
@@ -147,7 +149,7 @@ internal class DataServices(context: Context, clock: Clock) : FrameServices {
     override val vault: PrivateVault get() = privateFolder.value
 
     override val subtitles: OnlineSubtitles by lazy {
-        OnlineSubtitlesImpl(db, settingsStore, config, subtitleClient, sidecarLabels)
+        OnlineSubtitlesImpl(db, settingsStore, config, subtitleClient, sidecarLabels, AutoTried(File(context.filesDir, "subs-auto")))
     }
 
     init {

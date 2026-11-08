@@ -102,6 +102,18 @@ Send this to the owner as it stands, and record the answers in `docs/evidence/ph
 64. في المكتبة، اضغط زر النقاط الثلاث فوق › «ماذا أشاهد الليلة؟». هل طلع لك فيلم أو مسلسل ما بدأتهوش، بغلافه واسمه وسنته وتقييمه ومدته وقصة قصيرة؟ اضغط «غيره» كم مرة: هل كل مرة يجيب حاجة ثانية، وما يعاودش نفس العنوان ورا بعض؟
 65. جرّب «فيلم» و«مسلسل» وتصنيف من التصنيفات. هل الاختيار يلتزم بيهم؟ وهل «شغّل» يشغّله على طول، و«تفاصيل» يفتح صفحته؟ وهل عمره طلع لك فيديو من المجلد الخاص أو مقطع شخصي؟
 
+الترجمة التلقائية وسطر المواقع . جرّبها بعد التحديث اللي فيه هذا:
+
+66. افتح الإعدادات › الترجمة. هل فيه سطر «ترجمة تلقائية من النت» واختياراته متوقفة، العربية، العربية ثم الإنجليزية، والمختار العربية؟
+67. شغّل حلقة مسلسل معروف ما فيهاش ترجمة عربية، والميزات المتصلة شغّالة. خلّيها تشتغل وما تلمسش شي. هل بعد ثواني ظهرت ترجمة عربية وحدها والفيديو ما وقفش؟ وهل ظهرت فوق رسالة زجاجية صغيرة مثل «تم تحميل ترجمة عربية من Gestdown» أو SubDL، واختفت وحدها بعد شوي؟ كم ثانية أخذت؟
+68. في نفس الرسالة، اضغط «غيّرها». هل فتحت نتائج البحث عبر الإنترنت، وتقدر تختار غيرها؟
+69. سكّر الحلقة وافتحها مرة ثانية. هل الترجمة اللي نزلت لسه موجودة ومختارة، وما ظهرتش الرسالة مرة ثانية؟
+70. شغّل فيديو فيه ترجمة عربية من قبل، مدمجة أو ملف جنبه. هل ما ظهرت أي رسالة، والترجمة اللي عندك بقت زي ما هي؟
+71. شغّل مقطع من الكاميرا أو واتساب، وفيديو من المجلد الخاص. هل ما صار أي تحميل ولا رسالة؟
+72. لو عندك مفتاح OpenSubtitles بس: شغّل فيلم ما فيهش ترجمة عربية. هل ما نزلت ترجمة وحدها؟ (OpenSubtitles يشتغل بس لما تضغط إنت، عشان ما يخلص حدّك اليومي.)
+73. حط الاختيار على «العربية ثم الإنجليزية»، وشغّل حلقة جديدة ما لقيتلهاش ترجمة عربية. هل نزلت إنجليزية والرسالة تقول إنجليزية؟ وحطه على «متوقفة»: هل ما عاد ينزل شي وحده؟
+74. افتح الترجمة › البحث عبر الإنترنت وبدون مفاتيح. تحت النتائج، هل السطر الصغير مكتوب فيه «أضف مفتاح SubDL مجاني للأفلام والترجمة العربية»؟ اضغطه: هل سكّر المشغّل وفتح الإعدادات › الميزات المتصلة والمفاتيح؟ وارجع للخلف: هل رجعت للمكان اللي كنت فيه قبل المشغّل؟ وهل لما تفتح الحلقة ثاني تكمل من نفس المكان؟
+
 مفاتيح TMDB وIMDb. جرّبها بعد نفس التحديث:
 
 34. افتح الإعدادات › الميزات المتصلة والمفاتيح. هل فيه مفتاح تشغيل جنب TMDB وجنب «IMDb عبر OMDb»؟ طفّي واحد ورجّعه: هل المفتاح المحفوظ بقى، وما طلب منك تكتبه من جديد؟ وهل تحت كل واحد سطر يشرح شن يصير لما يطفى، بالعربي وبالإنجليزي؟
@@ -217,8 +229,8 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 
 ## 7. Build next, in order
 
-1. **Ship the shortcuts, widget, next episode, trailer and tonight's pick.** Merge `pack-home` into `main`, write `docs/RELEASE-NOTES.md` in Arabic, push `main`, run `.\fg.ps1 release`, and send the checklist of section 2, items 54 to 65, with items 20 to 53 if the owner has not answered them. This round has schema step 4 to 5: five nullable `Title` columns, replayed by `tools/check_update.py`, and never run on Android yet. `fg.ps1 release` refuses a tree with anything but `version.properties` changed, then commits `version.properties` and pushes `main` by itself.
-2. **Make the sites line open the keys page.** `FrameApp` implements `com.frameglass.playerui.PlayerHost.subtitleKeysIntent()`, returning the intent of Settings › Online features and keys.
+1. **Ship the shortcuts, widget, next episode, trailer, tonight's pick and the automatic subtitle.** Both branches are merged into `main`. Write `docs/RELEASE-NOTES.md` in Arabic, push `main`, run `.g.ps1 release`, and send the checklist of section 2, items 54 to 74, with items 20 to 53 if the owner has not answered them. This round has schema step 4 to 5: five nullable `Title` columns, replayed by `tools/check_update.py`, and never run on Android yet. Watch the first live automatic subtitle download: Gestdown and SubDL replies in the tests are fixtures.
+2. **Sites line opens the keys page** is built in the same round (`PlayerHost.subtitleKeysIntent()` through `AppLinks`), item 74.
 3. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
 4. **F-S4 local intro detection.** Phase 7b.
 5. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3 and 3 to 4, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.

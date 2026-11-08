@@ -72,6 +72,28 @@ class SubtitleClientTest {
     }
 
     @Test
+    fun anAutomaticSearchNeverAsksOpenSubtitles() {
+        offerEverything()
+        val hits = search(query.copy(automatic = true)).value()
+        assertFalse(hits.any { it.provider == PROVIDER_OPENSUBTITLES })
+        assertEquals(setOf("api.subdl.com", "api.subsource.net", GD_HOST), hosts())
+    }
+
+    @Test
+    fun anAutomaticSearchWithOnlyAnOpenSubtitlesKeyAsksNothingForAFilm() {
+        config.subDl = null
+        config.subSource = null
+        val film = subtitleQuery(tmdbId = 603, languages = listOf("ar")).copy(automatic = true)
+        assertEquals(Reason.NO_KEY, (search(film) as Failure).reason)
+        assertTrue(server.requests.isEmpty())
+    }
+
+    @Test
+    fun onlyOpenSubtitlesIsMarkedTapOnly() {
+        assertEquals(listOf(PROVIDER_OPENSUBTITLES), rig.subtitles.sites.filter { it.tapOnly }.map { it.name })
+    }
+
+    @Test
     fun theOnlineSwitchStopsSearchAndDownload() {
         config.onlineEnabled = false
         offerEverything()

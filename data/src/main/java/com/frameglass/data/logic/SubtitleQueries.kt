@@ -39,12 +39,32 @@ internal object SubtitleQueries {
             releaseName = facts.releaseName.takeIf { settings.sendReleaseName },
         )
     }
+
+    /**
+     * The search the owner did not tap (waiver of 2026-11-08). Decision D9 holds whatever the switches say: only the
+     * title, year, season, episode and IDs, never the release name, the hash or the size.
+     */
+    fun automatic(facts: SubtitleFacts, languages: List<String>): SubtitleQuery = SubtitleQuery(
+        title = facts.title,
+        year = facts.year,
+        season = facts.season,
+        episode = facts.episode,
+        tmdbId = facts.tmdbId,
+        imdbId = facts.imdbId,
+        languages = languages,
+        osHash = null,
+        fileSize = null,
+        releaseName = null,
+        automatic = true,
+    )
 }
 
 internal object SubtitleSiteList {
     /** [sites] in their default order. A site that needs no key is always active. */
     fun of(sites: List<SubtitleSite>, savedKeys: Set<ApiKeyKind>): SubtitleSites {
-        val infos = sites.map { SubtitleSiteInfo(it.name, it.key?.let { key -> ApiKeyKind.valueOf(key.name) }, it.episodesOnly) }
+        val infos = sites.map {
+            SubtitleSiteInfo(it.name, it.key?.let { key -> ApiKeyKind.valueOf(key.name) }, it.episodesOnly, it.tapOnly)
+        }
         val (active, locked) = infos.partition { it.key == null || it.key in savedKeys }
         return SubtitleSites(active = active, withFreeKey = locked)
     }

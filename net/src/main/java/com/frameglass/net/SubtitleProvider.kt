@@ -23,6 +23,9 @@ internal interface SubtitleProvider {
     /** A site that holds TV episodes and nothing else. */
     val episodesOnly: Boolean get() = false
 
+    /** A site whose download quota is spent only on a tap. An automatic search never asks it. */
+    val tapOnly: Boolean get() = false
+
     /** False when this site cannot hold what [query] asks for, so it is not asked at all. */
     fun serves(query: SubtitleQuery): Boolean = true
 

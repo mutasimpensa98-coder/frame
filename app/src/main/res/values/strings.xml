@@ -334,6 +334,12 @@
 
     <string name="app_playback_section">Player</string>
     <string name="app_subtitle_section">Subtitle look</string>
+    <string name="app_subtitle_online_section">Subtitles from the internet</string>
+    <string name="app_auto_subtitles">Automatic subtitles from the internet</string>
+    <string name="app_auto_subtitles_hint">When a video has no Arabic subtitle, one search per video on the sites whose key you saved and on the free series site. Sends only the title, year, season and episode. Never OpenSubtitles, and never for clips or the private folder.</string>
+    <string name="app_auto_subtitles_off">Off</string>
+    <string name="app_auto_subtitles_arabic">Arabic</string>
+    <string name="app_auto_subtitles_both">Arabic, then English</string>
 
     <string name="app_private_intro">Videos you move here leave the library, search and Media Manager. Only your password or fingerprint opens this page.</string>
     <string name="app_private_uninstall_warning">Uninstalling Frame Glass deletes the private folder and everything in it.</string>

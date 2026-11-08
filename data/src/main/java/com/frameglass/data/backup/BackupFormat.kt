@@ -2,6 +2,7 @@ package com.frameglass.data.backup
 
 import com.frameglass.data.api.AccentColor
 import com.frameglass.data.api.AppSettings
+import com.frameglass.data.api.AutoSubtitleMode
 import com.frameglass.data.api.MatchState
 import com.frameglass.data.api.SegmentKind
 import com.frameglass.data.api.ThemeMode
@@ -54,6 +55,8 @@ internal data class BackupSettings(
      */
     val tmdbEnabled: Boolean? = null,
     val imdbEnabled: Boolean? = null,
+    /** Null in a backup written before the setting existed, which keeps what the phone holds. */
+    val autoSubtitles: String? = null,
 ) {
     /** [current] is what the phone holds now, for the fields an older backup does not have. */
     fun toAppSettings(fontExists: Boolean, current: AppSettings) = AppSettings(
@@ -83,6 +86,7 @@ internal data class BackupSettings(
         onboardingDone = onboardingDone,
         tmdbEnabled = tmdbEnabled ?: current.tmdbEnabled,
         imdbEnabled = imdbEnabled ?: current.imdbEnabled,
+        autoSubtitles = autoSubtitles?.let(AutoSubtitleMode::parse) ?: current.autoSubtitles,
     )
 
     companion object {
@@ -91,7 +95,7 @@ internal data class BackupSettings(
             s.subtitleColor, s.subtitleBackground, s.subtitleFontPath, s.subtitleBottomOffset, s.scanHiddenFolders,
             s.scanNomediaFolders, s.showUnavailable, s.tmdbBaseUrl, s.neverSleepingHintDone, s.onboardingDone,
             s.scanWholePhone, s.themeMode.name, s.accent.name, s.coverTint, s.sendReleaseName, s.sendFileHash,
-            s.vaultLockSeconds, s.cinemaMode, s.tmdbEnabled, s.imdbEnabled,
+            s.vaultLockSeconds, s.cinemaMode, s.tmdbEnabled, s.imdbEnabled, s.autoSubtitles.name,
         )
     }
 }
