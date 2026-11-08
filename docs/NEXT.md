@@ -85,6 +85,18 @@ Send this to the owner as it stands, and record the answers in `docs/evidence/ph
 52. طفّي «الميزات المتصلة» وافتح الترجمة. هل سطر البحث باهت ومكتوب إن ميزات الإنترنت متوقفة؟ وشغّل فيديو من المجلد الخاص: هل السطر باهت ومكتوب إنه غير متاح للمجلد الخاص؟
 53. افتح الإعدادات › الميزات المتصلة والمفاتيح. هل مكتوب إن المسلسلات ما تحتاجش مفتاح؟
 
+الترجمة التلقائية وسطر المواقع (فرع `pack-subs`). جرّبها بعد التحديث اللي فيه هذا:
+
+54. افتح الإعدادات › الترجمة. هل فيه سطر «ترجمة تلقائية من النت» واختياراته متوقفة، العربية، العربية ثم الإنجليزية، والمختار العربية؟
+55. شغّل حلقة مسلسل معروف ما فيهاش ترجمة عربية، والميزات المتصلة شغّالة. خلّيها تشتغل وما تلمسش شي. هل بعد ثواني ظهرت ترجمة عربية وحدها والفيديو ما وقفش؟ وهل ظهرت فوق رسالة زجاجية صغيرة مثل «تم تحميل ترجمة عربية من Gestdown» أو SubDL، واختفت وحدها بعد شوي؟ كم ثانية أخذت؟
+56. في نفس الرسالة، اضغط «غيّرها». هل فتحت نتائج البحث عبر الإنترنت، وتقدر تختار غيرها؟
+57. سكّر الحلقة وافتحها مرة ثانية. هل الترجمة اللي نزلت لسه موجودة ومختارة، وما ظهرتش الرسالة مرة ثانية؟
+58. شغّل فيديو فيه ترجمة عربية من قبل، مدمجة أو ملف جنبه. هل ما ظهرت أي رسالة، والترجمة اللي عندك بقت زي ما هي؟
+59. شغّل مقطع من الكاميرا أو واتساب، وفيديو من المجلد الخاص. هل ما صار أي تحميل ولا رسالة؟
+60. لو عندك مفتاح OpenSubtitles بس: شغّل فيلم ما فيهش ترجمة عربية. هل ما نزلت ترجمة وحدها؟ (OpenSubtitles يشتغل بس لما تضغط إنت، عشان ما يخلص حدّك اليومي.)
+61. حط الاختيار على «العربية ثم الإنجليزية»، وشغّل حلقة جديدة ما لقيتلهاش ترجمة عربية. هل نزلت إنجليزية والرسالة تقول إنجليزية؟ وحطه على «متوقفة»: هل ما عاد ينزل شي وحده؟
+62. افتح الترجمة › البحث عبر الإنترنت وبدون مفاتيح. تحت النتائج، هل السطر الصغير مكتوب فيه «أضف مفتاح SubDL مجاني للأفلام والترجمة العربية»؟ اضغطه: هل سكّر المشغّل وفتح الإعدادات › الميزات المتصلة والمفاتيح؟ وارجع للخلف: هل رجعت للمكان اللي كنت فيه قبل المشغّل؟ وهل لما تفتح الحلقة ثاني تكمل من نفس المكان؟
+
 مفاتيح TMDB وIMDb. جرّبها بعد نفس التحديث:
 
 34. افتح الإعدادات › الميزات المتصلة والمفاتيح. هل فيه مفتاح تشغيل جنب TMDB وجنب «IMDb عبر OMDb»؟ طفّي واحد ورجّعه: هل المفتاح المحفوظ بقى، وما طلب منك تكتبه من جديد؟ وهل تحت كل واحد سطر يشرح شن يصير لما يطفى، بالعربي وبالإنجليزي؟
@@ -193,7 +205,7 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 ## 7. Build next, in order
 
 1. **Ship the answer to the owner's three requests.** Write `docs/RELEASE-NOTES.md` in Arabic, commit and push `main`, run `.\fg.ps1 release`, and send the checklist of section 2, items 44 to 53, with items 20 to 43 if the owner has not answered them. No schema change in this round. `fg.ps1 release` refuses a tree with anything but `version.properties` changed, then commits `version.properties` and pushes `main` by itself.
-2. **Make the sites line open the keys page.** `FrameApp` implements `com.frameglass.playerui.PlayerHost.subtitleKeysIntent()`, returning the intent of Settings › Online features and keys.
+2. **Ship branch `pack-subs`** after it is merged: the automatic subtitle download and the sites line that opens the keys page, with section 2 items 54 to 62. Both are built and unit tested only. Watch the first live automatic download: Gestdown and SubDL replies in the tests are fixtures.
 3. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
 4. **F-S4 local intro detection.** Phase 7b.
 5. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3 and 3 to 4, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.

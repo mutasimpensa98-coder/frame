@@ -64,4 +64,17 @@ class SitesNoteTest {
         assertEquals(listOf(keyedSite), note.searched)
         assertFalse(note.filmsNeedKey)
     }
+
+    @Test
+    fun withNoKeySavedTheLineSuggestsAFreeKey() {
+        assertTrue(SitesNote.of(keyless, item(episode = 3)).noKey)
+    }
+
+    @Test
+    fun aSavedKeyStopsTheSuggestion() {
+        val keyed = SubtitleSites(active = listOf(keyedSite, seriesSite), withFreeKey = emptyList())
+        assertFalse(SitesNote.of(keyed, item(episode = null)).noKey)
+        val partly = SubtitleSites(active = listOf(keyedSite), withFreeKey = listOf(keyedSite.copy(name = "Other Keyed")))
+        assertFalse(SitesNote.of(partly, item(episode = null)).noKey)
+    }
 }

@@ -170,7 +170,7 @@ class GestdownApiTest {
     fun theSiteListNamesEverySiteAndItsKey() {
         assertEquals(
             listOf(
-                SubtitleSite(PROVIDER_OPENSUBTITLES, ApiKey.OPENSUBTITLES, episodesOnly = false),
+                SubtitleSite(PROVIDER_OPENSUBTITLES, ApiKey.OPENSUBTITLES, episodesOnly = false, tapOnly = true),
                 SubtitleSite(PROVIDER_SUBDL, ApiKey.SUBDL, episodesOnly = false),
                 SubtitleSite(PROVIDER_SUBSOURCE, ApiKey.SUBSOURCE, episodesOnly = false),
                 SubtitleSite(PROVIDER_GESTDOWN, null, episodesOnly = true),

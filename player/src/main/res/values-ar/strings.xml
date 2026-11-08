@@ -123,6 +123,10 @@
     <string name="player_online_series_only">%1$s (للمسلسلات فقط)</string>
     <string name="player_online_more_sites">مفتاح مجاني من الإعدادات يضيف %1$s.</string>
     <string name="player_online_open_keys">فتح مفاتيح الترجمة</string>
+    <string name="player_online_subdl_hint">أضف مفتاح ⁦SubDL⁩ مجاني للأفلام والترجمة العربية.</string>
+    <string name="player_auto_loaded_arabic">تم تحميل ترجمة عربية من %1$s</string>
+    <string name="player_auto_loaded_english">تم تحميل ترجمة إنجليزية من %1$s</string>
+    <string name="player_auto_change">غيّرها</string>
 
     <!-- Audio -->
     <string name="player_audio_delay">تأخير الصوت</string>

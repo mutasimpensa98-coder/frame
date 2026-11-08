@@ -214,6 +214,7 @@ internal fun ControlsLayer(session: PlayerSession, ui: PlayerUiState, actions: P
             BufferingMark(state, ui)
             ScrubLayer(session, ui, showChrome)
             FeedbackLayer(state, ui)
+            if (!ui.locked) AutoSubtitleToast(session, ui)
             SkipAndNext(session, ui, showChrome)
         }
         if (failure != null) FailureCard(failure, state, actions)

@@ -59,3 +59,14 @@ After trying 1.0.104 the owner said there is no online subtitle search. They hav
 - Gestdown holds TV episodes only. Films still need a key. Arabic there was thin in the probes of 2026-11-08.
 - R2 still holds: only the show name, season, episode and language go out, never the release name or the hash. Clips and private-folder videos never reach any site, and Online features off still means no call.
 - F-S9: the "Search online" row always shows in the subtitle sheet, dimmed with a reason when it cannot search.
+
+## 2026-11-08: Automatic subtitle download
+
+The owner asked that a video with no Arabic subtitle gets one by itself, without a tap. This changes F-S9 "On tap" as follows:
+
+- When a video starts and has no full Arabic subtitle, embedded or beside it (F-S7), the app searches once for that file in the background, downloads the best Arabic result, saves it per `fileId` like a tapped download, loads it without stopping playback, and runs the on-device sync as a tapped download does. A small note in the player names the site and offers «غيّرها», which opens the online results.
+- What goes out is decision D9's automatic set: the parsed title, year, season, episode and IDs. Never the release name, the file hash or the file size, whatever their two switches say. The local file name may order the results on the phone and is never sent.
+- Only sites whose quota is not spent on a tap: SubDL and SubSource when their keys are saved, and Gestdown, which needs no key and holds series episodes only. OpenSubtitles stays tap-only, because its 5 free downloads a day belong to the owner's taps.
+- Clips and private-folder videos are never searched, and Online features off still means no call. A video whose subtitles the owner turned off is left alone, and so is one with a subtitle file beside it in no stated language, because the player already shows that file.
+- Each file is tried once, found or not. A network failure or a used-up limit leaves it to the next play. Failures are silent, as section 4.9 asks. The manual search still works any time.
+- Settings › Subtitles › «ترجمة تلقائية من النت»: Off, Arabic (the default), or Arabic then English. English is fetched only when no Arabic exists and the video has no English subtitle of its own. The choice is in the backup.

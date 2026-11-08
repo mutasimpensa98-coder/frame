@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.frameglass.data.api.AutoSubtitleMode
 import com.frameglass.player.R
 import com.frameglass.player.ui.rememberUiModel
 import kotlinx.coroutines.Dispatchers
@@ -151,6 +152,21 @@ internal fun SubtitleSettingsScreen() {
                             else -> model.updateSettings { it.copy(subtitleFontPath = null) }
                         }
                     },
+                )
+            }
+        }
+        item(key = "auto") {
+            SettingsSection(stringResource(R.string.app_subtitle_online_section)) {
+                ChoiceRow(
+                    title = stringResource(R.string.app_auto_subtitles),
+                    description = stringResource(R.string.app_auto_subtitles_hint),
+                    options = listOf(
+                        AutoSubtitleMode.OFF to stringResource(R.string.app_auto_subtitles_off),
+                        AutoSubtitleMode.ARABIC to stringResource(R.string.app_auto_subtitles_arabic),
+                        AutoSubtitleMode.ARABIC_THEN_ENGLISH to stringResource(R.string.app_auto_subtitles_both),
+                    ),
+                    selected = settings.autoSubtitles,
+                    onSelect = { value -> model.updateSettings { it.copy(autoSubtitles = value) } },
                 )
             }
         }

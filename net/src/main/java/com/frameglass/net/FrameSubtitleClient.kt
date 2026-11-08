@@ -42,10 +42,10 @@ internal class FrameSubtitleClient(
     override val configuredProviders: List<ApiKey>
         get() = providers.mapNotNull(SubtitleProvider::keyKind).filter { config.keyOf(it) != null }
 
-    override val sites: List<SubtitleSite> = providers.map { SubtitleSite(it.name, it.keyKind, it.episodesOnly) }
+    override val sites: List<SubtitleSite> = providers.map { SubtitleSite(it.name, it.keyKind, it.episodesOnly, it.tapOnly) }
 
     override suspend fun search(query: SubtitleQuery): NetResult<List<SubtitleHit>> = online {
-        val active = providers.filter { config.ready(it) && it.serves(query) }
+        val active = providers.filter { config.ready(it) && it.serves(query) && !(query.automatic && it.tapOnly) }
         if (active.isEmpty()) return@online Failure(Reason.NO_KEY)
         val languages = SubtitleRanking.languages(query.languages)
         val results = coroutineScope {

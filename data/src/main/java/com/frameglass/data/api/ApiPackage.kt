@@ -9,6 +9,24 @@ import kotlinx.coroutines.flow.Flow
 
 enum class ThemeMode { SYSTEM, DARK, LIGHT }
 
+/**
+ * The automatic subtitle download of the waiver of 2026-11-08: off, Arabic only, or Arabic and then English when no
+ * Arabic exists anywhere.
+ */
+enum class AutoSubtitleMode {
+    OFF,
+    ARABIC,
+    ARABIC_THEN_ENGLISH,
+    ;
+
+    companion object {
+        val DEFAULT = ARABIC
+
+        /** A stored or restored name. Anything unknown, including null, is the default. */
+        fun parse(name: String?): AutoSubtitleMode = entries.firstOrNull { it.name == name } ?: DEFAULT
+    }
+}
+
 enum class AccentColor { WHITE, BLUE, RED, GREEN, AMBER, VIOLET }
 
 data class FileFacts(

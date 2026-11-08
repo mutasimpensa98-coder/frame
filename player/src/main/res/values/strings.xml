@@ -115,6 +115,10 @@
     <string name="player_online_series_only">%1$s (series only)</string>
     <string name="player_online_more_sites">A free key in Settings adds %1$s.</string>
     <string name="player_online_open_keys">Open subtitle keys</string>
+    <string name="player_online_subdl_hint">Add a free SubDL key for films and Arabic subtitles.</string>
+    <string name="player_auto_loaded_arabic">Arabic subtitles loaded from %1$s</string>
+    <string name="player_auto_loaded_english">English subtitles loaded from %1$s</string>
+    <string name="player_auto_change">Change</string>
 
     <!-- Audio -->
     <string name="player_audio_delay">Audio delay</string>

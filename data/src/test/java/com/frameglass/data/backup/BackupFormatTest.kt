@@ -270,6 +270,25 @@ class BackupFormatTest {
     }
 
     @Test
+    fun theAutomaticSubtitleChoiceRoundTrips() {
+        val chosen = phone.copy(autoSubtitles = com.frameglass.data.api.AutoSubtitleMode.ARABIC_THEN_ENGLISH)
+        val back = BackupCodec.decode(BackupCodec.encode(doc.copy(settings = BackupSettings.from(chosen)))).settings
+            .toAppSettings(fontExists = false, phone)
+        assertEquals(com.frameglass.data.api.AutoSubtitleMode.ARABIC_THEN_ENGLISH, back.autoSubtitles)
+    }
+
+    @Test
+    fun aBackupWrittenBeforeAutomaticSubtitlesKeepsThePhonesChoice() {
+        val json = BackupCodec.encode(doc.copy(settings = BackupSettings.from(phone)))
+            .replace(Regex(""",?\s*"autoSubtitles": ("[A-Z_]+"|null)"""), "")
+        assertTrue("autoSubtitles" !in json)
+        val saved = BackupCodec.decode(json).settings
+        assertEquals(null, saved.autoSubtitles)
+        val off = phone.copy(autoSubtitles = com.frameglass.data.api.AutoSubtitleMode.OFF)
+        assertEquals(com.frameglass.data.api.AutoSubtitleMode.OFF, saved.toAppSettings(fontExists = false, off).autoSubtitles)
+    }
+
+    @Test
     fun aBackupWrittenBeforeCinemaModeLeavesItOff() {
         val json = BackupCodec.encode(doc).replace(Regex(",?\\s*\"cinemaMode\": false"), "")
         assertTrue("cinemaMode" !in json)

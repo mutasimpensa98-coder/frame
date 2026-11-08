@@ -6,6 +6,7 @@ Updated 2026-11-08, after the owner's three requests on 1.0.104 were built, revi
 
 - **The phone runs 1.0.104,** which holds the owner-requests package and the TMDB and IMDb switches. The owner tried it and asked for three things. No phone check of 1.0.104 is recorded here, and its schema steps 2 to 3 and 3 to 4 ran on Android only in that install, unobserved.
 - **This round's answer to those three requests is built and unit tested, and nobody has seen it on a phone.** It is in the working tree only, not committed. Coloured Settings icons, a swipe to refresh that shows live progress, and subtitle search with no key for series through Gestdown. No schema change. The section "This round: the owner's three requests" lists each item.
+- **Branch `pack-subs` adds the automatic Arabic subtitle download and a sites line that opens the keys page.** Built and unit tested, never installed or seen on a phone. See "This round: automatic subtitles and the keys line".
 - **The improvement package has run on the phone,** and the update kept the library, progress, settings and keys. `NEXT.md` section 1 lists what was seen and what was not. Screenshots of those checks stay in `D:\FrameGlass\shots`, because some show the owner's real videos. The tables below still describe filed evidence only.
 - **The last filed phone evidence is the first app build,** 18:19 to 18:22. Later phone checks are recorded in `NEXT.md` section 1 and in `phase-0-results.md`.
 - **Delete has not run on the phone, and the private folder ran only on the test copy.** Test delete with a clip the owner does not need.
@@ -207,7 +208,7 @@ Glass over video is off: `VideoBlurHook.ENABLED` is false until step 0.7 is meas
 | F-S6 | Series memory | UNIT TESTED | Not seen | `TrackPickerTest`. |
 | F-S7 | Sidecars | UNIT TESTED | Not seen | `SidecarMatcherTest`. |
 | F-S8 | Night audio | UNIT TESTED | Not seen | `NightCompressorTest`. Owner listening check not done. |
-| F-S9 | Online subtitle search | UNIT TESTED | Not seen | `OnlineSubtitleQueryTest`, `OnlineSubtitleSearchTest`, `GestdownApiTest`, `SubtitleSiteListTest`, `SitesNoteTest`. The row always shows. Series search with no key through Gestdown (`WAIVERS.md`, 2026-11-08). Gestdown replies are fixtures; no download has run live. |
+| F-S9 | Online subtitle search | UNIT TESTED | Not seen | `OnlineSubtitleQueryTest`, `OnlineSubtitleSearchTest`, `GestdownApiTest`, `SubtitleSiteListTest`, `SitesNoteTest`, `AutoSubtitleTest`, `AutoSubtitleRuleTest`, `SubtitleClientTest`. The row always shows. Series search with no key through Gestdown (`WAIVERS.md`, 2026-11-08). Automatic download once per file when no Arabic exists, never through OpenSubtitles and never with the release name or hash (`WAIVERS.md`, 2026-11-08). The sites line opens Settings › Online features and keys. Gestdown replies are fixtures; no download, automatic or tapped, has run live. |
 | F-S10 | Resume logic | UNIT TESTED | Not seen | `ResumeLogicTest`. |
 
 ### Professional tools
@@ -268,7 +269,17 @@ Three faults from the review of this round were fixed:
 | For the 3.5 s the result stays up, a new pull gave no tick, and the pill kept the old result instead of following the finger, though letting go still refreshed. | A pull counts whenever no refresh runs and the box has come to rest after the last one. The pill then shows the pull row over the result, and the tick and the stretch work as when idle. No UI test. |
 | Gestdown downloads sent `Accept: application/json` to an endpoint that returns plain SRT, so a server that negotiates could refuse every download. | Downloads send `Accept: */*`; search still asks for JSON. `GestdownApiTest` checks the header. No download has been tried live. |
 
-Not done: nothing in `:app` implements `PlayerHost.subtitleKeysIntent()`, so the sites line cannot open the keys page and is text only. `NEXT.md` section 7, step 2.
+The sites line now opens the keys page: see the next section.
+
+## This round: automatic subtitles and the keys line
+
+Two owner requests of 2026-11-08, built on branch `pack-subs`. Not installed, and not seen on a phone, in either theme or in Arabic.
+
+| Request | Status | Notes |
+|---|---|---|
+| Automatic Arabic subtitle | UNIT TESTED | `AutoSubtitleRuleTest` for when the player asks, `AutoSubtitleTest` for the query (no release name, hash or size), the ranking, the once-per-file memory and the setting, `SubtitleClientTest` for OpenSubtitles being left out of an automatic search. On the first tracks of a video with no full Arabic subtitle, `PlayerSession` asks `OnlineSubtitles.autoFetch`, which skips private items, clips, Online off and files already tried, searches SubDL, SubSource and Gestdown only, picks Arabic full plain tracks first with the local name as a tie-break on the phone, tries up to 3 downloads, and saves like a tapped download. The player loads it as a live subtitle, runs `SubtitleSync`, and shows a glass note with «غيّرها». A subtitle the owner picks meanwhile wins. The "tried" memory is one empty file per video under `files/subs-auto`, so the Room schema is unchanged. The `PlayerSession` wiring and the toast have no test. |
+| Setting «ترجمة تلقائية من النت» | UNIT TESTED | `AutoSubtitleTest`, `BackupFormatTest`. Settings › Subtitles: Off, Arabic (default), Arabic then English. In the backup; an older backup keeps the phone's choice. |
+| Sites line opens the keys page | UNIT TESTED | `AppLinksTest`, `SitesNoteTest`. `FrameApp` implements `PlayerHost`, returning an explicit intent to `MainActivity` with clear-top, which closes the player (its position is saved) and opens Settings › Online features and keys on top of the restored stack. With no keyed site saved the line adds «أضف مفتاح SubDL مجاني للأفلام والترجمة العربية». The tap itself has no test. |
 
 ## Earlier round: TMDB and IMDb switches
 

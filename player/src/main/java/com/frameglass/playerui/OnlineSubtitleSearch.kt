@@ -55,6 +55,8 @@ internal data class SitesNote(
     val withFreeKey: List<SubtitleSiteInfo>,
     /** A film skipped an active site because that site has series only. */
     val skippedSeriesOnly: Boolean = false,
+    /** No keyed site is active yet, so the line also suggests the free key that adds films and Arabic. */
+    val noKey: Boolean = false,
 ) {
     /** NO_KEY then means "films need a key", which says more than the generic words. */
     val filmsNeedKey: Boolean get() = searched.isEmpty() && skippedSeriesOnly
@@ -64,7 +66,8 @@ internal data class SitesNote(
         fun of(sites: SubtitleSites, item: PlaybackItem?): SitesNote {
             val episode = item?.episode != null
             val (searched, skipped) = sites.active.partition { episode || !it.seriesOnly }
-            return SitesNote(searched, sites.withFreeKey, skipped.isNotEmpty())
+            val noKey = sites.active.none { it.key != null } && sites.withFreeKey.isNotEmpty()
+            return SitesNote(searched, sites.withFreeKey, skipped.isNotEmpty(), noKey)
         }
     }
 }

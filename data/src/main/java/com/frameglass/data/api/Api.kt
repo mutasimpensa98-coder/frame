@@ -310,6 +310,8 @@ data class AppSettings(
     /** Decision D9: extra fields a tapped subtitle search may send. Both are on, and both can be turned off. */
     val sendReleaseName: Boolean = true,
     val sendFileHash: Boolean = true,
+    /** Waiver of 2026-11-08: fetch a subtitle by itself when a video has no Arabic one. Never sends the D9 fields. */
+    val autoSubtitles: AutoSubtitleMode = AutoSubtitleMode.DEFAULT,
     /** Auto-lock the private folder this many seconds after leaving it. 0 locks at once. */
     val vaultLockSeconds: Int = 0,
     val neverSleepingHintDone: Boolean = false,

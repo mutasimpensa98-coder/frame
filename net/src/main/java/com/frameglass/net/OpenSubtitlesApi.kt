@@ -34,6 +34,9 @@ internal class OpenSubtitlesApi(private val http: Http, private val config: NetC
     override val name = PROVIDER_OPENSUBTITLES
     override val keyKind = ApiKey.OPENSUBTITLES
 
+    /** 5 downloads a day without login (F-S9), so only the owner's tap may spend them. */
+    override val tapOnly = true
+
     override suspend fun search(query: SubtitleQuery, languages: List<String>): NetResult<List<SubtitleHit>> {
         val key = config.keyOf(keyKind) ?: return Failure(Reason.NO_KEY)
         return eachLanguage(languages) { language ->

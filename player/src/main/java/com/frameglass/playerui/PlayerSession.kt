@@ -28,6 +28,7 @@ import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import com.frameglass.data.api.AppSettings
+import com.frameglass.data.api.AutoSubtitleOutcome
 import com.frameglass.data.api.PlayRef
 import com.frameglass.data.api.PlaybackItem
 import com.frameglass.data.api.SegmentKind
@@ -36,6 +37,7 @@ import com.frameglass.data.api.SkipSegment
 import com.frameglass.data.api.SubtitleResult
 import com.frameglass.data.api.TrackPrefs
 import com.frameglass.data.api.WatchTarget
+import com.frameglass.data.api.autoFetch
 import com.frameglass.data.api.frameServices
 import com.frameglass.data.api.segmentsAfterFetch
 import com.frameglass.data.api.sites
@@ -139,6 +141,13 @@ internal class PlayerSession(context: Context) {
 
     private var openJob: Job? = null
     private var onlineJob: Job? = null
+    private var autoJob: Job? = null
+
+    /** The automatic subtitle check runs once per open, on the first tracks. */
+    private var autoChecked = false
+
+    /** The owner picked a subtitle during this play, so an automatic one arriving late must not replace it. */
+    private var ownerChoseText = false
     private var vaultWatch: Job? = null
     private var ticker: Job? = null
     private var countdown: Job? = null
@@ -288,6 +297,9 @@ internal class PlayerSession(context: Context) {
 
     private fun prepareForNewItem() {
         onlineJob?.cancel()
+        autoJob?.cancel()
+        autoChecked = false
+        ownerChoseText = false
         forgetSync()
         pendingSyncPath = null
         clearLive()
@@ -625,6 +637,10 @@ internal class PlayerSession(context: Context) {
             tracksApplied = true
             applyMemory(audio, textRows)
         }
+        if (!autoChecked && !switching) {
+            autoChecked = true
+            startAutoSubtitle()
+        }
         pendingSyncPath?.let { path ->
             val row = textRows.firstOrNull { it.sidecarPath == path && it.selected } ?: return@let
             pendingSyncPath = null
@@ -697,6 +713,7 @@ internal class PlayerSession(context: Context) {
             applyTrack(type, row)
             return
         }
+        ownerChoseText = true
         dropSync()
         val file = fileOf(row)
         if (row.group == LIVE_GROUP) {
@@ -738,6 +755,7 @@ internal class PlayerSession(context: Context) {
     }
 
     fun subtitlesOff() {
+        ownerChoseText = true
         dropSync()
         stopLive()
         publishTextRows()
@@ -786,6 +804,7 @@ internal class PlayerSession(context: Context) {
     /** F-P7. The picked file is copied in, so it survives the document grant ending. */
     fun addSubtitle(uri: Uri, onRejected: () -> Unit) {
         val item = state.item ?: return
+        ownerChoseText = true
         main.launch {
             val path = withContext(Dispatchers.IO) { runCatching { copySubtitle(uri, item) }.getOrNull() }
             if (path == null) {
@@ -860,6 +879,7 @@ internal class PlayerSession(context: Context) {
     fun chooseOnline(result: SubtitleResult, onLoaded: () -> Unit) {
         val item = state.item ?: return
         if (state.online.loading != null) return
+        ownerChoseText = true
         state.online = state.online.copy(loading = result, failure = null)
         onlineJob = main.launch {
             val loaded = loadOnline(item, result)
@@ -873,6 +893,32 @@ internal class PlayerSession(context: Context) {
             } else {
                 state.textTracks.firstOrNull { it.sidecarPath == sidecar.path }?.let(::fileOf)?.let(::startSync)
             }
+        }
+    }
+
+    /**
+     * The waiver of 2026-11-08: a video with no Arabic subtitle gets one by itself, in the background, once per file.
+     * It loads beside the playing video as a tapped download does, and every failure stays silent (brief 4.9).
+     */
+    private fun startAutoSubtitle() {
+        val item = state.item ?: return
+        val languages = AutoSubtitleRule.languages(state.settings.autoSubtitles, state.onlineAvailable, item, prefs.subtitlesOff, textRows)
+        if (languages.isEmpty()) return
+        autoJob = main.launch {
+            val outcome = try {
+                services.subtitles.autoFetch(item, languages)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failed: Exception) {
+                AutoSubtitleOutcome.Skipped
+            }
+            ensureActive()
+            val loaded = outcome as? AutoSubtitleOutcome.Loaded ?: return@launch
+            if (state.item?.playableKey != item.playableKey || ownerChoseText || state.online.loading != null) return@launch
+            dropSync()
+            if (!addLive(loaded.sidecar)) return@launch
+            state.autoNotice = AutoNotice(loaded.result.provider, loaded.result.language)
+            state.textTracks.firstOrNull { it.sidecarPath == loaded.sidecar.path }?.let(::fileOf)?.let(::startSync)
         }
     }
 
@@ -1306,6 +1352,7 @@ internal class PlayerSession(context: Context) {
         savePosition()
         openJob?.cancel()
         onlineJob?.cancel()
+        autoJob?.cancel()
         forgetSync()
         pendingSyncPath = null
         vaultWatch?.cancel()

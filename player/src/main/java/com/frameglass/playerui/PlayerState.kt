@@ -71,6 +71,9 @@ internal class PlayerState {
     var onlineSites by mutableStateOf(SubtitleSites(emptyList(), emptyList()))
     var online by mutableStateOf(OnlineSearch())
 
+    /** Set when a subtitle arrived by itself, for the toast. */
+    var autoNotice by mutableStateOf<AutoNotice?>(null)
+
     var segment by mutableStateOf<SkipSegment?>(null)
     var next by mutableStateOf<NextCard?>(null)
     var sleep by mutableStateOf<SleepTimer?>(null)
@@ -104,6 +107,7 @@ internal class PlayerState {
         textTracks = emptyList()
         hasTextFiles = false
         online = OnlineSearch()
+        autoNotice = null
         sync = null
         syncUndoable = false
         subtitleEncoding = null
