@@ -131,10 +131,13 @@ class UpcomingTest {
     private val today = "2026-11-08"
 
     @Test
-    fun aReturningSeriesShowsItsNextEpisodeUntilItAirs() {
+    fun aReturningSeriesShowsItsNextEpisodeUntilTheDayAfterItAirs() {
         assertEquals(UpcomingEpisode(2, 6, "2026-11-12"), Upcoming.of("Returning Series", "2026-11-12", 2, 6, today))
         assertEquals(UpcomingEpisode(2, 6, today), Upcoming.of("Returning Series", today, 2, 6, today))
-        assertNull(Upcoming.of("Returning Series", "2026-11-07", 2, 6, today))
+        // The network's date was yesterday, which here is last night or the small hours of today.
+        assertEquals(UpcomingEpisode(2, 6, "2026-11-07"), Upcoming.of("Returning Series", "2026-11-07", 2, 6, today))
+        assertNull(Upcoming.of("Returning Series", "2026-11-06", 2, 6, today))
+        assertNull(Upcoming.of("Returning Series", "soon", 2, 6, today))
     }
 
     @Test

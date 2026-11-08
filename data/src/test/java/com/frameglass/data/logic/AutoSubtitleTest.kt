@@ -158,4 +158,23 @@ class AutoSubtitleTest {
             dir.deleteRecursively()
         }
     }
+
+    @Test
+    fun onlyAMatchedLibraryTitleMaySearchByItself() {
+        val ep = com.frameglass.data.db.NameKinds.EPISODE
+        val auto = com.frameglass.data.api.MatchState.AUTO
+        assertTrue(AutoSubtitleGate.allows(1, ep, 7, auto))
+        assertTrue(AutoSubtitleGate.allows(1, com.frameglass.data.db.NameKinds.MOVIE, 7, com.frameglass.data.api.MatchState.MANUAL))
+        // Open with: no library row, so the only name is the file's.
+        assertFalse(AutoSubtitleGate.allows(null, null, 7, auto))
+        assertFalse(AutoSubtitleGate.allows(1, null, 7, auto))
+        // A file with no title yet would send its own base name.
+        assertFalse(AutoSubtitleGate.allows(1, ep, null, null))
+        // A clip-like name is a clip even before it has a title.
+        assertFalse(AutoSubtitleGate.allows(1, com.frameglass.data.db.NameKinds.CLIP, null, null))
+        assertFalse(AutoSubtitleGate.allows(1, com.frameglass.data.db.NameKinds.CLIP, 7, auto))
+        for (state in listOf("UNMATCHED", "QUEUED", "NEEDS_CHOICE", "NONE_FOUND")) {
+            assertFalse(state, AutoSubtitleGate.allows(1, ep, 7, com.frameglass.data.api.MatchState.valueOf(state)))
+        }
+    }
 }

@@ -145,7 +145,7 @@ internal fun FrameRoot(link: Route? = null, onLinkOpened: () -> Unit = {}) {
         val navigator = remember(stack, context) { Navigator(stack, context) }
         LaunchedEffect(link) {
             val route = link ?: return@LaunchedEffect
-            if (stack.lastOrNull() != Route.Onboarding) navigator.push(route)
+            if (AppLinks.shouldOpen(stack, route)) navigator.push(route)
             onLinkOpened()
         }
         var tab by rememberSaveable { mutableIntStateOf(0) }

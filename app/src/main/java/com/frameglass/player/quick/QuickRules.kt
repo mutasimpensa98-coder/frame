@@ -48,6 +48,7 @@ internal object Trailer {
 
 /** When an announced episode comes out, as the screens word it. */
 internal sealed interface AirDay {
+    /** The air date, or the day after it: TMDB's date is the network's own, so here it lands tonight or overnight. */
     data object Today : AirDay
     data object Tomorrow : AirDay
 
@@ -59,13 +60,13 @@ internal sealed interface AirDay {
 internal object AirDates {
     private const val WEEK_DAYS = 6L
 
-    /** Null when [airDate] is not a date or has passed. */
+    /** Null when [airDate] is not a date or is more than a day past. */
     fun dayOf(airDate: String, today: LocalDate): AirDay? {
         val date = runCatching { LocalDate.parse(airDate) }.getOrNull() ?: return null
         val days = ChronoUnit.DAYS.between(today, date)
         return when {
-            days < 0 -> null
-            days == 0L -> AirDay.Today
+            days < -1L -> null
+            days <= 0L -> AirDay.Today
             days == 1L -> AirDay.Tomorrow
             days <= WEEK_DAYS -> AirDay.ThisWeek(date)
             else -> AirDay.Later(date)

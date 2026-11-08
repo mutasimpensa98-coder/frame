@@ -131,7 +131,7 @@ internal fun SheetsLayer(session: PlayerSession, ui: PlayerUiState, actions: Pla
             PlayerSheet.SUBTITLES -> SubtitlesSheet(session, ui, actions)
             PlayerSheet.SUBTITLE_STYLE -> SubtitleStyleSheet(session, actions)
             PlayerSheet.SUBTITLE_ENCODING -> EncodingSheet(session, ui)
-            PlayerSheet.SUBTITLE_ONLINE -> OnlineSheet(session, ui)
+            PlayerSheet.SUBTITLE_ONLINE -> OnlineSheet(session, ui, actions)
             PlayerSheet.AUDIO -> AudioSheet(session, ui)
             PlayerSheet.SPEED -> SpeedSheet(session, ui)
             PlayerSheet.EPISODES -> EpisodesSheet(session, ui)
@@ -296,7 +296,7 @@ private fun SyncSection(session: PlayerSession) {
 
 /** F-S9. Whatever goes wrong is said here, and the sheet stays open so another result can be tried. */
 @Composable
-private fun OnlineSheet(session: PlayerSession, ui: PlayerUiState) {
+private fun OnlineSheet(session: PlayerSession, ui: PlayerUiState, actions: PlayerActions) {
     val online = session.state.online
     val results = online.results
     val note = SitesNote.of(session.state.onlineSites, session.state.item)
@@ -322,7 +322,7 @@ private fun OnlineSheet(session: PlayerSession, ui: PlayerUiState) {
         results.isEmpty() -> Note(stringResource(R.string.player_online_none))
         else -> results.forEach { result -> OnlineRow(session, ui, result) }
     }
-    if (!online.searching && (results != null || online.failure == OnlineFailure.NO_KEY)) SitesLine(note, ui)
+    if (!online.searching && (results != null || online.failure == OnlineFailure.NO_KEY)) SitesLine(note, ui, actions)
 }
 
 /**
@@ -330,7 +330,7 @@ private fun OnlineSheet(session: PlayerSession, ui: PlayerUiState) {
  * way there; otherwise it is just text. With no key saved it also suggests the free SubDL key.
  */
 @Composable
-private fun SitesLine(note: SitesNote, ui: PlayerUiState) {
+private fun SitesLine(note: SitesNote, ui: PlayerUiState, actions: PlayerActions) {
     val context = LocalContext.current
     val locale = LocalLocale.current.platformLocale
     val searched = note.searched.map { site ->
@@ -358,8 +358,12 @@ private fun SitesLine(note: SitesNote, ui: PlayerUiState) {
         color = FrameTheme.colors.accent,
         modifier = Modifier
             .clickable(role = Role.Button, onClickLabel = stringResource(R.string.player_online_open_keys)) {
-                // A stale or foreign target must not crash the player.
-                runCatching { context.startActivity(keysPage) }.onSuccess { ui.closeSheet() }
+                // A stale or foreign target must not crash the player. Clear-top cannot close a player that is the root
+                // of its task, as after a shortcut or the widget, so the player closes itself and saves its position.
+                runCatching { context.startActivity(keysPage) }.onSuccess {
+                    ui.closeSheet()
+                    actions.exit()
+                }
             }
             .padding(horizontal = FrameSpacing.S12, vertical = FrameSpacing.S4),
     )

@@ -74,7 +74,9 @@ class AirDatesTest {
         assertEquals(AirDay.Tomorrow, AirDates.dayOf("2026-11-09", today))
         assertEquals(AirDay.ThisWeek(LocalDate.of(2026, 11, 12)), AirDates.dayOf("2026-11-12", today))
         assertEquals(AirDay.Later(LocalDate.of(2026, 11, 20)), AirDates.dayOf("2026-11-20", today))
-        assertNull(AirDates.dayOf("2026-11-07", today))
+        // TMDB's date is the network's: the day after it still reads as tonight.
+        assertEquals(AirDay.Today, AirDates.dayOf("2026-11-07", today))
+        assertNull(AirDates.dayOf("2026-11-06", today))
         assertNull(AirDates.dayOf("2026-11", today))
     }
 

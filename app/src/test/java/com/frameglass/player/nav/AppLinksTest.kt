@@ -17,4 +17,13 @@ class AppLinksTest {
         assertNull(AppLinks.routeOf(null))
         assertNull(AppLinks.routeOf("com.frameglass.player.action.SOMETHING_ELSE"))
     }
+
+    @Test
+    fun theLinkOpensOnTopOnceAndNeverOverOnboarding() {
+        val keys = Route.Settings(SettingsTopic.ONLINE)
+        assertEquals(true, AppLinks.shouldOpen(listOf(Route.Tabs, Route.Details(3)), keys))
+        assertEquals(false, AppLinks.shouldOpen(listOf(Route.Tabs, keys), keys))
+        assertEquals(false, AppLinks.shouldOpen(listOf(Route.Onboarding), keys))
+        assertEquals(true, AppLinks.shouldOpen(emptyList(), keys))
+    }
 }

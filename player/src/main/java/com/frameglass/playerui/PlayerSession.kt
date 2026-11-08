@@ -902,9 +902,14 @@ internal class PlayerSession(context: Context) {
      */
     private fun startAutoSubtitle() {
         val item = state.item ?: return
-        val languages = AutoSubtitleRule.languages(state.settings.autoSubtitles, state.onlineAvailable, item, prefs.subtitlesOff, textRows)
-        if (languages.isEmpty()) return
         autoJob = main.launch {
+            // The state copies start at their defaults until the flows answer, so read the stored values.
+            val settings = services.settings.settings.first()
+            val online = services.subtitles.available.first()
+            ensureActive()
+            if (ownerChoseText) return@launch
+            val languages = AutoSubtitleRule.languages(settings.autoSubtitles, online, item, prefs.subtitlesOff, textRows)
+            if (languages.isEmpty()) return@launch
             val outcome = try {
                 services.subtitles.autoFetch(item, languages)
             } catch (cancelled: CancellationException) {
@@ -914,9 +919,10 @@ internal class PlayerSession(context: Context) {
             }
             ensureActive()
             val loaded = outcome as? AutoSubtitleOutcome.Loaded ?: return@launch
-            if (state.item?.playableKey != item.playableKey || ownerChoseText || state.online.loading != null) return@launch
+            fun stillWanted() = state.item?.playableKey == item.playableKey && !ownerChoseText && state.online.loading == null
+            if (!stillWanted()) return@launch
             dropSync()
-            if (!addLive(loaded.sidecar)) return@launch
+            if (!addLive(loaded.sidecar, ::stillWanted)) return@launch
             state.autoNotice = AutoNotice(loaded.result.provider, loaded.result.language)
             state.textTracks.firstOrNull { it.sidecarPath == loaded.sidecar.path }?.let(::fileOf)?.let(::startSync)
         }
@@ -940,14 +946,18 @@ internal class PlayerSession(context: Context) {
 
     // ---- Live subtitles -------------------------------------------------------------------------
 
-    /** A file already saved for this video is a real track of this play, so it needs nothing new. */
-    private suspend fun addLive(sidecar: SidecarSubtitle): Boolean {
+    /**
+     * A file already saved for this video is a real track of this play, so it needs nothing new. [stillWanted] is asked
+     * again after the file is read and before anything on screen changes, so a choice the owner made meanwhile wins.
+     */
+    private suspend fun addLive(sidecar: SidecarSubtitle, stillWanted: () -> Boolean = { true }): Boolean {
         state.textTracks.firstOrNull { it.sidecarPath == sidecar.path && it.supported }?.let { row ->
+            if (!stillWanted()) return false
             applyTrack(C.TRACK_TYPE_TEXT, row)
             return true
         }
         val file = SubtitleFile(sidecar.path, sidecar.label, sidecar.language, sidecar.mimeType)
-        if (!playLive(file)) return false
+        if (!playLive(file, stillWanted)) return false
         liveFiles = liveFiles + file
         state.item = state.item?.let { it.copy(sidecars = it.sidecars + sidecar) }
         state.hasTextFiles = true
@@ -973,12 +983,13 @@ internal class PlayerSession(context: Context) {
         savePrefs { copy(subtitleUri = file.path, subtitleLanguage = stored, subtitlesOff = false) }
     }
 
-    private suspend fun playLive(file: SubtitleFile): Boolean {
+    private suspend fun playLive(file: SubtitleFile, stillWanted: () -> Boolean = { true }): Boolean {
         val subtitle = withContext(Dispatchers.IO) {
             runCatching {
                 LiveSubtitle.read(SubtitleEncoding.toUtf8(app, File(file.path), prefs.subtitleEncoding), file.mimeType)
             }.getOrNull()
         } ?: return false
+        if (!stillWanted()) return false
         stopLive()
         disableTextTracks()
         liveFile = file

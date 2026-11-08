@@ -3,18 +3,28 @@ package com.frameglass.data.logic
 import com.frameglass.data.api.PickOption
 import com.frameglass.data.api.ResumeEntry
 import com.frameglass.data.api.UpcomingEpisode
+import java.time.LocalDate
 
 /** The next episode a series announced on TMDB, while it is still to come. */
 internal object Upcoming {
     private val FINISHED = setOf("ended", "canceled", "cancelled")
 
-    /** [today] and [airDate] are yyyy-MM-dd, so they compare as text. A date that has passed waits for a refresh. */
+    /**
+     * [today] and [airDate] are yyyy-MM-dd. TMDB's air date is the network's local date, which in Libya is often the
+     * night of that date or the early hours of the next, so the episode stays announced until [airDate] + 1 day.
+     * Later than that it waits for a refresh.
+     */
     fun of(status: String?, airDate: String?, season: Int?, number: Int?, today: String): UpcomingEpisode? {
         if (status?.lowercase() in FINISHED) return null
         if (airDate == null || season == null || number == null) return null
-        if (airDate < today) return null
+        val date = runCatching { LocalDate.parse(airDate) }.getOrNull() ?: return null
+        val now = runCatching { LocalDate.parse(today) }.getOrNull() ?: return null
+        if (date.plusDays(GRACE_DAYS).isBefore(now)) return null
         return UpcomingEpisode(season, number, airDate)
     }
+
+    /** How long after its air date an episode still shows as coming out tonight. */
+    const val GRACE_DAYS = 1L
 
     fun of(info: TitleInfo, today: String): UpcomingEpisode? {
         if (info.isMovie) return null

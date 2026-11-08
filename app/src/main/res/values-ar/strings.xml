@@ -596,10 +596,10 @@
     <string name="app_widget_empty">لا شيء تتابعه الآن. اضغط لفتح Frame Glass</string>
 
     <!-- The next episode of a returning series, and its trailer. -->
-    <string name="app_upcoming_today">الحلقة %1$s من الموسم %2$s تنزل اليوم</string>
+    <string name="app_upcoming_today">الحلقة %1$s من الموسم %2$s تنزل الليلة</string>
     <string name="app_upcoming_tomorrow">الحلقة %1$s من الموسم %2$s تنزل غدًا</string>
     <string name="app_upcoming_on">الحلقة %1$s من الموسم %2$s تنزل %3$s</string>
-    <string name="app_upcoming_short_today">حلقة جديدة اليوم</string>
+    <string name="app_upcoming_short_today">حلقة جديدة الليلة</string>
     <string name="app_upcoming_short_tomorrow">حلقة جديدة غدًا</string>
     <string name="app_upcoming_short_on">حلقة جديدة يوم %1$s</string>
     <string name="app_trailer">الإعلان</string>

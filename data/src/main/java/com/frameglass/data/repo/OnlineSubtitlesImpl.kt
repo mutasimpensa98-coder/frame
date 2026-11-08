@@ -14,6 +14,7 @@ import com.frameglass.data.api.SubtitleSiteSource
 import com.frameglass.data.api.SubtitleSites
 import com.frameglass.data.db.FrameDb
 import com.frameglass.data.db.NameKinds
+import com.frameglass.data.logic.AutoSubtitleGate
 import com.frameglass.data.logic.AutoSubtitlePick
 import com.frameglass.data.logic.ClipRules
 import com.frameglass.data.logic.FileIdentity
@@ -150,9 +151,14 @@ internal class OnlineSubtitlesImpl(
         config.awaitLoaded()
         val opts = settings.current()
         if (!opts.onlineFeatures || opts.autoSubtitles == AutoSubtitleMode.OFF) return AutoSubtitleOutcome.Skipped
+        // Only a library file whose title was matched: its name is then the parsed or matched one, never a file name.
+        val row = item.fileRowId?.let { db.scan().file(it) }
+        val title = (item.titleId ?: row?.titleId)?.let { db.titles().title(it) }
+        if (!AutoSubtitleGate.allows(item.fileRowId, row?.nameKind, title?.id, title?.matchState)) return AutoSubtitleOutcome.Skipped
         val key = fileKeyOf(item)
         if (tried.wasTried(key) || isClip(item)) return AutoSubtitleOutcome.Skipped
         val facts = factsFor(item, withHash = false)
+        if (facts.title.isBlank()) return AutoSubtitleOutcome.Skipped
         val hits = when (val found = client.value.search(SubtitleQueries.automatic(facts, languages))) {
             is NetResult.Failure -> {
                 if (found.reason != NetResult.Reason.NOT_FOUND) return AutoSubtitleOutcome.Skipped

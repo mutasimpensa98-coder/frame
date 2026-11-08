@@ -81,7 +81,10 @@ data class ContinueItem(
     val upcoming: UpcomingEpisode? = null,
 )
 
-/** An episode a series announced on TMDB and has not aired yet. [airDate] is yyyy-MM-dd in the phone's time zone. */
+/**
+ * An episode a series announced on TMDB. [airDate] is TMDB's yyyy-MM-dd, the network's local date and not the phone's,
+ * so the episode may reach Libya that night or early the next day. It is kept until [airDate] + 1 day.
+ */
 data class UpcomingEpisode(val season: Int, val number: Int, val airDate: String)
 
 /** One item for the launcher shortcuts and the home-screen widget. Never a clip or a private-folder video. */
