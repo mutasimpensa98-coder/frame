@@ -166,6 +166,15 @@ internal class PlayerSession(context: Context) {
     /** From a request until the new item is in the player, whose events still belong to the old one. */
     private var switching = false
     private var finishedMarked = false
+
+    /**
+     * Playback ran into the credits, so the item is finished in :data (F-S3). Unlike [finishedMarked] it does not stop
+     * position saves: only those inside the credits are skipped, and a seek back before them saves as usual.
+     */
+    private var creditsMarked = false
+
+    /** The position at the last tick of playback, or null after a seek, so only playback can cross into the credits. */
+    private var lastTickMs: Long? = null
     private var nextCancelled = false
     private var videoHidden = false
     private var audioOff = false
@@ -207,7 +216,11 @@ internal class PlayerSession(context: Context) {
             oldPosition: Player.PositionInfo,
             newPosition: Player.PositionInfo,
             reason: Int,
-        ) = syncPosition()
+        ) {
+            // A seek from anywhere, the notification included, is no playback into the credits.
+            if (reason == Player.DISCONTINUITY_REASON_SEEK || reason == Player.DISCONTINUITY_REASON_SEEK_ADJUSTMENT) lastTickMs = null
+            syncPosition()
+        }
 
         override fun onTracksChanged(tracks: Tracks) = onTracks(tracks)
 
@@ -325,6 +338,8 @@ internal class PlayerSession(context: Context) {
         finishedMarked = false
         nextCancelled = false
         creditsDismissed = false
+        creditsMarked = false
+        lastTickMs = null
         second.clear()
         loopJob?.cancel()
         loopJob = null
@@ -468,6 +483,7 @@ internal class PlayerSession(context: Context) {
         ticker = main.launch {
             while (isActive) {
                 syncPosition()
+                checkCredits()
                 checkSleep()
                 if (SystemClock.elapsedRealtime() - lastSaveAt >= SAVE_EVERY_MS) savePosition()
                 delay(TICK_MS)
@@ -521,8 +537,29 @@ internal class PlayerSession(context: Context) {
         }
         val hint = offer == NextOffer.LIGHT_BUTTON && state.next == null
         if (state.nextHint != hint) state.nextHint = hint
-        // F-S3: the credits count as the end. The 90 % rule runs in the position save of :data.
-        if (!finishedMarked && positionKnown && EpisodeEnd.creditsReached(position, duration, segments)) markFinished(item)
+    }
+
+    /**
+     * F-S3: the credits count as the end, but only when playback runs into them, never from a seek. The 90 % rule
+     * runs in the position save of :data. Called by the ticker alone, so every step it sees is one of playback.
+     */
+    private fun checkCredits() {
+        val item = state.item ?: return
+        val position = player.currentPosition
+        val previous = lastTickMs
+        lastTickMs = position
+        if (creditsMarked || finishedMarked || !positionKnown || switching) return
+        val start = EpisodeEnd.credits(segmentsOf(item), state.durationMs)?.startMs ?: return
+        if (!EpisodeEnd.reachedByPlayback(previous, position, start, player.playbackParameters.speed)) return
+        creditsMarked = true
+        writes.launch { runCatching { repository.markFinished(item) } }
+    }
+
+    /** After the credits mark, a save inside the credits would only undo it; one well before them is a real place. */
+    private fun creditsHoldSave(item: PlaybackItem, position: Long): Boolean {
+        if (!creditsMarked) return false
+        val start = EpisodeEnd.credits(segmentsOf(item), state.durationMs)?.startMs ?: return false
+        return !EpisodeEnd.savesAfterCreditsMark(position, start)
     }
 
     private fun sleepsAtEpisodeEnd(): Boolean = state.sleep?.let { it.endsAtElapsed == null } == true
@@ -534,6 +571,7 @@ internal class PlayerSession(context: Context) {
         val item = state.item ?: return
         if (!positionKnown || finishedMarked || state.failure != null) return
         val position = player.currentPosition
+        if (creditsHoldSave(item, position)) return
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: item.durationMs
         lastSaveAt = SystemClock.elapsedRealtime()
         writes.launch { runCatching { repository.savePosition(item, position, duration, player.playbackParameters.speed) } }
@@ -668,6 +706,7 @@ internal class PlayerSession(context: Context) {
         val target = if (duration > 0) positionMs.coerceIn(0, duration) else max(positionMs, 0)
         player.seekTo(target)
         state.positionMs = target
+        lastTickMs = null
         state.item?.let { updateSegment(it, target) }
         return true
     }
@@ -893,7 +932,13 @@ internal class PlayerSession(context: Context) {
         fileOf(row)?.let { return SecondSource.FileSource(it.path, it.mimeType) }
         row.sidecarPath?.let { path -> subtitleMime(path)?.let { return SecondSource.FileSource(path, it) } }
         val ordinal = row.embeddedOrdinal ?: return null
-        return SecondSource.Embedded(playbackUri(item), ordinal)
+        return SecondSource.Embedded(playbackUri(item), ordinal, secondCacheIdentity(item))
+    }
+
+    /** A private video's words are never kept on disk. Size and change time make a replaced file read again. */
+    private fun secondCacheIdentity(item: PlaybackItem): String? {
+        val file = item.uri.takeIf { it.startsWith("/") }?.let(::File)
+        return SecondRead.cacheIdentity(item.uri, item.isPrivate, file?.length() ?: 0L, file?.lastModified() ?: 0L)
     }
 
     /** Selecting nothing would leave a blank screen, so that counts as a decoder failure (F-P18). */

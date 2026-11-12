@@ -245,7 +245,13 @@ Four owner requests of 2026-11-12, built on branch `pack-player` (waiver of 2026
 | A-B loop | UNIT TESTED | `AbLoopTest`: B needs A and 1 s after it, a new A past B drops B, a seek past B lands at A, and the check interval near B at any speed. More › «تكرار مقطع (A-B)». A chip under the top bar shows both times and an × while it runs. A B at the very end loops instead of ending. A new item clears it. While it runs no next card or light button shows. |
 | Sleep timer «آخر الحلقة» | UNIT TESTED | See F-T6. |
 | Next episode at the credits | UNIT TESTED | See F-S2 and F-S3. The owner's credits mark is set in More › «تحديد المقدمة», stored as time before the end for the whole series, and used only where no timed credits exist. |
-## Earlier round: the owner-requests package
+
+Two faults from the review of this round were fixed:
+
+| Fault | Fix |
+|---|---|
+| Any seek into the credits marked the item finished and stopped every position save for the rest of the play. | Only playback running across the credits start marks it, checked on the ticker from one tick to the next; a seek clears the last tick, and a jump longer than playback could make counts as a seek (`EpisodeEnd.reachedByPlayback`). The mark no longer stops saves: those inside the credits are skipped, and one more than 30 s before them saves as usual (`savesAfterCreditsMark`). A scene after "Watch credits" reached by a seek marks nothing. Tests in `EpisodeEndTest`. |
+| An embedded second subtitle read the whole file at full speed on every open. | A complete read is kept in `cacheDir/second-subtitles`, one file per video version (path, size, change time) and track, named by a hash, least recently used first out past 50 MB (`CueCache`, `CueCacheTest`). Private-folder videos are never cached. The read is capped at 40 MB/s (`ReadPace`) and waits while the player buffers or has less than 5 s read ahead (`SecondRead.mustWait`). The pace and the wait are not measured on the phone. |## Earlier round: the owner-requests package
 
 Built after 1.0.103 and committed as `37da6d3`. Shipped in 1.0.104. No phone check of it is recorded, in either theme or in Arabic.
 

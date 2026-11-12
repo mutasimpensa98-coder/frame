@@ -249,12 +249,12 @@ Shortcuts, widget, next episode, trailer and tonight's pick (this round, not see
 - A cue longer than 15 s counts for nothing in sync.
 - The ClipPass rewrite of stored tags and the anime pass need Room, so only `StoredParse.reread` is tested.
 - `PrivateVaultImpl`, `MediaManagerImpl` and `MediaStoreTrash` have no test that runs them, because they need Room and MediaStore on a device. Only their pure parts are tested on the JVM.
-- An embedded second subtitle is read by a second pass over the whole file, on a background thread, from the start onward. A long 4K file takes a while, its lines near the end come last, and the read runs again at every open. Its effect on 4K playback is unmeasured. The pass finds the track by its place among the container's text tracks, the order Media3 also uses; a container that lists them otherwise would show another track.
+- An embedded second subtitle is read by a second pass over the whole file, on a background thread, from the start onward. It is capped at 40 MB/s and waits while the player buffers or has less than 5 s read ahead, so a long 4K file takes minutes and its lines near the end come last. A complete read is cached (50 MB, least recently used out), so later opens are quick; private-folder videos are read again each time. The effect on 4K playback is unmeasured. The pass finds the track by its place among the container's text tracks, the order Media3 also uses; a container that lists them otherwise would show another track.
 - The second subtitle shows words only: ASS positions, colours and sizes are dropped, and bitmap tracks are not offered. Lines that overlap in time join into one block.
 - "Above the main one" keeps room for 2 lines of the main subtitle at its size and position, whatever the main cue holds. With ASS as the main track it cannot know where libass draws.
 - The second subtitle's placement, its series memory and the credits mark live in the player's own preferences, like the outline. They are not in the backup and not on the Settings pages.
 - The credits mark is one time before the end per series, used only where AniSkip or TheIntroDB gave no credits for that episode. Episodes whose credits run longer or shorter get the card early or late.
-- Reaching the credits marks the episode finished, as Play now does, so a seek back from the credits no longer saves the position for that play.
+- Playback running into the credits marks the episode finished; a seek into them does not. After the mark, a seek back more than 30 s before the credits saves the position again, and the episode stays watched.
 
 ## 5. Decisions for the owner
 

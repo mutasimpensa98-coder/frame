@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.media3.common.C
+import androidx.media3.common.Player
 import androidx.media3.common.text.Cue
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -34,7 +35,8 @@ import kotlin.math.roundToLong
 /** Where a second subtitle comes from: a text file, or a text track inside the video. */
 internal sealed interface SecondSource {
     data class FileSource(val path: String, val mimeType: String) : SecondSource
-    data class Embedded(val video: Uri, val ordinal: Int) : SecondSource
+    /** [cacheIdentity] is null for a video whose cues must not be kept, as in the private folder. */
+    data class Embedded(val video: Uri, val ordinal: Int, val cacheIdentity: String?) : SecondSource
 }
 
 /**
@@ -59,6 +61,9 @@ internal class SecondSubtitles(
     private var syncJob: Job? = null
     private var clock: Job? = null
     private var redraw = true
+
+    /** Written on the main thread by the clock, read by the background pass over the file. */
+    @Volatile private var playbackNeedsStorage = false
 
     init {
         state.secondPlacement = SecondPlacement.entries.firstOrNull { it.name == prefs.getString(KEY_PLACEMENT, null) }
@@ -129,7 +134,8 @@ internal class SecondSubtitles(
                 }
                 is SecondSource.Embedded -> {
                     startClock()
-                    TextTracks.readEmbedded(app, source.video, source.ordinal)
+                    val cacheDir = File(app.cacheDir, CACHE_FOLDER)
+                    TextTracks.readEmbedded(app, source.video, source.ordinal, cacheDir, source.cacheIdentity) { playbackNeedsStorage }
                         .catch { /* Read errors end the flow; what was found stays. */ }
                         .collect { setBase(it) }
                     ensureActive()
@@ -177,6 +183,11 @@ internal class SecondSubtitles(
         clock = scope.launch {
             var shown: List<Cue>? = null
             while (isActive) {
+                playbackNeedsStorage = SecondRead.mustWait(
+                    buffering = player.playbackState == Player.STATE_BUFFERING,
+                    playing = player.playWhenReady,
+                    bufferedAheadMs = player.bufferedPosition - player.currentPosition,
+                )
                 val current = timeline
                 val delayMs = SecondTiming.delayMs(state.secondFollowsMain, state.subtitleDelayMs, state.secondDelayMs)
                 val positionUs = SecondTiming.lookupUs(player.currentPosition, delayMs)
@@ -247,6 +258,7 @@ internal class SecondSubtitles(
 
     private companion object {
         const val KEY_PLACEMENT = "second_placement"
+        const val CACHE_FOLDER = "second-subtitles"
         const val MIN_WAIT_MS = 15L
         const val MAX_WAIT_MS = 200L
         const val SYNC_STEP_MS = 10L

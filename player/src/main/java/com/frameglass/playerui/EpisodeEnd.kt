@@ -66,14 +66,25 @@ internal object EpisodeEnd {
     }
 
     /**
-     * F-S3 with the credits: from where they begin the item is finished. The 90 % rule stays where it was, in the
-     * position save of :data, so whichever comes first marks it.
+     * F-S3 with the credits: the item is finished when playback runs across their start, from one tick to the next.
+     * [previousMs] is null after a seek, so a seek into the credits, or into a scene after them, finishes nothing.
+     * The 90 % rule stays where it was, in the position save of :data, so whichever comes first marks it.
      */
-    fun creditsReached(positionMs: Long, durationMs: Long, segments: List<SkipSegment>): Boolean {
-        val credits = credits(segments, durationMs) ?: return false
-        return positionMs >= credits.startMs
+    fun reachedByPlayback(previousMs: Long?, positionMs: Long, creditsStartMs: Long, speed: Float): Boolean {
+        if (previousMs == null || previousMs >= creditsStartMs || positionMs < creditsStartMs) return false
+        // A late tick still counts; a jump longer than playback could make in that time is a seek.
+        return positionMs - previousMs <= (MAX_TICK_STEP_MS * speed.coerceAtLeast(1f)).toLong()
     }
 
+    /**
+     * After the credits mark, saves inside the credits are skipped so the finished item keeps position 0. Going back
+     * more than [BACK_FROM_CREDITS_MS] before them is a real place to resume, so it saves; watched stays, as F-S3 keeps
+     * it once playback reached the credits.
+     */
+    fun savesAfterCreditsMark(positionMs: Long, creditsStartMs: Long): Boolean = positionMs < creditsStartMs - BACK_FROM_CREDITS_MS
+
+    const val MAX_TICK_STEP_MS = 2_000L
+    const val BACK_FROM_CREDITS_MS = 30_000L
     fun atEnd(sleepsAtEnd: Boolean, hasNext: Boolean, onScreen: Boolean): EndAction = when {
         sleepsAtEnd -> if (onScreen) EndAction.STAY_PAUSED else EndAction.CLOSE
         !hasNext -> EndAction.CLOSE
