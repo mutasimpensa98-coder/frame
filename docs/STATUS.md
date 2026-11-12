@@ -4,6 +4,7 @@ Updated 2026-11-08, after launcher shortcuts, the Continue watching widget, the 
 
 ## Read this first
 
+- **1.0.107 is on the phone (2026-11-12), updated in place, first install time kept.** It fixes a crash: Android's ICU regex rejected the bare brace in `SubtitleCues.ASS_TAGS`, so 1.0.105 closed when subtitles loaded. Seen on the phone: the subtitle sheet opens, a Gestdown subtitle loads, the app stays up. `RegexBracesTest` now scans every pattern literal. Gestdown had no Arabic for a current series episode (English only), so Arabic needs a SubDL key.
 - **The phone runs 1.0.104,** which holds the owner-requests package and the TMDB and IMDb switches. The owner tried it and asked for three things. No phone check of 1.0.104 is recorded here, and its schema steps 2 to 3 and 3 to 4 ran on Android only in that install, unobserved.
 - **The answer to those three requests is committed** (`319d718`, version 1.0.105 in `65b53b6`), and nobody has seen it on a phone. The section "Earlier round: the owner's three requests" lists each item.
 - **This round is built and unit tested on branch `pack-home`, and nobody has seen it on a phone:** launcher shortcuts, a Continue watching widget, the next episode date and a trailer on Details, and "What should I watch tonight?". It brings schema 5. The section "This round" lists each item.
