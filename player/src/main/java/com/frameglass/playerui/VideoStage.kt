@@ -65,12 +65,29 @@ internal class VideoStage(context: Context) : ViewGroup(context) {
         if (VideoGeometry.subtitleBox(width, height, box, mode) != subtitleBox) requestLayout()
     }
 
+    /** A subtitle view drawn at the top of the picture. It moves down, not up, when the controls show. */
+    private var topView: View? = null
+
+    /** How far the top controls reach into the window. */
+    var topBarPx = 0
+
+    fun setTopView(view: View?) {
+        if (topView === view) return
+        topView = view
+        liftSubtitles(clearance)
+    }
+
     /** Moves subtitles out of the way of whatever covers the bottom [clearancePx] of the window. */
     fun liftSubtitles(clearancePx: Int) {
         clearance = clearancePx
         val gapUnderVideo = max(0, height - subtitleBox.bottom)
         val target = -max(0, clearancePx - gapUnderVideo).toFloat()
-        subtitleViews.forEach { it.animate().translationY(target).setDuration(LIFT_MILLIS).start() }
+        // The top bar shows and hides with the bottom controls, so the same clearance says when to step aside.
+        val down = if (clearancePx > 0) max(0, topBarPx - subtitleBox.top).toFloat() else 0f
+        subtitleViews.forEach { view ->
+            val translation = if (view === topView) down else target
+            view.animate().translationY(translation).setDuration(LIFT_MILLIS).start()
+        }
     }
 
     private fun applyTransform() {

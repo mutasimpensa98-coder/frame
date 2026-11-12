@@ -149,6 +149,20 @@ Send this to the owner as it stands, and record the answers in `docs/evidence/ph
 42. طفّي الاثنين. هل اختفت كل التقييمات، والمكتبة والتشغيل يشتغلوا عادي؟
 43. لو عندك أنمي له أكثر من موسم وكل موسم باسم مختلف: وTMDB طافي، هل كل موسم بقى بطاقة لحاله؟
 
+الترجمة الثانية، تكرار مقطع، مؤقت النوم، والحلقة التالية عند الشارة (فرع `pack-player`). جرّبها بعد التحديث اللي فيه هذا:
+
+92. افتح الترجمة › «ترجمة ثانية»، واختار الإنجليزية والعربية هي الأساسية. هل ظهرت الإنجليزية فوق بخط أصغر والعربية تحت، والاثنين واضحين وما يغطوش بعض؟
+93. جرّب «فوق الترجمة الأولى». هل الثانية نزلت فوق العربية مباشرة؟ ولما تطلع أزرار التحكم، هل الترجمتين يطلعوا فوقها وما يتغطوش؟ وفي «في الأعلى»، هل الثانية تنزل شوية تحت زر الرجوع والقفل لما يظهروا؟
+94. ملف MKV فيه ترجمة إنجليزية مدمجة: اختارها ترجمة ثانية. هل سطورها ظهرت من البداية وهي تتقرى؟ قداش أخذت لين اكتملت؟ وهل الفيديو تقطّع وقتها، خاصة في 4K؟
+95. لو الترجمة الأولى ASS بألوانها وأماكنها: هل الثانية ظهرت نص عادي، والأولى بقت زي ما هي؟
+96. غيّر تأخير الترجمة الأولى. هل الثانية تتحرك معاها؟ طفّي «نفس تأخير الترجمة الأولى» وغيّر تأخير الثانية لحالها: هل الأولى ما تحركتش؟ وجرّب «مزامنة مع الكلام» من صفحة الترجمة الثانية على ملف ترجمة.
+97. افتح الحلقة الجاية من نفس المسلسل. هل الترجمة الثانية رجعت وحدها بنفس اللغة؟ وطفّيها: هل الحلقة اللي بعدها تبدا بدونها؟
+98. المزيد › «تكرار مقطع (A-B)»: حدد البداية، قدّم شوية، وحدد النهاية. هل يرجع للبداية كل ما يوصل النهاية، حتى لو وقّفت أو قدّمت بعد النهاية؟ وهل فيه رقعة زجاجية صغيرة فوق فيها الوقتين وعلامة ×؟ اضغط ×: هل وقف التكرار؟ وافتح حلقة ثانية: هل التكرار راح؟
+99. مؤقت النوم › «آخر الحلقة» في مسلسل: هل الحلقة وقفت في آخرها وما شغّلتش اللي بعدها، وما ظهرش عدّاد؟ جرّبه والصوت يشتغل في الخلفية والشاشة طافية: هل الصوت وقف والإشعار راح؟ وجرّب تختار حلقة ثانية بإيدك والمؤقت على «آخر الحلقة»: هل المؤقت تلغى؟
+100. أنمي له أوقات من AniSkip: هل بطاقة الحلقة التالية طلعت أول ما بدت شارة النهاية؟ اضغط «مشاهدة الشارة»: هل راحت البطاقة، ورجعت في آخر الحلقة بالعدّاد؟ وارجع للمكتبة: هل الحلقة صارت «تمت مشاهدتها»؟
+101. مسلسل ما عندهش أوقات للشارة: في آخر دقيقة من الحلقة، هل ظهر زر خفيف «الحلقة الجاية» بدون عدّاد؟ اضغطه: هل شغّل الحلقة الجاية؟
+102. المزيد › «تحديد المقدمة»: روح لبداية الشارة واضغط «شارة النهاية تبدأ هنا». في الحلقة اللي بعدها، هل البطاقة طلعت تقريبًا في نفس المكان من الشارة؟
+
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
@@ -235,6 +249,12 @@ Shortcuts, widget, next episode, trailer and tonight's pick (this round, not see
 - A cue longer than 15 s counts for nothing in sync.
 - The ClipPass rewrite of stored tags and the anime pass need Room, so only `StoredParse.reread` is tested.
 - `PrivateVaultImpl`, `MediaManagerImpl` and `MediaStoreTrash` have no test that runs them, because they need Room and MediaStore on a device. Only their pure parts are tested on the JVM.
+- An embedded second subtitle is read by a second pass over the whole file, on a background thread, from the start onward. A long 4K file takes a while, its lines near the end come last, and the read runs again at every open. Its effect on 4K playback is unmeasured. The pass finds the track by its place among the container's text tracks, the order Media3 also uses; a container that lists them otherwise would show another track.
+- The second subtitle shows words only: ASS positions, colours and sizes are dropped, and bitmap tracks are not offered. Lines that overlap in time join into one block.
+- "Above the main one" keeps room for 2 lines of the main subtitle at its size and position, whatever the main cue holds. With ASS as the main track it cannot know where libass draws.
+- The second subtitle's placement, its series memory and the credits mark live in the player's own preferences, like the outline. They are not in the backup and not on the Settings pages.
+- The credits mark is one time before the end per series, used only where AniSkip or TheIntroDB gave no credits for that episode. Episodes whose credits run longer or shorter get the card early or late.
+- Reaching the credits marks the episode finished, as Play now does, so a seek back from the credits no longer saves the position for that play.
 
 ## 5. Decisions for the owner
 

@@ -20,8 +20,10 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.DocumentsContract
 import android.provider.Settings
+import android.text.SpannableStringBuilder
 import android.util.Rational
 import android.util.TypedValue
+import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
@@ -67,6 +69,10 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     private lateinit var stage: VideoStage
     private lateinit var assView: AssSubtitleView
     private lateinit var cueView: SubtitleView
+
+    /** Dual subtitles: the second one, smaller, drawn by the app beside Media3's own text output. */
+    private lateinit var secondView: SubtitleView
+    private var secondCues: List<Cue> = emptyList()
     private lateinit var blurHook: VideoBlurHook
     private lateinit var audioManager: AudioManager
     private val ui = PlayerUiState()
@@ -159,14 +165,21 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
             setApplyEmbeddedStyles(true)
             setApplyEmbeddedFontSizes(false)
         }
+        secondView = SubtitleView(this).apply {
+            setApplyEmbeddedStyles(true)
+            setApplyEmbeddedFontSizes(false)
+        }
         val controls = ComposeView(this).apply {
             setContent { PlayerTheme { ControlsLayer(session, ui, this@PlayerActivity) } }
         }
         val sheets = ComposeView(this).apply {
             setContent { PlayerTheme { SheetsLayer(session, ui, this@PlayerActivity) } }
         }
-        stage.setLayers(controls, listOf(assView, cueView), sheets)
+        stage.setLayers(controls, listOf(assView, cueView, secondView), sheets)
+        stage.topBarPx = (TOP_BAR_DP * resources.displayMetrics.density).roundToInt()
         stage.onBoxChanged = {
+            val cutout = stage.rootWindowInsets?.getInsets(WindowInsets.Type.displayCutout())?.top ?: 0
+            stage.topBarPx = (TOP_BAR_DP * resources.displayMetrics.density).roundToInt() + cutout
             updateCueSize()
             updatePictureInPicture()
         }
@@ -241,6 +254,13 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         lifecycleScope.launch {
             snapshotFlow { CueLook.of(state.settings, state.subtitleOutline) }.collect(::applySubtitleStyle)
         }
+        lifecycleScope.launch {
+            snapshotFlow { state.secondPlacement }.collect { placement ->
+                stage.setTopView(if (placement == SecondPlacement.TOP) secondView else null)
+                applySecondLayout()
+                showSecondCues(secondCues)
+            }
+        }
     }
 
     private data class Picture(val mode: AspectMode, val zoom: Float, val panX: Float, val panY: Float)
@@ -290,7 +310,26 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     }
 
     private fun applyCueSize(scale: Float) {
-        if (cueSizePx > 0f) cueView.setFixedTextSize(TypedValue.COMPLEX_UNIT_PX, cueSizePx * scale)
+        if (cueSizePx <= 0f) return
+        cueView.setFixedTextSize(TypedValue.COMPLEX_UNIT_PX, cueSizePx * scale)
+        secondView.setFixedTextSize(TypedValue.COMPLEX_UNIT_PX, cueSizePx * scale * SECOND_SCALE)
+        applySecondLayout()
+    }
+
+    /**
+     * Above the main subtitle means room for [MAIN_LINES_KEPT] lines of it over its own bottom padding. The main
+     * text can be one line or three, so this is a fixed reserve: a line that moves with every cue would be worse.
+     */
+    private fun applySecondLayout() {
+        val settings = session.state.settings
+        val mainPadding = SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION + settings.subtitleBottomOffset
+        val height = secondView.height.takeIf { it > 0 } ?: stage.box.height
+        val reserve = if (session.state.secondPlacement == SecondPlacement.ABOVE_MAIN && height > 0) {
+            MAIN_LINES_KEPT * LINE_HEIGHT * cueSizePx * settings.subtitleScale / height
+        } else {
+            0f
+        }
+        secondView.setBottomPaddingFraction((mainPadding + reserve).coerceAtMost(MAX_SECOND_PADDING))
     }
 
     /** F-P9. This styles cue subtitles only. For ASS the script's own styling always wins. */
@@ -299,16 +338,16 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         val typeface = custom ?: defaultTypeface ?: Typeface.createFromAsset(assets, FramePlayer.SUBTITLE_FONT_ASSET).also {
             defaultTypeface = it
         }
-        cueView.setStyle(
-            CaptionStyleCompat(
-                look.color,
-                if (look.background) CUE_BACKGROUND else Color.TRANSPARENT,
-                Color.TRANSPARENT,
-                if (look.outline) CaptionStyleCompat.EDGE_TYPE_OUTLINE else CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
-                Color.BLACK,
-                typeface,
-            ),
+        val style = CaptionStyleCompat(
+            look.color,
+            if (look.background) CUE_BACKGROUND else Color.TRANSPARENT,
+            Color.TRANSPARENT,
+            if (look.outline) CaptionStyleCompat.EDGE_TYPE_OUTLINE else CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
+            Color.BLACK,
+            typeface,
         )
+        cueView.setStyle(style)
+        secondView.setStyle(style)
         cueView.setBottomPaddingFraction(SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION + look.bottomOffset)
         applyCueSize(look.scale)
     }
@@ -339,6 +378,29 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     }
 
     override fun showLiveCues(cues: List<Cue>) = cueView.setCues(cues)
+
+    /**
+     * Cues that overlap in time join into one block, which the view cannot stack by itself, and at the top they hang
+     * from a line near the top edge of the picture.
+     */
+    override fun showSecondCues(cues: List<Cue>) {
+        secondCues = cues
+        val texts = cues.mapNotNull { it.text }
+        if (texts.isEmpty()) {
+            secondView.setCues(emptyList())
+            return
+        }
+        val joined = SpannableStringBuilder()
+        texts.forEachIndexed { index, text ->
+            if (index > 0) joined.append('\n')
+            joined.append(text)
+        }
+        val builder = Cue.Builder().setText(joined)
+        if (session.state.secondPlacement == SecondPlacement.TOP) {
+            builder.setLine(SECOND_TOP_LINE, Cue.LINE_TYPE_FRACTION).setLineAnchor(Cue.ANCHOR_TYPE_START)
+        }
+        secondView.setCues(listOf(builder.build()))
+    }
 
     // ---- Picture in picture ---------------------------------------------------------------------
 
@@ -526,7 +588,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         lifecycleScope.launch {
             val saved = runCatching {
                 val bitmap = if (withSubtitles) {
-                    Screenshots.compose(stage, assView, cueView)
+                    Screenshots.compose(stage, assView, listOf(cueView, secondView))
                 } else {
                     FrameGrabber.fullFrame(this@PlayerActivity, uri, positionMs)
                 }
@@ -568,6 +630,15 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         const val SYSTEM_BRIGHTNESS_MAX = 255
         const val MIN_ASPECT = 0.01f
         const val CUE_BACKGROUND = 0x99000000.toInt()
+        /** Dual subtitles: the second is this much of the main size, hangs from this line, and keeps 2 main lines clear. */
+        const val SECOND_SCALE = 0.8f
+        const val SECOND_TOP_LINE = 0.04f
+        const val MAIN_LINES_KEPT = 2f
+        const val LINE_HEIGHT = 1.25f
+        const val MAX_SECOND_PADDING = 0.6f
+
+        /** Back and lock, with their padding, as the controls lay them out. */
+        const val TOP_BAR_DP = 68f
         const val BLUR_CORNER_DP = 24f
         const val BLUR_RADIUS_DP = 48f
 

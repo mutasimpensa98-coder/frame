@@ -136,7 +136,7 @@
     <string name="player_screenshot_saved">Saved to Pictures/Frame Glass</string>
     <string name="player_screenshot_failed">Couldn\'t save the screenshot</string>
     <string name="player_sleep_timer">Sleep timer</string>
-    <string name="player_sleep_end">End of episode</string>
+    <string name="player_sleep_end">End of this episode</string>
     <plurals name="player_minutes">
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
@@ -184,4 +184,31 @@
     <string name="player_error_other">Something stopped playback.</string>
     <string name="player_error_unsupported">This file\'s format can\'t be played here.</string>
     <string name="player_error_codec">This file uses %1$s, which can\'t be played here.</string>
+    <!-- Dual subtitles, waiver of 2026-11-12 -->
+    <string name="player_second_subtitle">Second subtitle</string>
+    <string name="player_second_note">Shows another subtitle with the main one, in smaller text. Picture subtitles such as PGS are not listed.</string>
+    <string name="player_second_failed">This subtitle has no text to show.</string>
+    <string name="player_second_reading">Reading the subtitle from the video. Lines appear from the start as they are found.</string>
+    <string name="player_second_top">At the top</string>
+    <string name="player_second_above">Above the main one</string>
+    <string name="player_second_follow">Same delay as the main subtitle</string>
+    <string name="player_second_follow_note">Turn off to give it a delay of its own.</string>
+    <string name="player_second_delay">Second subtitle delay</string>
+
+    <!-- A-B repeat, waiver of 2026-11-12 -->
+    <string name="player_ab_loop">A-B repeat</string>
+    <string name="player_ab_note">Go to the moment you want, then tap. Playback goes back to A each time it reaches B.</string>
+    <string name="player_ab_set_a">Start here (A)</string>
+    <string name="player_ab_set_b">End here (B)</string>
+    <string name="player_ab_clear">Stop repeating</string>
+    <string name="player_ab_chip">A–B %1$s–%2$s</string>
+    <string name="player_ab_only_a">A at %1$s</string>
+    <string name="player_ab_too_short">B must come at least 1 second after A.</string>
+
+    <!-- Next episode at the credits -->
+    <string name="player_next_light">Next episode</string>
+    <string name="player_watch_credits">Watch credits</string>
+    <string name="player_credits_here">Credits start here</string>
+    <string name="player_credits_here_note">For the whole series. The next episode card appears at this point.</string>
+    <string name="player_credits_forget">Forget the credits mark</string>
 </resources>

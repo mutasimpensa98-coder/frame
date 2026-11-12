@@ -41,6 +41,7 @@ import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.BrightnessMedium
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ClosedCaption
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Forward10
@@ -49,7 +50,9 @@ import androidx.compose.material.icons.rounded.LockOpen
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material.icons.rounded.Replay10
+import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.Speaker
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.VideoLibrary
@@ -156,6 +159,11 @@ private val LevelBarHeight = 120.dp
 private val LevelBarWidth = 4.dp
 private val FeedbackInset = 72.dp
 private val NextCardWidth = 280.dp
+
+/** Below back and lock, so the chip never sits on them. */
+private val LoopChipTop = 64.dp
+private val LoopIconSize = 18.dp
+private val LoopCloseSize = 36.dp
 private val WideRowWidth = 520.dp
 
 internal val AspectMode.label: Int
@@ -215,6 +223,7 @@ internal fun ControlsLayer(session: PlayerSession, ui: PlayerUiState, actions: P
             ScrubLayer(session, ui, showChrome)
             FeedbackLayer(state, ui)
             if (!ui.locked) AutoSubtitleToast(session, ui)
+            if (!ui.locked) LoopChip(session)
             SkipAndNext(session, ui, showChrome)
         }
         if (failure != null) FailureCard(failure, state, actions)
@@ -815,6 +824,46 @@ private fun SkipAndNext(session: PlayerSession, ui: PlayerUiState, chromeShown: 
             AnimatedVisibility(visible = next == null && skipLabel != null, enter = fadeIn(), exit = fadeOut()) {
                 if (skipLabel != null) WhitePill(stringResource(skipLabel), session::skipSegment)
             }
+            // No credits data: a light button in the last minute, which never counts down.
+            AnimatedVisibility(visible = next == null && skipLabel == null && state.nextHint, enter = fadeIn(), exit = fadeOut()) {
+                OutlinePill(
+                    text = stringResource(R.string.player_next_light),
+                    onClick = session::playNext,
+                    icon = Icons.Rounded.SkipNext,
+                )
+            }
+        }
+    }
+}
+
+/** A-B repeat: the two times and an × to end it, under the top bar, while the loop runs. */
+@Composable
+private fun LoopChip(session: PlayerSession) {
+    val loop = session.state.abLoop
+    val a = loop.aMs
+    val b = loop.bMs
+    if (a == null || b == null) return
+    Box(
+        Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .padding(top = LoopChipTop),
+    ) {
+        GlassSurface(GlassKind.Control, FrameShapes.Chip, modifier = Modifier.align(Alignment.TopCenter), blur = false) {
+            Row(
+                Modifier.padding(start = FrameSpacing.S12),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S4),
+            ) {
+                Icon(Icons.Rounded.Repeat, null, Modifier.size(LoopIconSize), tint = FrameColors.OnMedia)
+                Text(
+                    text = bidiIsolate(stringResource(R.string.player_ab_chip, formatTime(a), formatTime(b))),
+                    style = FrameType.Label,
+                    color = FrameColors.OnMedia,
+                    maxLines = 1,
+                )
+                GlassIconButton(Icons.Rounded.Close, stringResource(R.string.player_ab_clear), session::clearLoop, size = LoopCloseSize)
+            }
         }
     }
 }
@@ -847,7 +896,11 @@ private fun NextEpisodeCard(session: PlayerSession, card: NextCard) {
             }
             Row(horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S8)) {
                 WhitePill(stringResource(R.string.player_play_now), session::playNext)
-                OutlinePill(stringResource(R.string.player_cancel), session::cancelNext)
+                if (card.fromCredits) {
+                    OutlinePill(stringResource(R.string.player_watch_credits), session::watchCredits)
+                } else {
+                    OutlinePill(stringResource(R.string.player_cancel), session::cancelNext)
+                }
             }
         }
     }

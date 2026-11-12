@@ -1,6 +1,7 @@
 package com.frameglass.playerui
 
 import android.content.Context
+import android.content.Intent
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
@@ -120,6 +121,14 @@ internal class PlayerSession(context: Context) {
 
     private var window: PlayerWindow? = null
     private var secure = false
+    private val second = SecondSubtitles(app, main, player, state, localPrefs) { window }
+    private var loopJob: Job? = null
+
+    /** "Watch credits" on the card: it stays away until the credits end, and the end card still comes. */
+    private var creditsDismissed = false
+
+    /** False while the activity is stopped outside picture-in-picture, as with background audio. */
+    private var onScreen = true
 
     private var prefs = TrackPrefs()
     private var files: List<SubtitleFile> = emptyList()
@@ -251,6 +260,7 @@ internal class PlayerSession(context: Context) {
     fun attachWindow(window: PlayerWindow) {
         this.window = window
         if (secure) window.setSecure(true)
+        second.redraw()
     }
 
     /** A new player can open while the last one is still closing, so only the current window lets go. */
@@ -275,6 +285,8 @@ internal class PlayerSession(context: Context) {
         savePosition()
         openJob?.cancel()
         countdown?.cancel()
+        // Every open is the owner's pick: the timer never advances by itself while it waits for the end.
+        if (state.item?.ref != ref) state.sleep = EpisodeEnd.sleepAfterManualPick(state.sleep)
         prepareForNewItem()
         openJob = main.launch {
             val item = runCatching { repository.open(ref) }.getOrNull()
@@ -312,6 +324,10 @@ internal class PlayerSession(context: Context) {
         switching = true
         finishedMarked = false
         nextCancelled = false
+        creditsDismissed = false
+        second.clear()
+        loopJob?.cancel()
+        loopJob = null
         audioOff = false
         videoLadder.reset()
         audioLadder.reset()
@@ -326,6 +342,7 @@ internal class PlayerSession(context: Context) {
         state.item = item
         state.durationMs = item.durationMs
         state.positionMs = item.resumeMs
+        state.manualCreditsFromEndMs = item.titleId?.let { localPrefs.getLong(creditsKey(it), 0L) }?.takeIf { it > 0L }
         state.subtitleEncoding = prefs.subtitleEncoding
         val memory = AspectMemory.decode(prefs.aspectMode)
         state.aspectMode = memory.mode
@@ -473,16 +490,39 @@ internal class PlayerSession(context: Context) {
         updateSegment(item, position)
     }
 
+    /** F-S4 segments with the owner's credits mark, which needs the length of this very file. */
+    private fun segmentsOf(item: PlaybackItem): List<SkipSegment> {
+        val duration = state.durationMs.takeIf { it > 0 } ?: item.durationMs
+        return EpisodeEnd.withManualCredits(item.segments, state.manualCreditsFromEndMs, duration)
+    }
+
     private fun updateSegment(item: PlaybackItem, position: Long) {
-        val segment = item.segments.firstOrNull { position >= it.startMs && position < it.endMs }
+        val segments = segmentsOf(item)
+        val segment = segments.firstOrNull { position >= it.startMs && position < it.endMs }
         if (segment != state.segment) state.segment = segment
+        // At the true end onEnded decides, and a card already up stays with its countdown.
+        if (switching || player.playbackState == Player.STATE_ENDED) return
+        val duration = state.durationMs
+        val offer = EpisodeEnd.offer(
+            positionMs = position,
+            durationMs = duration,
+            segments = segments,
+            hasNext = item.next != null,
+            sleepsAtEnd = sleepsAtEpisodeEnd(),
+            looping = state.abLoop.active,
+            creditsDismissed = creditsDismissed,
+        )
         val next = state.next
-        if (next?.fromCredits == true && segment?.kind != SegmentKind.ED) {
+        if (offer == NextOffer.CREDITS_CARD) {
+            if (next == null) showNext(item, fromCredits = true)
+        } else if (next?.fromCredits == true) {
             countdown?.cancel()
             state.next = null
-        } else if (segment?.kind == SegmentKind.ED && next == null && !nextCancelled && item.next != null && autoNext()) {
-            showNext(item, fromCredits = true)
         }
+        val hint = offer == NextOffer.LIGHT_BUTTON && state.next == null
+        if (state.nextHint != hint) state.nextHint = hint
+        // F-S3: the credits count as the end. The 90 % rule runs in the position save of :data.
+        if (!finishedMarked && positionKnown && EpisodeEnd.creditsReached(position, duration, segments)) markFinished(item)
     }
 
     private fun sleepsAtEpisodeEnd(): Boolean = state.sleep?.let { it.endsAtElapsed == null } == true
@@ -501,16 +541,38 @@ internal class PlayerSession(context: Context) {
 
     private fun onEnded() {
         val item = state.item ?: return
+        // A loop whose B sits at the very end meets the end first.
+        val loopStart = state.abLoop.aMs?.takeIf { state.abLoop.active }
+        if (loopStart != null) {
+            player.seekTo(loopStart)
+            player.play()
+            return
+        }
         stopTicker()
         markFinished(item)
-        when {
-            sleepsAtEpisodeEnd() -> {
+        state.nextHint = false
+        val sleepsHere = sleepsAtEpisodeEnd()
+        when (EpisodeEnd.atEnd(sleepsHere, item.next != null, onScreen)) {
+            EndAction.STAY_PAUSED -> {
                 state.sleep = null
-                state.finished = true
+                player.pause()
             }
-            item.next == null -> state.finished = true
-            state.next == null -> showNext(item, fromCredits = false)
+            EndAction.CLOSE -> {
+                if (sleepsHere) state.sleep = null
+                finishHere()
+            }
+            EndAction.SHOW_NEXT -> if (state.next == null) showNext(item, fromCredits = false)
         }
+    }
+
+    /** With background audio and no activity left, nothing would close the session, so it closes itself. */
+    private fun finishHere() {
+        if (window != null) {
+            state.finished = true
+            return
+        }
+        close()
+        app.stopService(Intent(app, PlaybackService::class.java))
     }
 
     private fun markFinished(item: PlaybackItem) {
@@ -521,6 +583,7 @@ internal class PlayerSession(context: Context) {
 
     private fun showNext(item: PlaybackItem, fromCredits: Boolean) {
         countdown?.cancel()
+        state.nextHint = false
         val auto = autoNext() && !nextCancelled
         state.next = NextCard(item.nextLabel, if (auto) COUNTDOWN_SECONDS else null, fromCredits)
         if (!auto) return
@@ -547,8 +610,35 @@ internal class PlayerSession(context: Context) {
         countdown?.cancel()
         state.next = null
         nextCancelled = true
-        if (player.playbackState == Player.STATE_ENDED) state.finished = true
+        if (player.playbackState == Player.STATE_ENDED) finishHere()
     }
+
+    /** "Watch credits" on the card the credits brought: it goes, and the card of the true end still comes. */
+    fun watchCredits() {
+        countdown?.cancel()
+        state.next = null
+        creditsDismissed = true
+    }
+
+    /** The owner's credits mark for the whole series, kept as time before the end (F-S4 manual). */
+    fun markCreditsHere() {
+        val item = state.item ?: return
+        val titleId = item.titleId ?: return
+        val duration = state.durationMs.takeIf { it > 0 } ?: return
+        val fromEnd = duration - player.currentPosition
+        if (fromEnd <= 0 || fromEnd >= duration) return
+        localPrefs.edit().putLong(creditsKey(titleId), fromEnd).apply()
+        state.manualCreditsFromEndMs = fromEnd
+        creditsDismissed = false
+    }
+
+    fun forgetCreditsMark() {
+        val titleId = state.item?.titleId ?: return
+        localPrefs.edit().remove(creditsKey(titleId)).apply()
+        state.manualCreditsFromEndMs = null
+    }
+
+    private fun creditsKey(titleId: Long) = "$KEY_CREDITS$titleId"
 
     fun skipSegment() {
         val segment = state.segment ?: return
@@ -612,8 +702,59 @@ internal class PlayerSession(context: Context) {
         player.setPlaybackSpeed(speedBeforeHold)
     }
 
+    /** "End of this episode" means no next episode by itself, so a card already counting down goes. */
     fun setSleep(timer: SleepTimer?) {
         state.sleep = timer
+        if (timer != null && timer.endsAtElapsed == null && player.playbackState != Player.STATE_ENDED) {
+            countdown?.cancel()
+            state.next = null
+            state.nextHint = false
+        }
+    }
+
+    // ---- A-B loop, waiver of 2026-11-12 -------------------------------------------------------------
+
+    fun setLoopA() {
+        state.abLoop = state.abLoop.withA(player.currentPosition)
+        runLoop()
+    }
+
+    /** False when B is not far enough after A, so the sheet can say so. */
+    fun setLoopB(): Boolean {
+        val loop = state.abLoop.withB(player.currentPosition) ?: return false
+        state.abLoop = loop
+        countdown?.cancel()
+        if (state.next?.fromCredits == true) state.next = null
+        state.nextHint = false
+        runLoop()
+        return true
+    }
+
+    fun clearLoop() {
+        loopJob?.cancel()
+        loopJob = null
+        state.abLoop = AbLoop()
+    }
+
+    /** Checks often near B and seldom far from it, paused or not, so a seek past B lands back at A at once. */
+    private fun runLoop() {
+        loopJob?.cancel()
+        loopJob = null
+        if (!state.abLoop.active) return
+        loopJob = main.launch {
+            while (isActive) {
+                val loop = state.abLoop
+                if (!loop.active) break
+                val position = player.currentPosition
+                val target = loop.seekTarget(position)
+                // A file that cannot seek cannot loop either, and one refusal message is enough.
+                if (target != null && player.playbackState != Player.STATE_ENDED && !seekTo(target)) {
+                    state.abLoop = AbLoop()
+                    break
+                }
+                delay(loop.waitMs(player.currentPosition, player.playbackParameters.speed))
+            }
+        }
     }
 
     private fun checkSleep() {
@@ -677,7 +818,8 @@ internal class PlayerSession(context: Context) {
             }
         }
         // A live subtitle may already show when the first tracks arrive, and two must not show at once.
-        when (val choice = if (liveFile != null) SubtitleChoice.Off else TrackPicker.subtitle(text, prefs)) {
+        val choice = if (liveFile != null) SubtitleChoice.Off else TrackPicker.subtitle(text, prefs)
+        when (choice) {
             SubtitleChoice.Keep -> Unit
             SubtitleChoice.Off -> builder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
             is SubtitleChoice.Track -> tracks.groups.getOrNull(choice.row.group)?.let { group ->
@@ -686,6 +828,72 @@ internal class PlayerSession(context: Context) {
             }
         }
         player.trackSelectionParameters = builder.build()
+        val main = when (choice) {
+            is SubtitleChoice.Track -> choice.row
+            SubtitleChoice.Keep -> text.firstOrNull { it.selected }
+            SubtitleChoice.Off -> null
+        }
+        applySecondMemory(text, main)
+    }
+
+    // ---- Second subtitle, waiver of 2026-11-12 --------------------------------------------------------
+
+    /** F-S6 for the second subtitle: the language this series showed on top last time, if this file has it. */
+    private fun applySecondMemory(rows: List<TrackRow>, main: TrackRow?) {
+        // A reopen of the same item, for an encoding or an added file, keeps what already shows.
+        if (state.second != null) return
+        val item = state.item ?: return
+        val target = secondTarget(item)
+        val stored = second.storedFor(target) ?: return
+        val row = SecondPicker.remembered(rows, main, stored) ?: return
+        val source = secondSource(item, row) ?: return
+        second.show(target, row, source, prefs.subtitleEncoding, syncAfter = false)
+    }
+
+    /** What the second sheet lists: every other text track, with the subtitle on screen left out. */
+    fun secondCandidates(): List<TrackRow> =
+        SecondPicker.candidates(state.textTracks, state.textTracks.firstOrNull { it.selected })
+
+    fun chooseSecond(row: TrackRow) {
+        val item = state.item ?: return
+        val source = secondSource(item, row) ?: return
+        val memory = SecondPicker.encode(state.textTracks, state.textTracks.firstOrNull { it.selected }, row)
+        second.choose(secondTarget(item), row, source, memory, prefs.subtitleEncoding)
+    }
+
+    fun secondOff() {
+        val item = state.item ?: return
+        second.turnOff(secondTarget(item))
+    }
+
+    fun setSecondPlacement(placement: SecondPlacement) = second.setPlacement(placement)
+
+    fun setSecondFollowsMain(follows: Boolean) = second.setFollowsMain(follows)
+
+    fun setSecondDelay(ms: Long) = second.setOwnDelay(ms)
+
+    /** Only a file can be synced: an embedded track is timed for this video already. */
+    fun canSyncSecond(): Boolean {
+        val shown = state.second ?: return false
+        val path = shown.key.path ?: return false
+        return state.secondSync != SyncState.Running && subtitleMime(path)?.let { SubtitleCues.kindOf(it) } != null
+    }
+
+    fun syncSecond() {
+        val item = state.item ?: return
+        val path = state.second?.key?.path ?: return
+        val mime = files.firstOrNull { it.path == path }?.mimeType ?: liveFiles.firstOrNull { it.path == path }?.mimeType
+            ?: subtitleMime(path) ?: return
+        second.syncNow(secondTarget(item), SecondSource.FileSource(path, mime), prefs.subtitleEncoding)
+    }
+
+    private fun secondTarget(item: PlaybackItem) = SecondTarget(item.titleId, item.playableKey, item.durationMs, playbackUri(item))
+
+    private fun secondSource(item: PlaybackItem, row: TrackRow): SecondSource? {
+        fileOf(row)?.let { return SecondSource.FileSource(it.path, it.mimeType) }
+        row.sidecarPath?.let { path -> subtitleMime(path)?.let { return SecondSource.FileSource(path, it) } }
+        val ordinal = row.embeddedOrdinal ?: return null
+        return SecondSource.Embedded(playbackUri(item), ordinal)
     }
 
     /** Selecting nothing would leave a blank screen, so that counts as a decoder failure (F-P18). */
@@ -715,6 +923,8 @@ internal class PlayerSession(context: Context) {
         }
         ownerChoseText = true
         dropSync()
+        // The same track twice would only show it twice, so the main choice wins.
+        if (state.second?.key != null && SecondKey.of(row) == state.second?.key) second.clear()
         val file = fileOf(row)
         if (row.group == LIVE_GROUP) {
             file?.let { live -> selectLive(live) { startSync(live) } }
@@ -1335,6 +1545,7 @@ internal class PlayerSession(context: Context) {
 
     /** The activity stopped and is not in picture-in-picture. A private item never plays on behind the screen. */
     fun onHidden() {
+        onScreen = false
         savePosition()
         if (state.settings.backgroundAudio && state.item?.isPrivate != true) {
             if (player.isPlaying) setVideoHidden(true)
@@ -1345,6 +1556,7 @@ internal class PlayerSession(context: Context) {
     }
 
     fun onShown() {
+        onScreen = true
         setVideoHidden(false)
         if (resumeOnShow) player.play()
         resumeOnShow = false
@@ -1370,6 +1582,8 @@ internal class PlayerSession(context: Context) {
         countdown?.cancel()
         stopTicker()
         clearLive()
+        second.clear()
+        clearLoop()
         previews.close()
         player.stop()
         player.clearMediaItems()
@@ -1383,6 +1597,7 @@ internal class PlayerSession(context: Context) {
 
     fun release() {
         close()
+        second.release()
         audioManager.unregisterAudioDeviceCallback(deviceCallback)
         player.removeListener(playerListener)
         player.removeAnalyticsListener(analytics)
@@ -1396,6 +1611,9 @@ internal class PlayerSession(context: Context) {
     private companion object {
         const val LOCAL_PREFS = "player"
         const val KEY_OUTLINE = "subtitle_outline"
+
+        /** The owner's credits mark per series, in this module's own preferences, as the outline is. */
+        const val KEY_CREDITS = "credits_from_end.t"
         const val SUBTITLE_FOLDER = "player-subs"
         const val FONT_FOLDER = "player-fonts"
         const val SIDECAR_ID = "side"
