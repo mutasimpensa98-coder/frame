@@ -4,6 +4,7 @@ Updated 2026-11-08, after launcher shortcuts, the Continue watching widget, the 
 
 ## Read this first
 
+- **Branch `pack-player` (2026-11-12) adds dual subtitles, an A-B loop, «آخر الحلقة» for the sleep timer and the next-episode card at the credits.** Built and unit tested, never installed or seen on a phone. See "This round: dual subtitles, A-B loop, sleep at the end of the episode, next at the credits".
 - **1.0.107 is on the phone (2026-11-12), updated in place, first install time kept.** It fixes a crash: Android's ICU regex rejected the bare brace in `SubtitleCues.ASS_TAGS`, so 1.0.105 closed when subtitles loaded. Seen on the phone: the subtitle sheet opens, a Gestdown subtitle loads, the app stays up. `RegexBracesTest` now scans every pattern literal. Gestdown had no Arabic for a current series episode (English only), so Arabic needs a SubDL key.
 - **The phone runs 1.0.104,** which holds the owner-requests package and the TMDB and IMDb switches. The owner tried it and asked for three things. No phone check of 1.0.104 is recorded here, and its schema steps 2 to 3 and 3 to 4 ran on Android only in that install, unobserved.
 - **The answer to those three requests is committed** (`319d718`, version 1.0.105 in `65b53b6`), and nobody has seen it on a phone. The section "Earlier round: the owner's three requests" lists each item.
@@ -33,6 +34,8 @@ First build only. Screenshots are in `evidence/phase-1/first-build/`, listed in 
 Phase 0 matrix, on the round 2 `qa` build (`evidence/phase-0/matrix.csv`): 50 of 53 Core rows passed. The results and the three open rows are in `phase-0-results.md`. Earlier runs are in `D:\FrameGlass\logs\`: `matrix-run1.csv` for run 1 and `matrix-run2.log` for run 2, 29 of 53.
 
 ## Build and tests
+
+Branch `pack-player`, on this PC on 2026-11-12, with the build cache: `testDebugUnitTest` and `assembleRelease` pass. Log: `D:\FrameGlass\logs\build-pack-player.log`. Unit tests: 1,109 run, 1,108 passed, 0 failed, 1 skipped: data 490, net 353 (1 skipped), engine 69, player 94 (40 new: `SecondSubtitleTest` 13, `AbLoopTest` 10, `EpisodeEndTest` 17), app 70, glass 33. `:parser:test`, lint, `assembleQa`, `fg.ps1 build` and `tools/check_update.py` were not run; no schema changed. Release APK 23,352,664 bytes. Nothing was installed.
 
 This round, on this PC on 2026-11-08, with the build cache: `testDebugUnitTest`, `:parser:test`, `assembleRelease` and `:app:lintRelease` pass. Logs: `D:\FrameGlass\logs\build-quick-features.log` and `build-quick-features-lint.log`. Unit tests: 1,195 run, 1,194 passed, 0 failed, 1 skipped (the same `AnimeIndexTest`): parser 161, data 476, net 350, engine 67, player 41, app 67, glass 33. `:app` lint: 0 errors and the same 8 warnings as before. `tools/check_update.py`: pass, 4 steps (1 to 2 up to 4 to 5), 25 tables, 21 saved rows kept. The merged release manifest has the same permissions as before; the widget receiver needs none. Release APK 23,286,928 bytes. `fg.ps1 build`, `assembleQa` and lint of the other modules were not run in this round. Nothing was installed.
 
@@ -207,8 +210,8 @@ Glass over video is off: `VideoBlurHook.ENABLED` is false until step 0.7 is meas
 | ID | Feature | Status | Phone | Notes |
 |---|---|---|---|---|
 | F-S1 | Next up | UNIT TESTED | Not seen | `HomeBuilderTest`. |
-| F-S2 | Countdown | BUILT | Not seen | `NextUpTest` picks the next item. The card and countdown have no test. |
-| F-S3 | Watched | UNIT TESTED | Not seen | `WatchRulesTest`. |
+| F-S2 | Countdown | UNIT TESTED | Not seen | `NextUpTest` picks the next item. `EpisodeEndTest` (branch `pack-player`): the card comes when the credits begin (AniSkip `ed`, TheIntroDB credits, or the owner's credits mark), «مشاهدة الشارة» sends it away until the true end, and with no credits data a light «الحلقة الجاية» button shows in the last minute with no countdown. The card itself and the countdown have no UI test. |
+| F-S3 | Watched | UNIT TESTED | Not seen | `WatchRulesTest`. `EpisodeEndTest`: the start of the credits also marks the item finished, before 90 % when the credits start earlier. |
 | F-S4 | Skip intro | UNIT TESTED | Not seen | `SkipSegmentsTest`, `SegmentRulesTest` for manual, AniSkip and TheIntroDB. The local path of Phase 7b is not started. |
 | F-S5 | Missing episodes | UNIT TESTED | Not seen | `EpisodeRowsTest`. |
 | F-S6 | Series memory | UNIT TESTED | Not seen | `TrackPickerTest`. |
@@ -226,9 +229,19 @@ Glass over video is off: `VideoBlurHook.ENABLED` is false until step 0.7 is meas
 | F-T3 | Frame step | NOT STARTED | Not seen | No frame step code exists. Phase 7. |
 | F-T4 | Screenshot | BUILT | Not seen | |
 | F-T5 | Info panel | BUILT | Not seen | |
-| F-T6 | Sleep timer | BUILT | Not seen | |
+| F-T6 | Sleep timer | UNIT TESTED | Not seen | `EpisodeEndTest` (branch `pack-player`): «آخر الحلقة» shows no next card, stays paused at the end on screen, ends playback and background audio behind the screen, and is cancelled when the owner picks another item. The minute timers are untested. |
 | F-T7 | Anime4K | NOT BUILT (allowed) | Not seen | Needs mpv, Phase 8. |
 
+## This round: dual subtitles, A-B loop, sleep at the end of the episode, next at the credits
+
+Four owner requests of 2026-11-12, built on branch `pack-player` (waiver of 2026-11-12 for the first two). Not installed, and not seen on a phone, in either theme or in Arabic. No permission, dependency or network host was added, and no Room entity, migration or repository of `:data` changed.
+
+| Request | Status | Notes |
+|---|---|---|
+| Dual subtitles | UNIT TESTED | `SecondSubtitleTest`: which tracks are offered (the main one, bitmap and unplayable tracks left out; files, embedded and downloaded alike), the series memory by language, the clock (main delay or its own) and the frame rate stretch. Subtitle sheet › «ترجمة ثانية»: Off or any other text track, «في الأعلى» or «فوق الترجمة الأولى», «نفس تأخير الترجمة الأولى» or its own delay, and «مزامنة مع الكلام» for a file. A file is read with Media3's parsers (`TextTracks.readFile`), an embedded track by a second pass of Media3's extractor over the file with text transcoding on (`TextTracks.readEmbedded`); neither path has a test, because both need Android. Drawn on a second `SubtitleView` at 80 % of the main size. The placement and the memory sit in the player's preferences, outside the backup. |
+| A-B loop | UNIT TESTED | `AbLoopTest`: B needs A and 1 s after it, a new A past B drops B, a seek past B lands at A, and the check interval near B at any speed. More › «تكرار مقطع (A-B)». A chip under the top bar shows both times and an × while it runs. A B at the very end loops instead of ending. A new item clears it. While it runs no next card or light button shows. |
+| Sleep timer «آخر الحلقة» | UNIT TESTED | See F-T6. |
+| Next episode at the credits | UNIT TESTED | See F-S2 and F-S3. The owner's credits mark is set in More › «تحديد المقدمة», stored as time before the end for the whole series, and used only where no timed credits exist. |
 ## Earlier round: the owner-requests package
 
 Built after 1.0.103 and committed as `37da6d3`. Shipped in 1.0.104. No phone check of it is recorded, in either theme or in Arabic.

@@ -37,7 +37,7 @@ internal object Screenshots {
      * The screen as it looks, subtitles included. A window copy skips the video surface, so each layer is
      * read on its own and drawn back in the order and place the stage shows them.
      */
-    suspend fun compose(stage: VideoStage, assView: ViewGroup, cueView: SubtitleView): Bitmap? {
+    suspend fun compose(stage: VideoStage, assView: ViewGroup, cueViews: List<SubtitleView>): Bitmap? {
         if (stage.width <= 0 || stage.height <= 0) return null
         val surface = stage.surface
         val frame = createBitmap(surface.width, surface.height)
@@ -65,7 +65,7 @@ internal object Screenshots {
         (assView.getChildAt(0) as? TextureView)?.bitmap?.let { overlay ->
             canvas.drawBitmap(overlay, assView.left.toFloat(), assView.top + assView.translationY, null)
         }
-        drawView(canvas, cueView)
+        cueViews.forEach { drawView(canvas, it) }
         return screen
     }
 

@@ -76,7 +76,22 @@ internal class PlayerState {
 
     var segment by mutableStateOf<SkipSegment?>(null)
     var next by mutableStateOf<NextCard?>(null)
+
+    /** The light «الحلقة الجاية» button of the last minute, for an episode with no credits data. */
+    var nextHint by mutableStateOf(false)
     var sleep by mutableStateOf<SleepTimer?>(null)
+
+    /** Dual subtitles: what the second overlay shows, where, and on which clock. */
+    var second by mutableStateOf<SecondShown?>(null)
+    var secondPlacement by mutableStateOf(SecondPlacement.TOP)
+    var secondFollowsMain by mutableStateOf(true)
+    var secondDelayMs by mutableLongStateOf(0L)
+    var secondSync by mutableStateOf<SyncState?>(null)
+
+    var abLoop by mutableStateOf(AbLoop())
+
+    /** The owner's credits mark for this series, as time before the end, or null. */
+    var manualCreditsFromEndMs by mutableStateOf<Long?>(null)
 
     var aspectMode by mutableStateOf(AspectMode.FIT)
     var zoom by mutableFloatStateOf(1f)
@@ -113,6 +128,9 @@ internal class PlayerState {
         subtitleEncoding = null
         segment = null
         next = null
+        nextHint = false
+        abLoop = AbLoop()
+        manualCreditsFromEndMs = null
         panX = 0f
         panY = 0f
         videoDecoder = ""
@@ -126,12 +144,14 @@ internal enum class PlayerSheet(@StringRes val title: Int, val parent: PlayerShe
     SUBTITLE_STYLE(R.string.player_subtitle_style, SUBTITLES),
     SUBTITLE_ENCODING(R.string.player_subtitle_encoding, SUBTITLES),
     SUBTITLE_ONLINE(R.string.player_online_title, SUBTITLES),
+    SECOND_SUBTITLE(R.string.player_second_subtitle, SUBTITLES),
     AUDIO(R.string.player_audio),
     SPEED(R.string.player_speed_title),
     EPISODES(R.string.player_episodes),
     MORE(R.string.player_more),
     INFO(R.string.player_info, MORE),
     SLEEP(R.string.player_sleep_timer, MORE),
+    AB_LOOP(R.string.player_ab_loop, MORE),
     INTRO(R.string.player_set_intro, MORE),
 }
 
@@ -211,6 +231,9 @@ internal interface PlayerWindow {
     fun setSecure(secure: Boolean)
 
     fun showLiveCues(cues: List<Cue>)
+
+    /** Dual subtitles: the second overlay, placed by [PlayerState.secondPlacement]. */
+    fun showSecondCues(cues: List<Cue>)
 }
 
 /** What the composables need from the activity. */

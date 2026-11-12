@@ -5,7 +5,7 @@ package com.frameglass.engine
  * entries show together, in file order. [at] hands back one list object per stretch of time, so a caller
  * can tell by identity that nothing changed.
  */
-class CueTimeline<T>(entries: List<Entry<T>>) {
+class CueTimeline<T>(val entries: List<Entry<T>>) {
     data class Entry<T>(val startUs: Long, val endUs: Long, val value: T)
 
     private val edges: LongArray

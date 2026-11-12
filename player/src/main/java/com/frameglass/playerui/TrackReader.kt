@@ -14,11 +14,14 @@ internal data class SubtitleFile(val path: String, val label: String, val langua
 @OptIn(UnstableApi::class)
 internal object TrackReader {
     fun rows(tracks: Tracks, type: Int, files: List<SubtitleFile>): List<TrackRow> = buildList {
+        var embeddedText = 0
         tracks.groups.forEachIndexed { groupIndex, group ->
             if (group.type == type) {
                 for (index in 0 until group.length) {
                     val format = group.getTrackFormat(index)
                     val file = fileOf(format, files)
+                    // The container's text tracks come first and in its own order, one group each.
+                    val ordinal = if (type == C.TRACK_TYPE_TEXT && isEmbedded(format)) embeddedText++ else null
                     val label = file?.label ?: format.label
                     add(
                         TrackRow(
@@ -34,11 +37,18 @@ internal object TrackReader {
                             isDefault = format.selectionFlags and C.SELECTION_FLAG_DEFAULT != 0,
                             selected = group.isTrackSelected(index),
                             supported = group.isTrackSupported(index, true),
+                            embeddedOrdinal = ordinal,
                         ),
                     )
                 }
             }
         }
+    }
+
+    /** The video's own tracks have no source number, or source 0 once sidecars are merged in. */
+    private fun isEmbedded(format: Format): Boolean {
+        val id = format.id ?: return true
+        return !id.contains(':') || id.substringBefore(':').toIntOrNull() == 0
     }
 
     private fun fileOf(format: Format, files: List<SubtitleFile>): SubtitleFile? {

@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.Info
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Remove
+import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material.icons.rounded.ScreenRotation
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Subtitles
@@ -132,12 +134,14 @@ internal fun SheetsLayer(session: PlayerSession, ui: PlayerUiState, actions: Pla
             PlayerSheet.SUBTITLE_STYLE -> SubtitleStyleSheet(session, actions)
             PlayerSheet.SUBTITLE_ENCODING -> EncodingSheet(session, ui)
             PlayerSheet.SUBTITLE_ONLINE -> OnlineSheet(session, ui, actions)
+            PlayerSheet.SECOND_SUBTITLE -> SecondSubtitleSheet(session, ui)
             PlayerSheet.AUDIO -> AudioSheet(session, ui)
             PlayerSheet.SPEED -> SpeedSheet(session, ui)
             PlayerSheet.EPISODES -> EpisodesSheet(session, ui)
             PlayerSheet.MORE -> MoreSheet(session, ui, actions)
             PlayerSheet.INFO -> InfoSheet(session)
             PlayerSheet.SLEEP -> SleepSheet(session, ui)
+            PlayerSheet.AB_LOOP -> AbLoopSheet(session, ui)
             PlayerSheet.INTRO -> IntroSheet(session, ui)
             null -> Unit
         }
@@ -212,6 +216,15 @@ private fun SubtitlesSheet(session: PlayerSession, ui: PlayerUiState, actions: P
         session.selectTrack(C.TRACK_TYPE_TEXT, row)
         ui.closeSheet()
     }
+    val second = state.second
+    if (second != null || session.secondCandidates().isNotEmpty()) {
+        GlassRow(
+            text = stringResource(R.string.player_second_subtitle),
+            supporting = second?.let { secondTitle(it) } ?: stringResource(R.string.player_off),
+            icon = Icons.Rounded.Subtitles,
+            onClick = { ui.openSheet(PlayerSheet.SECOND_SUBTITLE) },
+        )
+    }
     OnlineSearchRow(session, ui)
     GlassRow(
         text = stringResource(R.string.player_add_subtitle),
@@ -234,6 +247,80 @@ private fun SubtitlesSheet(session: PlayerSession, ui: PlayerUiState, actions: P
             supporting = state.subtitleEncoding ?: stringResource(R.string.player_encoding_auto),
             icon = Icons.Rounded.Language,
             onClick = { ui.openSheet(PlayerSheet.SUBTITLE_ENCODING) },
+        )
+    }
+}
+
+@Composable
+private fun secondTitle(shown: SecondShown): String {
+    val language = languageName(shown.language)
+    return when {
+        shown.label != null && language != null && !shown.label.equals(language, ignoreCase = true) -> "$language • ${shown.label}"
+        else -> language ?: shown.label ?: stringResource(R.string.player_track_unknown)
+    }
+}
+
+/**
+ * Dual subtitles (waiver of 2026-11-12): any other text track at once, smaller, at the top or above the main one.
+ * Bitmap tracks are not listed, because the app's overlay draws words only.
+ */
+@Composable
+private fun SecondSubtitleSheet(session: PlayerSession, ui: PlayerUiState) {
+    val state = session.state
+    val second = state.second
+    Note(stringResource(R.string.player_second_note))
+    GlassRow(
+        text = stringResource(R.string.player_off),
+        selected = second == null,
+        onClick = {
+            session.secondOff()
+            ui.closeSheet()
+        },
+    )
+    session.secondCandidates().forEach { row ->
+        GlassRow(
+            text = trackTitle(row),
+            supporting = trackDetails(row),
+            selected = second != null && SecondKey.of(row) == second.key,
+            onClick = {
+                session.chooseSecond(row)
+                ui.closeSheet()
+            },
+        )
+    }
+    if (second == null) return
+    when {
+        second.failed -> Note(stringResource(R.string.player_second_failed))
+        second.loading && second.key.embeddedOrdinal != null -> {
+            Note(stringResource(R.string.player_second_reading))
+            ActivityLine(Modifier.fillMaxWidth().padding(horizontal = FrameSpacing.S12))
+        }
+    }
+    val placements = listOf(SecondPlacement.TOP, SecondPlacement.ABOVE_MAIN)
+    FilterChips(
+        labels = listOf(stringResource(R.string.player_second_top), stringResource(R.string.player_second_above)),
+        selectedIndex = placements.indexOf(state.secondPlacement),
+        onSelect = { session.setSecondPlacement(placements[it]) },
+        contentPadding = PaddingValues(0.dp),
+    )
+    GlassRow(
+        text = stringResource(R.string.player_second_follow),
+        supporting = stringResource(R.string.player_second_follow_note),
+        selected = state.secondFollowsMain,
+        onClick = { session.setSecondFollowsMain(!state.secondFollowsMain) },
+    )
+    if (!state.secondFollowsMain) {
+        DelayStepper(R.string.player_second_delay, state.secondDelayMs, session::setSecondDelay)
+    }
+    val sync = state.secondSync
+    if (sync != null) Note(SyncText.summary(LocalResources.current, LocalLocale.current.platformLocale, sync))
+    if (sync == SyncState.Running) ActivityLine(Modifier.fillMaxWidth().padding(horizontal = FrameSpacing.S12))
+    if (session.canSyncSecond()) {
+        GlassRow(
+            text = stringResource(R.string.player_sync_now),
+            supporting = stringResource(R.string.player_sync_now_note),
+            icon = Icons.Rounded.GraphicEq,
+            onClick = session::syncSecond,
         )
     }
 }
@@ -654,6 +741,12 @@ private fun MoreSheet(session: PlayerSession, ui: PlayerUiState, actions: Player
         onClick = { ui.openSheet(PlayerSheet.SLEEP) },
     )
     GlassRow(
+        text = stringResource(R.string.player_ab_loop),
+        supporting = abSummary(state.abLoop),
+        icon = Icons.Rounded.Repeat,
+        onClick = { ui.openSheet(PlayerSheet.AB_LOOP) },
+    )
+    GlassRow(
         text = stringResource(R.string.player_rotate),
         icon = Icons.Rounded.ScreenRotation,
         onClick = {
@@ -673,6 +766,65 @@ private fun MoreSheet(session: PlayerSession, ui: PlayerUiState, actions: Player
         icon = Icons.Rounded.CheckCircle,
         onClick = { session.setWatched(!state.markedWatched) },
     )
+}
+
+@Composable
+private fun abSummary(loop: AbLoop): String? {
+    val a = loop.aMs ?: return null
+    val b = loop.bMs ?: return bidiIsolate(stringResource(R.string.player_ab_only_a, formatTime(a)))
+    return bidiIsolate(stringResource(R.string.player_ab_chip, formatTime(a), formatTime(b)))
+}
+
+/** A-B repeat (waiver of 2026-11-12): each row takes the moment playing now, so the owner seeks first, then taps. */
+@Composable
+private fun AbLoopSheet(session: PlayerSession, ui: PlayerUiState) {
+    val state = session.state
+    val loop = state.abLoop
+    val position = state.positionMs
+    var tooShort by remember { mutableStateOf(false) }
+    val resources = LocalResources.current
+    Note(stringResource(R.string.player_ab_note))
+    GlassRow(
+        text = stringResource(R.string.player_ab_set_a),
+        supporting = bidiIsolate(formatTime(loop.aMs ?: position)),
+        selected = loop.aMs != null,
+        onClick = {
+            tooShort = false
+            session.setLoopA()
+            // Back to the video, so the owner can play or seek on to where B goes.
+            ui.closeSheet()
+            session.state.abLoop.aMs?.let { ui.show(resources.getString(R.string.player_ab_only_a, formatTime(it))) }
+        },
+    )
+    GlassRow(
+        text = stringResource(R.string.player_ab_set_b),
+        supporting = bidiIsolate(formatTime(loop.bMs ?: position)),
+        selected = loop.bMs != null,
+        modifier = if (loop.aMs == null) Modifier.alpha(DIMMED).semantics { disabled() } else Modifier,
+        onClick = {
+            if (loop.aMs == null) return@GlassRow
+            tooShort = !session.setLoopB()
+            if (!tooShort) ui.closeSheet()
+        },
+    )
+    if (tooShort) {
+        Text(
+            text = stringResource(R.string.player_ab_too_short),
+            style = FrameType.Label,
+            color = FrameTheme.colors.error,
+            modifier = Modifier.padding(horizontal = FrameSpacing.S12, vertical = FrameSpacing.S4),
+        )
+    }
+    if (loop.aMs != null) {
+        GlassRow(
+            text = stringResource(R.string.player_ab_clear),
+            icon = Icons.Rounded.Close,
+            onClick = {
+                session.clearLoop()
+                ui.closeSheet()
+            },
+        )
+    }
 }
 
 @Composable
@@ -743,6 +895,17 @@ private fun IntroSheet(session: PlayerSession, ui: PlayerUiState) {
             GlassRow(text = stringResource(R.string.player_intro_save_season), onClick = { save(false) })
         }
         GlassRow(text = stringResource(R.string.player_intro_save_series), onClick = { save(true) })
+    }
+    // F-S4 manual credits: where the next-episode card appears, for every episode of this series.
+    val manual = state.manualCreditsFromEndMs
+    GlassRow(
+        text = stringResource(R.string.player_credits_here),
+        supporting = stringResource(R.string.player_credits_here_note),
+        selected = manual != null,
+        onClick = { session.markCreditsHere() },
+    )
+    if (manual != null) {
+        GlassRow(text = stringResource(R.string.player_credits_forget), onClick = { session.forgetCreditsMark() })
     }
 }
 

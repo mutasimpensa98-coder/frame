@@ -20,6 +20,8 @@ internal data class TrackRow(
     val isDefault: Boolean,
     val selected: Boolean,
     val supported: Boolean,
+    /** For a text track inside the video: its place among the container's text tracks, so a second reader finds it. */
+    val embeddedOrdinal: Int? = null,
 )
 
 /**

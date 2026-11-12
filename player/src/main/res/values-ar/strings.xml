@@ -144,7 +144,7 @@
     <string name="player_screenshot_saved">حُفظت في Pictures/Frame Glass</string>
     <string name="player_screenshot_failed">تعذّر حفظ اللقطة</string>
     <string name="player_sleep_timer">مؤقت النوم</string>
-    <string name="player_sleep_end">نهاية الحلقة</string>
+    <string name="player_sleep_end">آخر الحلقة</string>
     <plurals name="player_minutes">
         <item quantity="zero">%d دقيقة</item>
         <item quantity="one">دقيقة واحدة</item>
@@ -196,4 +196,31 @@
     <string name="player_error_other">حدث ما أوقف التشغيل.</string>
     <string name="player_error_unsupported">لا يمكن تشغيل صيغة هذا الملف هنا.</string>
     <string name="player_error_codec">يستخدم هذا الملف %1$s، ولا يمكن تشغيله هنا.</string>
+    <!-- Dual subtitles, waiver of 2026-11-12 -->
+    <string name="player_second_subtitle">ترجمة ثانية</string>
+    <string name="player_second_note">تعرض ترجمة ثانية مع الترجمة الأولى بخط أصغر. ترجمات الصور مثل PGS لا تظهر هنا.</string>
+    <string name="player_second_failed">لا يوجد في هذه الترجمة نص يمكن عرضه.</string>
+    <string name="player_second_reading">جارٍ قراءة الترجمة من الفيديو. تظهر الأسطر من البداية أولًا بأول.</string>
+    <string name="player_second_top">في الأعلى</string>
+    <string name="player_second_above">فوق الترجمة الأولى</string>
+    <string name="player_second_follow">نفس تأخير الترجمة الأولى</string>
+    <string name="player_second_follow_note">أوقفه ليكون لها تأخير خاص بها.</string>
+    <string name="player_second_delay">تأخير الترجمة الثانية</string>
+
+    <!-- A-B repeat, waiver of 2026-11-12 -->
+    <string name="player_ab_loop">تكرار مقطع (A-B)</string>
+    <string name="player_ab_note">انتقل إلى اللحظة المطلوبة ثم اضغط. يرجع التشغيل إلى A كلما وصل إلى B.</string>
+    <string name="player_ab_set_a">البداية هنا (A)</string>
+    <string name="player_ab_set_b">النهاية هنا (B)</string>
+    <string name="player_ab_clear">إيقاف التكرار</string>
+    <string name="player_ab_chip">A–B %1$s–%2$s</string>
+    <string name="player_ab_only_a">A عند %1$s</string>
+    <string name="player_ab_too_short">يجب أن تأتي B بعد A بثانية على الأقل.</string>
+
+    <!-- Next episode at the credits -->
+    <string name="player_next_light">الحلقة الجاية</string>
+    <string name="player_watch_credits">مشاهدة الشارة</string>
+    <string name="player_credits_here">شارة النهاية تبدأ هنا</string>
+    <string name="player_credits_here_note">للمسلسل كله. تظهر بطاقة الحلقة التالية عند هذه اللحظة.</string>
+    <string name="player_credits_forget">مسح علامة شارة النهاية</string>
 </resources>
