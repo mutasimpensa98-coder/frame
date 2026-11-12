@@ -30,7 +30,8 @@ object SubtitleCues {
     /** Style, name or effect words that mark a line as a sign, a song or a title rather than dialogue. */
     private val NOT_DIALOGUE_PARTS = listOf("sign", "song", "kara", "lyric", "title", "credit", "insert")
     private val NOT_DIALOGUE_WORDS = setOf("op", "ed", "opening", "ending")
-    private val ASS_TAGS = Regex("""\{[^}]*}""")
+    // Android's ICU regex rejects a bare "}" that the JVM accepts, so both braces are escaped.
+    private val ASS_TAGS = Regex("""\{[^}]*\}""")
     private val ASS_DRAWING = Regex("""\\p[1-9]""")
     private val ASS_KARAOKE = Regex("""\\[kK][fo]?\d""")
     private val HTML_TAGS = Regex("""<[^>]*>""")
