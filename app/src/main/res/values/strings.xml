@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Frame</string>
+    <string name="app_hide_unseen_stills">Blur episodes you have not seen</string>
+    <string name="app_hide_unseen_stills_hint">An episode\'s picture stays blurred until you start it, so it gives nothing away</string>
 
     <string name="app_tab_home">Home</string>
     <string name="app_tab_search">Search</string>

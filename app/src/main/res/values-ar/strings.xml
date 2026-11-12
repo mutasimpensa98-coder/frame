@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">فريم</string>
+    <string name="app_hide_unseen_stills">تمويه الحلقات اللي ما شفتها</string>
+    <string name="app_hide_unseen_stills_hint">صورة الحلقة تبقى مموّهة لين تبدأها، عشان ما تحرق عليك شي</string>
     <string name="app_tab_home">الرئيسية</string>
     <string name="app_tab_search">البحث</string>
     <string name="app_tab_library">المكتبة</string>

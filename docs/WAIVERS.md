@@ -100,3 +100,7 @@ The owner asked for these four in the same request as dual subtitles and the A-B
 ## 2026-11-12: New name and icon
 
 The owner renamed the app "Frame" (Arabic «فريم») and asked for the play mark alone, without the frame around it, as the icon. The launcher label and every on-screen mention changed; the application ID `com.frameglass.player`, the signing key, the repository name and the folders the app already writes to (`Pictures/Frame Glass`, `Movies/Frame Glass`) stay, so nothing already saved moves. Saved builds are now named `Frame <version>.apk`.
+
+## 2026-11-12: Blur unseen episode pictures
+
+The owner asked that an episode's picture not give the story away. An episode's own image (its TMDB still, or a frame of its file) is blurred in the episode list and on the Home card until the episode is started; a series backdrop or poster standing in is never blurred. A Library setting turns it off; on by default; in backups.

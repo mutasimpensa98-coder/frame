@@ -57,6 +57,8 @@ internal data class BackupSettings(
     val imdbEnabled: Boolean? = null,
     /** Null in a backup written before the setting existed, which keeps what the phone holds. */
     val autoSubtitles: String? = null,
+    /** Null in a backup written before the setting existed, which keeps what the phone holds. */
+    val hideUnseenStills: Boolean? = null,
 ) {
     /** [current] is what the phone holds now, for the fields an older backup does not have. */
     fun toAppSettings(fontExists: Boolean, current: AppSettings) = AppSettings(
@@ -87,6 +89,7 @@ internal data class BackupSettings(
         tmdbEnabled = tmdbEnabled ?: current.tmdbEnabled,
         imdbEnabled = imdbEnabled ?: current.imdbEnabled,
         autoSubtitles = autoSubtitles?.let(AutoSubtitleMode::parse) ?: current.autoSubtitles,
+        hideUnseenStills = hideUnseenStills ?: current.hideUnseenStills,
     )
 
     companion object {
@@ -96,6 +99,7 @@ internal data class BackupSettings(
             s.scanNomediaFolders, s.showUnavailable, s.tmdbBaseUrl, s.neverSleepingHintDone, s.onboardingDone,
             s.scanWholePhone, s.themeMode.name, s.accent.name, s.coverTint, s.sendReleaseName, s.sendFileHash,
             s.vaultLockSeconds, s.cinemaMode, s.tmdbEnabled, s.imdbEnabled, s.autoSubtitles.name,
+            s.hideUnseenStills,
         )
     }
 }

@@ -79,6 +79,8 @@ data class ContinueItem(
      * out yet. Home words it as a short hint in place of the episode title.
      */
     val upcoming: UpcomingEpisode? = null,
+    /** The card shows the next episode's own still or frame before it is started, so Home blurs it. */
+    val hideImage: Boolean = false,
 )
 
 /**
@@ -209,6 +211,8 @@ data class EpisodeRow(
     val play: PlayRef?,
     /** The episode's IMDb rating. Only a series matched through OMDb has one, and it is null while IMDb is off. */
     val rating: RatingInfo? = null,
+    /** The image is the episode's own still or frame and the episode is not started, so the screen blurs it. */
+    val hideImage: Boolean = false,
 )
 
 data class PersonView(val personId: Long, val name: String, val photoPath: String?, val titles: List<TitleCard>)
@@ -369,6 +373,8 @@ data class AppSettings(
      * random videos stay reachable. Favorites, Folders, Search and Media Manager do not change. Off by default.
      */
     val cinemaMode: Boolean = false,
+    /** Owner request of 2026-11-12: blur an episode's own picture until it is started, so it gives nothing away. */
+    val hideUnseenStills: Boolean = true,
     /** Decision D9: extra fields a tapped subtitle search may send. Both are on, and both can be turned off. */
     val sendReleaseName: Boolean = true,
     val sendFileHash: Boolean = true,

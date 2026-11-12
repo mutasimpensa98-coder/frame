@@ -58,6 +58,7 @@ private object Prefs {
     val accent = stringPreferencesKey("accent")
     val coverTint = booleanPreferencesKey("coverTint")
     val cinemaMode = booleanPreferencesKey("cinemaMode")
+    val hideUnseenStills = booleanPreferencesKey("hideUnseenStills")
     val sendReleaseName = booleanPreferencesKey("sendReleaseName")
     val sendFileHash = booleanPreferencesKey("sendFileHash")
     val autoSubtitles = stringPreferencesKey("autoSubtitles")
@@ -125,6 +126,7 @@ internal class SettingsStore(
             accent = enumOf(p[Prefs.accent], d.accent),
             coverTint = p[Prefs.coverTint] ?: d.coverTint,
             cinemaMode = p[Prefs.cinemaMode] ?: d.cinemaMode,
+            hideUnseenStills = p[Prefs.hideUnseenStills] ?: d.hideUnseenStills,
             sendReleaseName = p[Prefs.sendReleaseName] ?: d.sendReleaseName,
             sendFileHash = p[Prefs.sendFileHash] ?: d.sendFileHash,
             autoSubtitles = AutoSubtitleMode.parse(p[Prefs.autoSubtitles]),
@@ -157,6 +159,7 @@ internal class SettingsStore(
         p[Prefs.accent] = s.accent.name
         p[Prefs.coverTint] = s.coverTint
         p[Prefs.cinemaMode] = s.cinemaMode
+        p[Prefs.hideUnseenStills] = s.hideUnseenStills
         p[Prefs.sendReleaseName] = s.sendReleaseName
         p[Prefs.sendFileHash] = s.sendFileHash
         p[Prefs.autoSubtitles] = s.autoSubtitles.name

@@ -119,7 +119,7 @@ internal object HomeBuilder {
             .sortedWith(compareByDescending<TitleInfo> { it.addedAt }.thenBy { it.id })
             .asSequence().filter(fits).take(RECENT_HEROES).toList()
         val heroKey = lastPlayed?.let { heroPlayable(it)?.key }
-        val allContinuing = continueWatching(shown, labels, EpisodeRows.today(s.now))
+        val allContinuing = continueWatching(shown, labels, EpisodeRows.today(s.now), s.settings.hideUnseenStills)
         // The app drops a hero whose art does not decode, and then needs this card back.
         val heroCard = allContinuing.firstOrNull { it.play.playableKey == heroKey }
         val continuing = allContinuing.filter { it !== heroCard }
@@ -169,7 +169,7 @@ internal object HomeBuilder {
 
     private class Continuing(val at: Long, val item: ContinueItem)
 
-    private fun continueWatching(live: List<TitleInfo>, labels: Labels, today: String): List<ContinueItem> =
+    private fun continueWatching(live: List<TitleInfo>, labels: Labels, today: String, hideUnseen: Boolean): List<ContinueItem> =
         live.mapNotNull { info ->
             val playable = if (info.isMovie) {
                 info.playables.firstOrNull { it.inProgress }
@@ -178,10 +178,10 @@ internal object HomeBuilder {
             } else {
                 null
             }
-            if (playable == null) null else Continuing(info.lastPlayedAt, item(info, playable, labels, today))
+            if (playable == null) null else Continuing(info.lastPlayedAt, item(info, playable, labels, today, hideUnseen))
         }.sortedByDescending { it.at }.map { it.item }
 
-    private fun item(info: TitleInfo, p: Playable, labels: Labels, today: String): ContinueItem {
+    private fun item(info: TitleInfo, p: Playable, labels: Labels, today: String, hideUnseen: Boolean): ContinueItem {
         val total = p.durationMs
         val position = if (p.inProgress) p.watch?.positionMs ?: 0 else 0
         // Only the newest episode the owner has gets the hint, so a card deep in a season stays as it was.
@@ -197,6 +197,12 @@ internal object HomeBuilder {
             timeLeftMs = (total - position).coerceAtLeast(0),
             newEpisode = !p.inProgress && !info.isMovie && p.firstSeenAt > info.lastPlayedAt && info.lastPlayedAt > 0,
             upcoming = if (newest) Upcoming.of(info, today) else null,
+            hideImage = !info.isMovie && SpoilerRule.hide(
+                on = hideUnseen,
+                ownImage = p.episode?.stillPath ?: p.best.framePath.takeIf { info.title.backdropPath == null },
+                watched = p.watched,
+                progress = p.partial,
+            ),
         )
     }
 
@@ -260,6 +266,15 @@ internal object HomeBuilder {
     }
 }
 
+/**
+ * Owner request of 2026-11-12. An episode's own picture, its TMDB still or a frame of its file, can give the story
+ * away, so it is blurred until the episode is started. A series backdrop or poster standing in is never blurred.
+ */
+internal object SpoilerRule {
+    fun hide(on: Boolean, ownImage: String?, watched: Boolean, progress: Float?): Boolean =
+        on && ownImage != null && !watched && (progress == null || progress <= 0f)
+}
+
 /** F-U9, F-L9, F-S5. */
 internal object EpisodeRows {
     fun today(now: Long): String = Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()).toLocalDate().toString()
@@ -275,6 +290,7 @@ internal object EpisodeRows {
         today: String,
         labels: Labels,
         imdb: Boolean = true,
+        hideUnseen: Boolean = false,
     ): List<EpisodeRow> {
         fun ratingOf(e: EpisodeLite?) = e?.imdbRating?.takeIf { imdb }?.let { RatingInfo(RatingSource.IMDB, it) }
         val mine = info.playables.filter { it.season == season }
@@ -285,13 +301,13 @@ internal object EpisodeRows {
         val rows = ArrayList<EpisodeRow>()
         for (p in mine) {
             if (!p.numbered) {
-                rows += row(info, p, 0, null, season, labels, null)
+                rows += row(info, p, 0, null, season, labels, null, hideUnseen)
                 continue
             }
             for (n in p.number..(p.numberEnd ?: p.number)) {
                 covered += n
                 val episode = byNumber[n] ?: p.episode.takeIf { n == p.number }
-                rows += row(info, p, n, episode, season, labels, ratingOf(episode))
+                rows += row(info, p, n, episode, season, labels, ratingOf(episode), hideUnseen)
             }
         }
         listed.filter { it.number !in covered && released(it, today) }.forEach { e ->
@@ -308,6 +324,7 @@ internal object EpisodeRows {
                 missing = true,
                 play = null,
                 rating = ratingOf(e),
+                hideImage = SpoilerRule.hide(hideUnseen, e.stillPath, watched = false, progress = null),
             )
         }
         return rows.sortedWith(compareBy({ it.number == 0 }, { it.number }))
@@ -321,6 +338,7 @@ internal object EpisodeRows {
         season: Int,
         labels: Labels,
         rating: RatingInfo?,
+        hideUnseen: Boolean,
     ): EpisodeRow {
         val file = p.best
         return EpisodeRow(
@@ -336,6 +354,7 @@ internal object EpisodeRows {
             missing = false,
             play = if (p.available) p.ref() else null,
             rating = rating,
+            hideImage = SpoilerRule.hide(hideUnseen, e?.stillPath ?: file.framePath, p.watched, p.partial),
         )
     }
 }

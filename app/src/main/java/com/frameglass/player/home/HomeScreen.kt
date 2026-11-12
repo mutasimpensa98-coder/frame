@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -65,6 +66,7 @@ import com.frameglass.glass.WhitePill
 import com.frameglass.glass.glassSheetOrigin
 import com.frameglass.glass.rememberGlassSheetState
 import com.frameglass.player.R
+import com.frameglass.player.details.SpoilerBlur
 import com.frameglass.player.folders.AddFolderButton
 import com.frameglass.player.folders.AddFolderSheet
 import com.frameglass.player.folders.openAllFilesAccess
@@ -346,6 +348,7 @@ private fun ContinueRow(items: List<ContinueItem>, cardWidth: Dp) {
                     progress = item.progress.takeIf { it > 0f },
                     timeLeftMs = item.timeLeftMs.takeIf { item.progress > 0f },
                     newEpisode = item.newEpisode,
+                    imageModifier = if (item.hideImage) Modifier.blur(SpoilerBlur) else Modifier,
                 )
             }
         }

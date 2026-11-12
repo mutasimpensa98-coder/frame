@@ -177,6 +177,13 @@ private fun ShowSection(settings: AppSettings) {
         )
         SettingsDivider()
         ToggleRow(
+            title = stringResource(R.string.app_hide_unseen_stills),
+            description = stringResource(R.string.app_hide_unseen_stills_hint),
+            checked = settings.hideUnseenStills,
+            onChange = { value -> model.updateSettings { it.copy(hideUnseenStills = value) } },
+        )
+        SettingsDivider()
+        ToggleRow(
             title = stringResource(R.string.app_show_unavailable),
             description = stringResource(R.string.app_show_unavailable_hint),
             checked = settings.showUnavailable,

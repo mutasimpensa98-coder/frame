@@ -210,6 +210,7 @@ internal class LibraryRepositoryImpl(
         val info = s.infos[titleId]
         if (info == null) emptyList() else EpisodeRows.build(
             info, season, s.episodes.filter { it.titleId == titleId }, EpisodeRows.today(s.now), labels, s.settings.imdbEnabled,
+            s.settings.hideUnseenStills,
         )
     }
 
