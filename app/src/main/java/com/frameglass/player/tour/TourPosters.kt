@@ -44,7 +44,7 @@ internal object TourPosters {
     /**
      * Up to [count] of [titles] whose cover is a file on the phone, rated ones first and otherwise in the order
      * given, then placeholders for the slots left. Clips ([clips] holds their ids) and anything in the private folder
-     * never show: [private] is matched by id and by cover path. [onDisk] runs only until the slots are full.
+     * never show: [private] is matched by cover path. Only rated titles count, so a frame from an unmatched video never stands in for a poster. [onDisk] runs only until the slots are full.
      */
     fun pick(
         titles: List<TitleCard>,
@@ -53,14 +53,15 @@ internal object TourPosters {
         onDisk: (String) -> Boolean,
         count: Int = COUNT,
     ): List<TourPoster> {
-        val privateIds = private.mapTo(HashSet()) { it.id }
         val privateCovers = private.mapNotNullTo(HashSet()) { it.coverPath }
         val seenIds = HashSet<Long>()
         val seenPaths = HashSet<String>()
         val covers = titles
             .sortedBy { it.rating == null }
             .asSequence()
-            .filter { it.id !in clips && it.id !in privateIds }
+            .filter { it.id !in clips }
+            // Rated means matched to TMDB or IMDb, so the cover is a real poster, never a frame from a personal video.
+            .filter { it.rating != null }
             .filter { card -> card.coverPath.let { it != null && it !in privateCovers } }
             .filter { seenIds.add(it.id) && seenPaths.add(requireNotNull(it.coverPath)) }
             .filter { onDisk(requireNotNull(it.coverPath)) }

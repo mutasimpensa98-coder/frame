@@ -82,6 +82,8 @@ internal class Navigator(private val stack: SnapshotStateList<Route>, private va
 
     /** Leaves the feature tour for the setup steps on the first run, or back to Settings. */
     fun leaveTour(tour: Route.Tour) {
+        // A second tap while the tour fades out must not pop the page under it too.
+        if (stack.lastOrNull() != tour) return
         val next = TourFlow.after(tour)
         if (next != null) stack[stack.lastIndex] = next else back()
     }

@@ -9,7 +9,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TourPostersTest {
-    private fun card(id: Long, cover: String? = "/covers/$id.jpg", rating: Double? = null, source: RatingSource = RatingSource.TMDB) =
+    private fun card(id: Long, cover: String? = "/covers/$id.jpg", rating: Double? = 7.0, source: RatingSource = RatingSource.TMDB) =
         TitleCard(
             id = id,
             kind = TitleKind.MOVIE,
@@ -41,10 +41,10 @@ class TourPostersTest {
     }
 
     @Test
-    fun ratedTitlesComeFirstAndKeepTheirOrder() {
-        val titles = listOf(card(1), card(2, rating = 8.1), card(3), card(4, rating = 6.5, source = RatingSource.IMDB))
+    fun onlyRatedTitlesShowAndKeepTheirOrder() {
+        val titles = listOf(card(1, rating = null), card(2, rating = 8.1), card(3, rating = null), card(4, rating = 6.5, source = RatingSource.IMDB))
         val posters = TourPosters.pick(titles, emptySet(), emptyList(), everyFile)
-        assertEquals(listOf(2L, 4L, 1L, 3L), coverIds(posters))
+        assertEquals(listOf(2L, 4L), coverIds(posters))
         val imdb = posters.filterIsInstance<TourPoster.Cover>().first { it.titleId == 4L }
         assertEquals(RatingInfo(RatingSource.IMDB, 6.5), imdb.rating)
     }
@@ -52,10 +52,16 @@ class TourPostersTest {
     @Test
     fun clipsAndPrivateFolderItemsNeverShow() {
         val titles = listOf(card(1, rating = 9.0), card(2, rating = 8.0), card(3, rating = 7.0), card(4))
-        val privateById = card(2)
         val privateByCover = card(99, cover = "/covers/3.jpg")
-        val posters = TourPosters.pick(titles, clips = setOf(1L), private = listOf(privateById, privateByCover), onDisk = everyFile)
-        assertEquals(listOf(4L), coverIds(posters))
+        val posters = TourPosters.pick(titles, clips = setOf(1L), private = listOf(privateByCover), onDisk = everyFile)
+        assertEquals(listOf(2L, 4L), coverIds(posters))
+    }
+
+    @Test
+    fun anUnmatchedVideoFrameNeverStandsInForAPoster() {
+        val frameOnly = card(5, cover = "/frames/5.jpg", rating = null)
+        val posters = TourPosters.pick(listOf(frameOnly), emptySet(), emptyList(), everyFile)
+        assertEquals((0 until 6).map { TourPoster.Placeholder(it) }, posters)
     }
 
     @Test
