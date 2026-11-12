@@ -148,3 +148,9 @@ Requires Android 13 or newer on an arm64 (64-bit ARM) phone. Built and tuned for
 ## Credits
 
 This product uses the TMDB API but is not endorsed or certified by TMDB. IMDb ratings come through OMDb. Each open-source licence ships inside the app, under Settings, About.
+
+## License
+
+Frame is free software under the GNU General Public License v3.0, see [LICENSE](LICENSE). It must be, because it links the GPL-3.0 FFmpeg build of NextLib.
+
+فريم برنامج حر بترخيص GPL-3.0، والتفاصيل في ملف LICENSE.

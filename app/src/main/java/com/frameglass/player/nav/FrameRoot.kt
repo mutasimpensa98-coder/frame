@@ -69,7 +69,11 @@ import com.frameglass.playerui.PlayerRoute
 
 /** Moves between screens. One instance per activity. */
 @Stable
-internal class Navigator(private val stack: SnapshotStateList<Route>, private val context: Context) {
+internal class Navigator(
+    private val stack: SnapshotStateList<Route>,
+    private val context: Context,
+    private val showHome: () -> Unit = {},
+) {
     fun push(route: Route) {
         if (stack.lastOrNull() != route) stack.add(route)
     }
@@ -80,12 +84,17 @@ internal class Navigator(private val stack: SnapshotStateList<Route>, private va
         if (stack.size > 1) stack.removeAt(stack.lastIndex)
     }
 
-    /** Leaves the feature tour for the setup steps on the first run, or back to Settings. */
+    /** Leaves the feature tour for the setup steps on the first run, or for Home (owner request of 2026-11-12). */
     fun leaveTour(tour: Route.Tour) {
         // A second tap while the tour fades out must not pop the page under it too.
         if (stack.lastOrNull() != tour) return
         val next = TourFlow.after(tour)
-        if (next != null) stack[stack.lastIndex] = next else back()
+        if (next != null) {
+            stack[stack.lastIndex] = next
+        } else {
+            back()
+            showHome()
+        }
     }
 
     /** Leaves onboarding for the tabs. */
@@ -153,13 +162,13 @@ internal fun FrameRoot(link: Route? = null, onLinkOpened: () -> Unit = {}) {
             mutableStateListOf(TourFlow.firstRoute(loaded.onboardingDone))
         }
         val context = LocalContext.current
-        val navigator = remember(stack, context) { Navigator(stack, context) }
+        var tab by rememberSaveable { mutableIntStateOf(0) }
+        val navigator = remember(stack, context) { Navigator(stack, context, showHome = { tab = 0 }) }
         LaunchedEffect(link) {
             val route = link ?: return@LaunchedEffect
             if (AppLinks.shouldOpen(stack, route)) navigator.push(route)
             onLinkOpened()
         }
-        var tab by rememberSaveable { mutableIntStateOf(0) }
         val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
         val reduced = rememberEffectsLevel() == EffectsLevel.Degraded
         val art = remember { ArtUnderBars() }

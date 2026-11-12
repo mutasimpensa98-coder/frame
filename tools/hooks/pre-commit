@@ -19,7 +19,14 @@ if printf '%s\n' "$added" | grep -Eq 'gh[opsu]_[A-Za-z0-9]{20,}|github_pat_|eyJ[
     exit 1
 fi
 
-if printf '%s\n' "$added" | grep -Eqi 'C:\\+Users|ASRock|R5GL24MLD4N|192\.168\.[0-9]'; then
-    echo "pre-commit: a private path, device serial or address was added."
+if printf '%s\n' "$added" | grep -Eqi 'C:\\+Users|192\.168\.[0-9]'; then
+    echo "pre-commit: a private path or address was added."
+    exit 1
+fi
+
+# Machine-specific words (the user name, the device serial) live in an untracked file, so this public hook names none.
+private="$(git rev-parse --show-toplevel)/tools/hooks/private-patterns.local"
+if [ -f "$private" ] && printf '%s\n' "$added" | grep -Eqi -f "$private"; then
+    echo "pre-commit: a machine-specific word was added."
     exit 1
 fi

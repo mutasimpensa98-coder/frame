@@ -77,3 +77,6 @@ docs/evidence/**
 !docs/evidence/*/
 !docs/evidence/*/README.md
 !docs/evidence/phase-0/matrix.csv
+
+# Machine-specific words the pre-commit hook blocks
+tools/hooks/private-patterns.local
