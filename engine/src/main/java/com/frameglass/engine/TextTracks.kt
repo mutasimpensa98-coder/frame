@@ -30,6 +30,7 @@ import androidx.media3.extractor.text.SubtitleParser
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -51,6 +52,11 @@ object TextTracks {
     private const val PROGRESS_EVERY_MS = 1_500L
     private const val BUFFER_STEP = 4_096
 
+    /** About 4 minutes for a 10 GB file, and far above what playback of any video on the phone reads. */
+    const val READ_BYTES_PER_SECOND = 40L * 1024 * 1024
+    private const val PAUSE_STEP_MS = 250L
+    private const val MIN_SLEEP_MS = 20L
+
     /** [file] must be UTF-8, see [SubtitleEncoding.toUtf8]. Null when it holds no text to show. */
     fun readFile(file: File, mimeType: String): CueTimeline<Cue>? {
         val bytes = file.readBytes()
@@ -65,19 +71,48 @@ object TextTracks {
 
     /**
      * Reads the text track at [ordinal] among the container's text tracks, in the order the container lists them,
-     * which is the order Media3 gives their groups. It reads the whole file once on a background thread of its own,
-     * so the cues arrive from the start onward: each emission holds every cue found so far, and the last one holds
-     * them all. Nothing is written anywhere. A read that fails part way ends the flow with what was found.
+     * which is the order Media3 gives their groups. The first time it reads the whole file once on a background
+     * thread of its own, so the cues arrive from the start onward: each emission holds every cue found so far, and
+     * the last one holds them all. A read that fails part way ends the flow with what was found.
+     *
+     * The read is capped at [READ_BYTES_PER_SECOND] and waits while [competing] says playback needs the storage.
+     * A complete read is kept in [cacheDir] under [cacheIdentity], and the next open reads that instead. With no
+     * [cacheIdentity], as for a private video, nothing is written anywhere.
      */
-    fun readEmbedded(context: Context, video: Uri, ordinal: Int): Flow<CueTimeline<Cue>> {
+    fun readEmbedded(
+        context: Context,
+        video: Uri,
+        ordinal: Int,
+        cacheDir: File?,
+        cacheIdentity: String?,
+        competing: () -> Boolean,
+    ): Flow<CueTimeline<Cue>> {
         val app = context.applicationContext
         val thread = backgroundThread()
+        val cacheFile = if (cacheDir != null && cacheIdentity != null) CueCache.fileFor(cacheDir, "$cacheIdentity#$ordinal") else null
         return flow {
+            cacheFile?.let(CueCache::read)?.let { cached ->
+                emit(TimedCues().apply { cached.forEach(::addPlain) }.timeline())
+                return@flow
+            }
             val reader = EmbeddedReader(ordinal)
+            val pace = ReadPace(READ_BYTES_PER_SECOND)
             var lastEmitAt = System.currentTimeMillis()
             var emitted = 0
-            reader.run(app, video) {
+            var windowStart = System.currentTimeMillis()
+            var windowBytes = 0L
+            val complete = reader.run(app, video) { bytes ->
                 currentCoroutineContext().ensureActive()
+                windowBytes += bytes
+                if (competing()) {
+                    while (competing()) delay(PAUSE_STEP_MS)
+                    // A pause is not credit for a burst afterwards.
+                    windowStart = System.currentTimeMillis()
+                    windowBytes = 0L
+                }
+                val wait = pace.waitMs(windowBytes, System.currentTimeMillis() - windowStart)
+                // Short waits gather until they are worth a sleep.
+                if (wait >= MIN_SLEEP_MS) delay(wait)
                 val now = System.currentTimeMillis()
                 if (now - lastEmitAt >= PROGRESS_EVERY_MS && reader.cues.size > emitted) {
                     lastEmitAt = now
@@ -86,9 +121,11 @@ object TextTracks {
                 }
             }
             emit(reader.cues.timeline())
+            if (complete && cacheFile != null && cacheDir != null && CueCache.write(cacheFile, reader.cues.plainEntries())) {
+                CueCache.trim(cacheDir)
+            }
         }.flowOn(thread).onCompletion { thread.close() }
     }
-
     private fun backgroundThread(): ExecutorCoroutineDispatcher = Executors.newSingleThreadExecutor { task ->
         Thread({
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
@@ -112,6 +149,17 @@ object TextTracks {
                 values += CueBidi.fix(Cue.Builder().setText(text).build())
             }
         }
+
+        /** From the cache: the text already carries its direction marks. */
+        fun addPlain(entry: CueCache.Entry) {
+            starts += entry.startUs
+            ends += entry.endUs
+            values += Cue.Builder().setText(entry.text).build()
+        }
+
+        /** Words only, for the cache. Styling spans do not survive, and the overlay draws words only anyway. */
+        fun plainEntries(): List<CueCache.Entry> =
+            values.indices.map { CueCache.Entry(starts[it], ends[it], values[it].text?.toString().orEmpty()) }
 
         fun timeline(): CueTimeline<Cue> {
             val ordered = values.indices.sortedBy { starts[it] }
@@ -146,35 +194,39 @@ object TextTracks {
 
         override fun seekMap(seekMap: SeekMap) = Unit
 
-        suspend fun run(context: Context, video: Uri, afterEachRead: suspend () -> Unit) {
+        /** True when the file was read to its end, so the cues are complete. */
+        suspend fun run(context: Context, video: Uri, afterEachRead: suspend (bytes: Long) -> Unit): Boolean {
             // Media3 1.11 transcodes text tracks by default, with its own parsers, so ASS comes out as plain cues.
             val factory = DefaultExtractorsFactory()
             val source = DefaultDataSource.Factory(context).createDataSource()
             try {
                 var input = open(source, video, 0)
-                val extractor = sniff(factory.createExtractors(video, emptyMap()), input) ?: return
+                val extractor = sniff(factory.createExtractors(video, emptyMap()), input) ?: return false
                 extractor.init(this)
                 val seek = PositionHolder()
                 try {
                     while (true) {
+                        val before = input.position
                         val result = try {
                             extractor.read(input, seek)
                         } catch (_: IOException) {
-                            // Malformed, cut short or unreadable: what was read so far stays.
-                            Extractor.RESULT_END_OF_INPUT
+                            // Malformed, cut short or unreadable: what was read so far stays, and is not cached.
+                            return false
                         }
-                        if (result == Extractor.RESULT_END_OF_INPUT) break
+                        if (result == Extractor.RESULT_END_OF_INPUT) return true
+                        val bytes = (input.position - before).coerceAtLeast(0)
                         if (result == Extractor.RESULT_SEEK) {
                             source.close()
                             input = open(source, video, seek.position)
                         }
-                        afterEachRead()
+                        afterEachRead(bytes)
                     }
                 } finally {
                     extractor.release()
                 }
             } catch (_: IOException) {
                 // The file could not be opened: nothing to show.
+                return false
             } finally {
                 runCatching { source.close() }
             }

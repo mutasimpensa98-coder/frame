@@ -81,3 +81,19 @@ internal object SecondTiming {
             }
         }
 }
+
+/** When the background pass over the video must wait, so playback of the same file keeps the storage. */
+internal object SecondRead {
+    /** Below this much video read ahead, playback comes first. */
+    const val MIN_AHEAD_MS = 5_000L
+
+    fun mustWait(buffering: Boolean, playing: Boolean, bufferedAheadMs: Long): Boolean =
+        buffering || (playing && bufferedAheadMs < MIN_AHEAD_MS)
+
+    /** The file and its version, so a changed file is read again. Null where nothing may be kept. */
+    fun cacheIdentity(uri: String, isPrivate: Boolean, length: Long, modifiedMs: Long): String? = when {
+        isPrivate -> null
+        length > 0 -> "$uri|$length|$modifiedMs"
+        else -> uri
+    }
+}

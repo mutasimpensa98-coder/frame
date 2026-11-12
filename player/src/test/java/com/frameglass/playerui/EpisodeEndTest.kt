@@ -90,16 +90,59 @@ class EpisodeEndTest {
     }
 
     @Test
-    fun theItemIsFinishedWhereTheCreditsBegin() {
-        assertFalse(EpisodeEnd.creditsReached(22 * minute - 1, length, listOf(credits)))
-        assertTrue(EpisodeEnd.creditsReached(22 * minute, length, listOf(credits)))
-        // A long ending that starts at 80 % counts from there, before the 90 % rule of :data.
-        val longCredits = SkipSegment(SegmentKind.ED, (length * 0.8).toLong(), length, "theintrodb")
-        assertTrue(EpisodeEnd.creditsReached((length * 0.8).toLong(), length, listOf(longCredits)))
-        // No data: only the 90 % rule, which is not this one.
-        assertFalse(EpisodeEnd.creditsReached(length - 1_000, length, listOf(intro)))
+    fun playbackRunningIntoTheCreditsFinishesTheItem() {
+        val start = credits.startMs
+        assertTrue(EpisodeEnd.reachedByPlayback(start - 250, start, start, 1f))
+        assertTrue(EpisodeEnd.reachedByPlayback(start - 100, start + 150, start, 1f))
+        // A late tick still counts.
+        assertTrue(EpisodeEnd.reachedByPlayback(start - 1_000, start + 900, start, 1f))
     }
 
+    @Test
+    fun aSeekIntoTheCreditsFinishesNothing() {
+        val start = credits.startMs
+        // After a seek the session forgets the last tick.
+        assertFalse(EpisodeEnd.reachedByPlayback(null, start + 5_000, start, 1f))
+        // A jump from well before the credits into them is a seek, even if no seek was reported.
+        assertFalse(EpisodeEnd.reachedByPlayback(start - 60_000, start + 1_000, start, 1f))
+        // Already inside, such as a scene after "Watch credits": nothing is crossed.
+        assertFalse(EpisodeEnd.reachedByPlayback(start + 100_000, start + 100_250, start, 1f))
+        // Still before them.
+        assertFalse(EpisodeEnd.reachedByPlayback(start - 500, start - 250, start, 1f))
+    }
+
+    @Test
+    fun fasterPlaybackTakesLongerStepsAcrossTheStart() {
+        val start = credits.startMs
+        assertFalse(EpisodeEnd.reachedByPlayback(start - 3_000, start + 500, start, 1f))
+        assertTrue(EpisodeEnd.reachedByPlayback(start - 3_000, start + 500, start, 2f))
+    }
+
+    @Test
+    fun afterTheCreditsMarkOnlyAPlaceWellBeforeThemIsSaved() {
+        val start = credits.startMs
+        assertFalse(EpisodeEnd.savesAfterCreditsMark(start + 10_000, start))
+        assertFalse(EpisodeEnd.savesAfterCreditsMark(start - 10_000, start))
+        assertTrue(EpisodeEnd.savesAfterCreditsMark(start - EpisodeEnd.BACK_FROM_CREDITS_MS - 1, start))
+        assertTrue(EpisodeEnd.savesAfterCreditsMark(5 * minute, start))
+    }
+
+    @Test
+    fun theReadOfASecondSubtitleWaitsForPlayback() {
+        assertTrue(SecondRead.mustWait(buffering = true, playing = false, bufferedAheadMs = 60_000))
+        assertTrue(SecondRead.mustWait(buffering = false, playing = true, bufferedAheadMs = 2_000))
+        assertFalse(SecondRead.mustWait(buffering = false, playing = true, bufferedAheadMs = 30_000))
+        assertFalse(SecondRead.mustWait(buffering = false, playing = false, bufferedAheadMs = 0))
+    }
+
+    @Test
+    fun aPrivateVideoKeepsNoCuesAndAChangedFileIsReadAgain() {
+        assertNull(SecondRead.cacheIdentity("/v/a.mkv", isPrivate = true, length = 10, modifiedMs = 1))
+        val before = SecondRead.cacheIdentity("/v/a.mkv", isPrivate = false, length = 10, modifiedMs = 1)
+        val after = SecondRead.cacheIdentity("/v/a.mkv", isPrivate = false, length = 10, modifiedMs = 2)
+        assertFalse(before == after)
+        assertEquals("content://x/1", SecondRead.cacheIdentity("content://x/1", isPrivate = false, length = 0, modifiedMs = 0))
+    }
     @Test
     fun theEndRules() {
         assertEquals(EndAction.STAY_PAUSED, EpisodeEnd.atEnd(sleepsAtEnd = true, hasNext = true, onScreen = true))
