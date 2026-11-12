@@ -1,15 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Own mark: a white frame with a play shape. 108 dp adaptive canvas, 72 dp safe zone. -->
+<!-- Own mark: a glass play shape on its own. 108 dp adaptive canvas, 72 dp safe zone, nudged right so it looks centred. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Soft glow under the glass -->
+    <path android:pathData="M40,33.5v41a5,5 0 0 0 7.6,4.3l33,-20.5a5,5 0 0 0 0,-8.6l-33,-20.5a5,5 0 0 0 -7.6,4.3z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="56"
+                android:centerY="54"
+                android:gradientRadius="30"
+                android:startColor="#558FA8FF"
+                android:endColor="#008FA8FF" />
+        </aapt:attr>
+    </path>
+    <!-- Glass body -->
+    <path android:pathData="M42,36v36a4,4 0 0 0 6.1,3.4l29,-18a4,4 0 0 0 0,-6.8l-29,-18a4,4 0 0 0 -6.1,3.4z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="42"
+                android:startY="32"
+                android:endX="74"
+                android:endY="76"
+                android:startColor="#FFFFFFFF"
+                android:centerColor="#FFE6E9FF"
+                android:endColor="#FF9AA6E8" />
+        </aapt:attr>
+    </path>
+    <!-- Highlight along the top edge -->
+    <path android:pathData="M45,38.2v12.5l18.5,-6.6l-15.6,-9.6a1.9,1.9 0 0 0 -2.9,1.6z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="45"
+                android:startY="36"
+                android:endX="56"
+                android:endY="50"
+                android:startColor="#CCFFFFFF"
+                android:endColor="#00FFFFFF" />
+        </aapt:attr>
+    </path>
+    <!-- Thin rim -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillType="evenOdd"
-        android:pathData="M38,34h32a8,8 0 0 1 8,8v24a8,8 0 0 1 -8,8h-32a8,8 0 0 1 -8,-8v-24a8,8 0 0 1 8,-8zM38,39a3,3 0 0 0 -3,3v24a3,3 0 0 0 3,3h32a3,3 0 0 0 3,-3v-24a3,3 0 0 0 -3,-3z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M49,46.5v15a1.5,1.5 0 0 0 2.3,1.3l12,-7.5a1.5,1.5 0 0 0 0,-2.6l-12,-7.5a1.5,1.5 0 0 0 -2.3,1.3z" />
+        android:strokeColor="#80FFFFFF"
+        android:strokeWidth="0.8"
+        android:fillColor="#00000000"
+        android:pathData="M42,36v36a4,4 0 0 0 6.1,3.4l29,-18a4,4 0 0 0 0,-6.8l-29,-18a4,4 0 0 0 -6.1,3.4z" />
 </vector>

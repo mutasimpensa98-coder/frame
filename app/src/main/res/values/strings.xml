@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Frame Glass</string>
+    <string name="app_name">Frame</string>
 
     <string name="app_tab_home">Home</string>
     <string name="app_tab_search">Search</string>
@@ -12,8 +12,8 @@
     <string name="app_collection">Collection</string>
     <string name="app_section_videos">Videos</string>
     <string name="app_home_empty">No videos found on this phone</string>
-    <string name="app_home_empty_places">Add a place for Frame Glass to look for videos</string>
-    <string name="app_home_no_access">Allow access to your files so Frame Glass can find your videos</string>
+    <string name="app_home_empty_places">Add a place for Frame to look for videos</string>
+    <string name="app_home_no_access">Allow access to your files so Frame can find your videos</string>
     <string name="app_home_scanning">Looking for videos…</string>
     <string name="app_home_search_again">Search again</string>
     <string name="app_home_cinema_empty">No films, series or anime yet</string>
@@ -23,7 +23,7 @@
     <string name="app_home_open_library">Open Library</string>
 
     <string name="app_add_place">Add a place</string>
-    <string name="app_add_place_hint">Frame Glass searches the whole phone by itself. Add other places here, such as a USB drive.</string>
+    <string name="app_add_place_hint">Frame searches the whole phone by itself. Add other places here, such as a USB drive.</string>
     <string name="app_add_this_folder">Add this folder</string>
     <string name="app_folder_added">Already in your library</string>
     <string name="app_folder_up">Up one level</string>
@@ -31,7 +31,7 @@
     <string name="app_folder_no_subfolders">No folders inside this one.</string>
     <string name="app_folder_empty">Nothing to show in this folder.</string>
     <string name="app_folder_remove">Remove %1$s</string>
-    <string name="app_files_needed">Frame Glass needs access to all files to read your videos and the subtitles beside them. Nothing leaves the phone.</string>
+    <string name="app_files_needed">Frame needs access to all files to read your videos and the subtitles beside them. Nothing leaves the phone.</string>
     <string name="app_files_allow">Allow access</string>
 
     <string name="app_resume">Resume</string>
@@ -148,7 +148,7 @@
     <string name="app_online">Online features</string>
     <string name="app_online_hint">Turn off to stop every network call. The library and playback keep working.</string>
     <string name="app_key_tmdb">TMDB key</string>
-    <string name="app_key_tmdb_hint">Adds covers, plots, cast and ratings. Without it, Frame Glass still works as a local player.</string>
+    <string name="app_key_tmdb_hint">Adds covers, plots, cast and ratings. Without it, Frame still works as a local player.</string>
     <string name="app_tmdb_server">TMDB address</string>
     <string name="app_tmdb_server_hint">Change this only if you run your own proxy.</string>
     <string name="app_tmdb_server_default">Default</string>
@@ -197,11 +197,11 @@
     <string name="app_licence_ofl">Alexandria, IBM Plex Sans Arabic, Noto Naskh Arabic</string>
 
     <string name="app_onboarding_files_title">Allow access to your files</string>
-    <string name="app_onboarding_files_body">Frame Glass then searches the phone for your videos and the subtitles beside them. Nothing leaves the phone.</string>
+    <string name="app_onboarding_files_body">Frame then searches the phone for your videos and the subtitles beside them. Nothing leaves the phone.</string>
     <string name="app_onboarding_key_title">Add a TMDB key</string>
     <string name="app_onboarding_key_body">Optional. It brings covers, plots and cast. You can add it later in Settings.</string>
-    <string name="app_onboarding_sleep_title">Keep Frame Glass awake</string>
-    <string name="app_onboarding_sleep_body">Samsung can put unused apps to sleep. In Settings, open Battery, then Background usage limits, and add Frame Glass to Never sleeping apps.</string>
+    <string name="app_onboarding_sleep_title">Keep Frame awake</string>
+    <string name="app_onboarding_sleep_body">Samsung can put unused apps to sleep. In Settings, open Battery, then Background usage limits, and add Frame to Never sleeping apps.</string>
     <string name="app_onboarding_sleep_open">Open battery settings</string>
     <string name="app_onboarding_finish">Finish</string>
     <string name="app_onboarding_later">Later</string>
@@ -342,7 +342,7 @@
     <string name="app_auto_subtitles_both">Arabic, then English</string>
 
     <string name="app_private_intro">Videos you move here leave the library, search and Media Manager. Only your password or fingerprint opens this page.</string>
-    <string name="app_private_uninstall_warning">Uninstalling Frame Glass deletes the private folder and everything in it.</string>
+    <string name="app_private_uninstall_warning">Uninstalling Frame deletes the private folder and everything in it.</string>
     <string name="app_private_not_encrypted">This is not extra encryption. Videos sit in the app\'s own storage, out of reach of other apps and the gallery.</string>
     <string name="app_private_new_password">New password</string>
     <string name="app_private_repeat_password">Repeat the password</string>
@@ -494,7 +494,7 @@
     <string name="app_shortcut_resume">Resume %1$s</string>
     <string name="app_shortcut_resume_episode">Resume %1$s, %2$s</string>
     <string name="app_widget_description">Pick up where you stopped, right from the home screen</string>
-    <string name="app_widget_empty">Nothing to continue yet. Tap to open Frame Glass</string>
+    <string name="app_widget_empty">Nothing to continue yet. Tap to open Frame</string>
 
     <!-- The next episode of a returning series, and its trailer. -->
     <string name="app_upcoming_today">Episode %1$s of season %2$s comes out tonight</string>

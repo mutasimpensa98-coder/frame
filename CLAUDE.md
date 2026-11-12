@@ -21,5 +21,5 @@ Every update goes over the app already on the phone. The owner's library, watch 
 - Never uninstall or clear `com.frameglass.player`, even when an install fails. Find the cause.
 - Keep the application ID and the signing key in `D:\FrameGlass\secrets`.
 - A schema change needs `STATEMENTS_a_b` and `MIGRATION_a_b` in `Migrations.kt`, registered in `FrameDb.open`. `tools/check_update.py` replays every step on SQLite before each ship. A destructive fallback is never allowed.
-- `fg.ps1 ship` raises `versionCode` in `version.properties`, and it fails if the phone reports a fresh install. It saves each shipped build as `D:\FrameGlass\releases\Frame Glass <version>.apk`.
+- `fg.ps1 ship` raises `versionCode` in `version.properties`, and it fails if the phone reports a fresh install. It saves each shipped build as `D:\FrameGlass\releases\Frame <version>.apk` (the app is called Frame, «فريم», since 2026-11-12).
 - `com.frameglass.player.qa` is a test tool. It is labelled FG Test and leaves the phone when a test run ends.

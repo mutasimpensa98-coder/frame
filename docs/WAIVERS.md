@@ -96,3 +96,7 @@ The owner asked for these four in the same request as dual subtitles and the A-B
 - Cleanup suggestions in Media Manager. They use the confirmed delete of the Media Manager waiver, never a delete without the sheet.
 - Watching stats from a local watch log (schema 6). The log never leaves the phone and is not in the backup.
 - Automatic backup to a folder the owner picks. It writes the same file as a manual backup, so keys stay out (R4), and it removes only its own older files.
+
+## 2026-11-12: New name and icon
+
+The owner renamed the app "Frame" (Arabic «فريم») and asked for the play mark alone, without the frame around it, as the icon. The launcher label and every on-screen mention changed; the application ID `com.frameglass.player`, the signing key, the repository name and the folders the app already writes to (`Pictures/Frame Glass`, `Movies/Frame Glass`) stay, so nothing already saved moves. Saved builds are now named `Frame <version>.apk`.

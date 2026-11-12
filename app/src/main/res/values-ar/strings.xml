@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">فريم</string>
     <string name="app_tab_home">الرئيسية</string>
     <string name="app_tab_search">البحث</string>
     <string name="app_tab_library">المكتبة</string>
@@ -10,8 +11,8 @@
     <string name="app_collection">سلسلة الأفلام</string>
     <string name="app_section_videos">مقاطع</string>
     <string name="app_home_empty">لم نجد فيديوهات على هذا الهاتف</string>
-    <string name="app_home_empty_places">أضف مكانًا ليبحث فيه Frame Glass عن الفيديوهات</string>
-    <string name="app_home_no_access">اسمح بالوصول إلى ملفاتك ليجد Frame Glass فيديوهاتك</string>
+    <string name="app_home_empty_places">أضف مكانًا ليبحث فيه فريم عن الفيديوهات</string>
+    <string name="app_home_no_access">اسمح بالوصول إلى ملفاتك ليجد فريم فيديوهاتك</string>
     <string name="app_home_scanning">جارٍ البحث عن الفيديوهات…</string>
     <string name="app_home_search_again">ابحث مرة أخرى</string>
     <string name="app_home_cinema_empty">لا توجد أفلام أو مسلسلات أو أنمي بعد</string>
@@ -21,7 +22,7 @@
     <string name="app_home_open_library">افتح المكتبة</string>
 
     <string name="app_add_place">إضافة مكان</string>
-    <string name="app_add_place_hint">يبحث Frame Glass في الهاتف كله تلقائيًا. أضف من هنا أماكن أخرى مثل قرص ⁦USB⁩.</string>
+    <string name="app_add_place_hint">يبحث فريم في الهاتف كله تلقائيًا. أضف من هنا أماكن أخرى مثل قرص ⁦USB⁩.</string>
     <string name="app_add_this_folder">إضافة هذا المجلد</string>
     <string name="app_folder_added">موجود في مكتبتك</string>
     <string name="app_folder_up">مستوى واحد للأعلى</string>
@@ -29,7 +30,7 @@
     <string name="app_folder_no_subfolders">لا توجد مجلدات داخل هذا المجلد.</string>
     <string name="app_folder_empty">لا يوجد ما يُعرض في هذا المجلد.</string>
     <string name="app_folder_remove">إزالة %1$s</string>
-    <string name="app_files_needed">يحتاج Frame Glass إلى الوصول إلى كل الملفات ليقرأ فيديوهاتك وملفات الترجمة المجاورة لها. لا يخرج أي شيء من الهاتف.</string>
+    <string name="app_files_needed">يحتاج فريم إلى الوصول إلى كل الملفات ليقرأ فيديوهاتك وملفات الترجمة المجاورة لها. لا يخرج أي شيء من الهاتف.</string>
     <string name="app_files_allow">السماح بالوصول</string>
 
     <string name="app_resume">متابعة</string>
@@ -146,7 +147,7 @@
     <string name="app_online">الميزات المتصلة</string>
     <string name="app_online_hint">أوقفها لمنع كل اتصال بالإنترنت. تبقى المكتبة والتشغيل كما هما.</string>
     <string name="app_key_tmdb">مفتاح ⁦TMDB⁩</string>
-    <string name="app_key_tmdb_hint">يضيف الأغلفة والقصص وطاقم التمثيل والتقييمات. بدونه يعمل Frame Glass مشغلًا محليًا كاملًا.</string>
+    <string name="app_key_tmdb_hint">يضيف الأغلفة والقصص وطاقم التمثيل والتقييمات. بدونه يعمل فريم مشغلًا محليًا كاملًا.</string>
     <string name="app_tmdb_server">عنوان ⁦TMDB⁩</string>
     <string name="app_tmdb_server_hint">غيّره فقط إذا كان لديك خادم وسيط خاص.</string>
     <string name="app_tmdb_server_default">الافتراضي</string>
@@ -193,11 +194,11 @@
     <string name="app_licence_ofl">Alexandria وIBM Plex Sans Arabic وNoto Naskh Arabic</string>
 
     <string name="app_onboarding_files_title">اسمح بالوصول إلى ملفاتك</string>
-    <string name="app_onboarding_files_body">بعدها يبحث Frame Glass في الهاتف عن فيديوهاتك وملفات الترجمة المجاورة لها. لا يخرج أي شيء من الهاتف.</string>
+    <string name="app_onboarding_files_body">بعدها يبحث فريم في الهاتف عن فيديوهاتك وملفات الترجمة المجاورة لها. لا يخرج أي شيء من الهاتف.</string>
     <string name="app_onboarding_key_title">أضف مفتاح ⁦TMDB⁩</string>
     <string name="app_onboarding_key_body">خطوة اختيارية تجلب الأغلفة والقصص وطاقم التمثيل. يمكنك إضافته لاحقًا من الإعدادات.</string>
     <string name="app_onboarding_sleep_title">أبقِ التطبيق نشطًا</string>
-    <string name="app_onboarding_sleep_body">قد يضع نظام سامسونج التطبيقات غير المستخدمة في وضع السكون. من الإعدادات افتح البطارية، ثم حدود الاستخدام في الخلفية، وأضف Frame Glass إلى التطبيقات التي لا تدخل في وضع السكون أبدًا.</string>
+    <string name="app_onboarding_sleep_body">قد يضع نظام سامسونج التطبيقات غير المستخدمة في وضع السكون. من الإعدادات افتح البطارية، ثم حدود الاستخدام في الخلفية، وأضف فريم إلى التطبيقات التي لا تدخل في وضع السكون أبدًا.</string>
     <string name="app_onboarding_sleep_open">فتح إعدادات البطارية</string>
     <string name="app_onboarding_finish">إنهاء</string>
     <string name="app_onboarding_later">لاحقًا</string>
@@ -333,7 +334,7 @@
     <string name="app_auto_subtitles_both">العربية ثم الإنجليزية</string>
 
     <string name="app_private_intro">الفيديوهات التي تنقلها إلى هنا تختفي من المكتبة والبحث ومدير الوسائط، ولا تُفتح هذه الصفحة إلا بكلمة مرورك أو بصمتك.</string>
-    <string name="app_private_uninstall_warning">إلغاء تثبيت Frame Glass يحذف المجلد الخاص وكل ما فيه.</string>
+    <string name="app_private_uninstall_warning">إلغاء تثبيت فريم يحذف المجلد الخاص وكل ما فيه.</string>
     <string name="app_private_not_encrypted">هذا ليس تشفيرًا إضافيًا. تُحفظ الفيديوهات في تخزين التطبيق الخاص، بعيدًا عن التطبيقات الأخرى والمعرض.</string>
     <string name="app_private_new_password">كلمة المرور الجديدة</string>
     <string name="app_private_repeat_password">أعد كتابة كلمة المرور</string>
@@ -593,7 +594,7 @@
     <string name="app_shortcut_resume">تابع %1$s</string>
     <string name="app_shortcut_resume_episode">تابع %1$s، %2$s</string>
     <string name="app_widget_description">تابع ما بدأته من الشاشة الرئيسية مباشرة</string>
-    <string name="app_widget_empty">لا شيء تتابعه الآن. اضغط لفتح Frame Glass</string>
+    <string name="app_widget_empty">لا شيء تتابعه الآن. اضغط لفتح فريم</string>
 
     <!-- The next episode of a returning series, and its trailer. -->
     <string name="app_upcoming_today">الحلقة %1$s من الموسم %2$s تنزل الليلة</string>
