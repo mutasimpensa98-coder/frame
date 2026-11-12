@@ -132,7 +132,7 @@ interface PrivateVault {
     suspend fun setBiometricEnabled(enabled: Boolean)
     fun lock()
     suspend fun moveIn(titleIds: List<Long>, fileRowIds: List<Long>): Result<Int>
-    /** Back to the original folder, or Movies/Frame Glass if that folder is gone. */
+    /** Back to the original folder, or Movies/Frame if that folder is gone. */
     suspend fun moveOut(titleId: Long): Result<Int>
 }
 

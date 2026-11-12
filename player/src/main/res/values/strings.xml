@@ -133,7 +133,7 @@
     <string name="player_info">Video info</string>
     <string name="player_screenshot">Screenshot</string>
     <string name="player_screenshot_subtitles">Screenshot with subtitles</string>
-    <string name="player_screenshot_saved">Saved to Pictures/Frame Glass</string>
+    <string name="player_screenshot_saved">Saved to Pictures/Frame</string>
     <string name="player_screenshot_failed">Couldn\'t save the screenshot</string>
     <string name="player_sleep_timer">Sleep timer</string>
     <string name="player_sleep_end">End of this episode</string>

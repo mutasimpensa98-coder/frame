@@ -87,7 +87,7 @@ function Save-Release([string]$File) {
 function Publish-Apk([string]$File) {
     $name = [IO.Path]::GetFileNameWithoutExtension($File)
     $version = $name -replace '^Frame (Glass )?', ''
-    $repo = 'mutasimpensa98-coder/frame-glass'
+    $repo = 'mutasimpensa98-coder/frame'
     Native { & gh.exe release create "v$version" "$File#$name.apk" --repo $repo --target main --title $name --notes-file docs\RELEASE-NOTES.md --latest } 'gh release'
     Write-Host "uploaded https://github.com/$repo/releases/tag/v$version"
 }

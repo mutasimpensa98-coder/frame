@@ -226,7 +226,7 @@ def hdr10plus(out):
     js = OUT / "hdr10plus.json"
     write(js, json.dumps({"JSONInfo": {"HDR10plusProfile": "B", "Version": "1.0"}, "SceneInfo": info,
                           "SceneInfoSummary": {"SceneFirstFrameIndex": [0], "SceneFrameNumbers": [frames]},
-                          "ToolInfo": {"Tool": "frame-glass", "Version": "1"}}))
+                          "ToolInfo": {"Tool": "frame", "Version": "1"}}))
     os.chdir(OUT)  # x265 splits its params on colons, so the path must have none
     simple(1920, 1080, "24", 30, ["-c:v", "libx265", "-preset", "veryfast", "-pix_fmt", "yuv420p10le", "-profile:v", "main10", "-b:v", "12M",
                                   "-color_primaries", "bt2020", "-color_trc", "smpte2084", "-colorspace", "bt2020nc",

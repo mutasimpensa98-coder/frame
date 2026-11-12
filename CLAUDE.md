@@ -1,4 +1,4 @@
-# Frame Glass
+# Frame
 
 The approved brief is `docs/BRIEF.md`. Read it fully at the start of every session, then read `docs/STATUS.md`, `docs/NEXT.md`, `docs/WAIVERS.md` (it overrides the brief) and `docs/OWNER-REQUESTS.md`.
 

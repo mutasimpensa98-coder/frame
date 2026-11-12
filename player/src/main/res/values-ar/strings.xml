@@ -141,7 +141,7 @@
     <string name="player_info">معلومات الفيديو</string>
     <string name="player_screenshot">لقطة شاشة</string>
     <string name="player_screenshot_subtitles">لقطة شاشة مع الترجمة</string>
-    <string name="player_screenshot_saved">حُفظت في Pictures/Frame Glass</string>
+    <string name="player_screenshot_saved">حُفظت في Pictures/Frame</string>
     <string name="player_screenshot_failed">تعذّر حفظ اللقطة</string>
     <string name="player_sleep_timer">مؤقت النوم</string>
     <string name="player_sleep_end">آخر الحلقة</string>

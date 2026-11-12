@@ -53,7 +53,7 @@ internal fun BackupSettingsScreen() {
                 SettingRow(
                     title = stringResource(R.string.app_backup),
                     description = done?.let { stringResource(it) } ?: stringResource(R.string.app_backup_hint),
-                    onClick = { save.launch("frame-glass-backup-${LocalDate.now()}.zip") },
+                    onClick = { save.launch("frame-backup-${LocalDate.now()}.zip") },
                 )
                 SettingsDivider()
                 SettingRow(

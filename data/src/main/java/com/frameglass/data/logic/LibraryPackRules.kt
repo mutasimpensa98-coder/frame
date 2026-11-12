@@ -138,10 +138,11 @@ internal object CleanupRules {
  * else in the owner's folder, a manual backup included, stays. Digits are Latin whatever the app language is.
  */
 internal object AutoBackupRules {
-    private const val PREFIX = "frame-glass-auto-"
+    private const val PREFIX = "frame-auto-"
     private val STAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss", Locale.ROOT)
     // [0-9] and not \d: ICU on Android matches Arabic-Indic digits with \d.
-    private val NAME = Regex("""frame-glass-auto-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]\.zip""")
+    // "frame-glass-auto-" is the name before the app became Frame on 2026-11-12; those files still count as ours.
+    private val NAME = Regex("""(?:frame|frame-glass)-auto-([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9])\.zip""")
 
     /** Due a little early, so a job that runs late each time does not drift a whole period. */
     val GRACE_MS: Long = TimeUnit.HOURS.toMillis(2)
@@ -150,9 +151,11 @@ internal object AutoBackupRules {
 
     fun isOurs(name: String): Boolean = NAME.matches(name)
 
-    /** The names to delete so that [keep] of ours stay, newest by name, which is newest by time. */
+    /** The names to delete so that [keep] of ours stay, newest by the time stamp in the name, whatever the prefix. */
     fun toDelete(names: List<String>, keep: Int): List<String> =
-        names.filter(::isOurs).distinct().sortedDescending().drop(keep.coerceAtLeast(1))
+        names.filter(::isOurs).distinct()
+            .sortedWith(compareByDescending<String> { NAME.matchEntire(it)?.groupValues?.get(1) }.thenByDescending { it })
+            .drop(keep.coerceAtLeast(1))
 
     fun periodMs(mode: AutoBackupMode): Long? = when (mode) {
         AutoBackupMode.OFF -> null

@@ -364,7 +364,7 @@ class AutoBackupRulesTest {
         val saved = Locale.getDefault()
         try {
             Locale.setDefault(Locale.forLanguageTag("ar-LY"))
-            assertEquals("frame-glass-auto-2026-11-12-230509.zip", AutoBackupRules.fileName(at, ZoneId.of("UTC")))
+            assertEquals("frame-auto-2026-11-12-230509.zip", AutoBackupRules.fileName(at, ZoneId.of("UTC")))
         } finally {
             Locale.setDefault(saved)
         }
@@ -380,6 +380,15 @@ class AutoBackupRulesTest {
         // ICU on the phone matches Arabic-Indic digits with \d, so the pattern spells out [0-9].
         assertFalse(AutoBackupRules.isOurs("frame-glass-auto-٢٠٢٦-١١-١٢-٢٣٠٥٠٩.zip"))
         assertFalse(AutoBackupRules.isOurs("frame-glass-auto-2026-11-12-23050٩.zip"))
+    }
+
+    @Test
+    fun filesNamedBeforeTheRenameStillCountAndSortByTime() {
+        assertTrue(AutoBackupRules.isOurs("frame-glass-auto-2026-11-01-120000.zip"))
+        assertTrue(AutoBackupRules.isOurs("frame-auto-2026-11-13-120000.zip"))
+        val old = (1..4).map { "frame-glass-auto-2026-11-0$it-120000.zip" }
+        val new = (5..8).map { "frame-auto-2026-11-0$it-120000.zip" }
+        assertEquals(old.take(3).reversed(), AutoBackupRules.toDelete((new + old).shuffled(java.util.Random(7)), keep = 5))
     }
 
     @Test

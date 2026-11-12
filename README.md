@@ -23,7 +23,7 @@ A video library and player for Android, with a glass interface and full Arabic s
 
 ## العربية
 
-يجمع Frame Glass كل فيديوهات الهاتف في مكتبة واحدة تلقائياً، ويعرض الأفلام والمسلسلات والأنمي بأغلفتها وتقييماتها وتفاصيلها، ويشغّلها بمحرك يتعامل مع أصعب الصيغ والترجمات. يعمل كاملاً على الجهاز، ولا يتطلب حساباً.
+يجمع Frame كل فيديوهات الهاتف في مكتبة واحدة تلقائياً، ويعرض الأفلام والمسلسلات والأنمي بأغلفتها وتقييماتها وتفاصيلها، ويشغّلها بمحرك يتعامل مع أصعب الصيغ والترجمات. يعمل كاملاً على الجهاز، ولا يتطلب حساباً.
 
 ### المكتبة
 
@@ -75,7 +75,7 @@ A video library and player for Android, with a glass interface and full Arabic s
 
 ## English
 
-Frame Glass gathers every video on the phone into one library by itself. It shows films, series and anime with their art, ratings and details, and plays them with an engine built for difficult formats and subtitles. It runs entirely on the device, with no account.
+Frame gathers every video on the phone into one library by itself. It shows films, series and anime with their art, ratings and details, and plays them with an engine built for difficult formats and subtitles. It runs entirely on the device, with no account.
 
 ### Library
 
@@ -117,7 +117,7 @@ Frame Glass gathers every video on the phone into one library by itself. It show
 
 Download the APK from [Releases](../../releases/latest), open it on the phone and choose **Update**. Do not uninstall first: that deletes the library, keys and private folder.
 
-Add a TMDB key in Settings for covers and ratings. Without one, Frame Glass is a complete local player.
+Add a TMDB key in Settings for covers and ratings. Without one, Frame is a complete local player.
 
 ## Technology
 

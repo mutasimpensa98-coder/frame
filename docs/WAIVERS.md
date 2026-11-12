@@ -131,3 +131,7 @@ It needs no permission, dependency or network host.
 ## 2026-11-12: Repository made public
 
 The owner asked to make the GitHub repository public so a friend can open it and download the APK. Before the switch: a GPL-3.0 `LICENSE` was added (required by the NextLib FFmpeg build), the whole history was scanned (no keys, keystores, media, screenshots or owner file names; the only 32-hex strings are Room schema hashes and test fixtures; the `eyJ` string is a fake test token), and the pre-commit hook stopped naming the PC user and the phone's serial. Older commits still contain that serial inside the hook's pattern; rewriting public history was not done.
+
+## 2026-11-12: The name Frame everywhere
+
+The owner asked for the name Frame everywhere. The GitHub repository is now `mutasimpensa98-coder/frame` (GitHub redirects the old `frame-glass` links). New screenshots go to `Pictures/Frame`, the private folder's fallback is `Movies/Frame`, manual backups are named `frame-backup-…`, automatic ones `frame-auto-…` (old `frame-glass-auto-…` files still count for retention, sorted by their time stamp). Kept on purpose: the package and application ID `com.frameglass.player` (changing it would make the phone treat a new build as a different app), the backup format marker `frame-glass-backup` inside the file (so old backups restore), the media session id, the local folder `D:\FrameGlass`, and the historical brief and waivers. Old screenshots stay in `Pictures/Frame Glass`; nothing of the owner's is moved.

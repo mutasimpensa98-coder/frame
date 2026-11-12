@@ -232,7 +232,7 @@ class FramePlayer(context: Context, val config: EngineConfig = EngineConfig()) {
     companion object {
         const val SUBTITLE_FONT_ASSET = "fonts/NotoNaskhArabic-Regular.ttf"
         const val SUBTITLE_FONT_FAMILY = "Noto Naskh Arabic"
-        const val CUSTOM_FONT_FAMILY = "Frame Glass Custom"
+        const val CUSTOM_FONT_FAMILY = "Frame Custom"
         const val SEEK_STEP_MS = 10_000L
 
         private val LIVE_SCRIPT = Format.Builder().setId("live").setSampleMimeType(MimeTypes.TEXT_SSA).build()

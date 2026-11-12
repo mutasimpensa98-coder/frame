@@ -400,7 +400,7 @@ internal class PrivateVaultImpl(
         val folder: File get() = if (folderRel.isEmpty()) File(volume.path) else File(volume.path, folderRel)
     }
 
-    /** Back to the original folder, or Movies/Frame Glass if that folder or its drive is gone. */
+    /** Back to the original folder, or Movies/Frame if that folder or its drive is gone. */
     private fun restorePlace(item: VaultItem): RestorePlace {
         val mounted = volumes.mounted()
         val volume = mounted.firstOrNull { it.uuid == item.file.volumeUuid }
@@ -701,7 +701,7 @@ internal class PrivateVaultImpl(
         const val PART = ".part"
         const val TEMP_PREFIX = ".frameglass-"
         const val TEMP_EXTENSION = "tmp"
-        const val FALLBACK_FOLDER = "Movies/Frame Glass"
+        const val FALLBACK_FOLDER = "Movies/Frame"
         const val RESERVE_BYTES = 200L * 1024 * 1024
         const val SHOW_EVERY_NS = 100_000_000L
     }

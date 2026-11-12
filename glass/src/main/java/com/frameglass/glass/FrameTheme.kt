@@ -154,7 +154,7 @@ fun DarkLook(content: @Composable () -> Unit) {
 }
 
 /**
- * The Frame Glass theme, glass state and overlay layer. It paints no background of its own.
+ * The Frame theme, glass state and overlay layer. It paints no background of its own.
  *
  * With no arguments it is the dark look, which is also what the player keeps in every theme. [coverTint]
  * carries the cover colour of [coverGlow] down to where the art meets the canvas.

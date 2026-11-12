@@ -26,10 +26,10 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.coroutines.resume
 
-/** F-T4. Saves into Pictures/Frame Glass through MediaStore, never into the media folders. */
+/** F-T4. Saves into Pictures/Frame (Pictures/Frame Glass before 2026-11-12) through MediaStore, never into the media folders. */
 @OptIn(UnstableApi::class)
 internal object Screenshots {
-    private const val FOLDER = "Frame Glass"
+    private const val FOLDER = "Frame"
     private const val QUALITY = 100
     private val STAMP = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss", Locale.ROOT)
 
@@ -79,7 +79,7 @@ internal object Screenshots {
     suspend fun save(context: Context, bitmap: Bitmap): Boolean = withContext(Dispatchers.IO) {
         val resolver = context.contentResolver
         val values = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, "frame-glass-${LocalDateTime.now().format(STAMP)}.png")
+            put(MediaStore.Images.Media.DISPLAY_NAME, "frame-${LocalDateTime.now().format(STAMP)}.png")
             put(MediaStore.Images.Media.MIME_TYPE, "image/png")
             put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/$FOLDER")
             put(MediaStore.Images.Media.IS_PENDING, 1)

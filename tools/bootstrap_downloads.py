@@ -11,7 +11,7 @@ import sys
 import urllib.request
 
 ROOT = pathlib.Path(r"D:\dev\_downloads")
-UA = {"User-Agent": "frame-glass-bootstrap"}
+UA = {"User-Agent": "frame-bootstrap"}
 
 
 def fetch(url):

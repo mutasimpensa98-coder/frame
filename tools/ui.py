@@ -48,12 +48,12 @@ def nodes():
 
 
 def guard():
-    """Every command acts on Frame Glass only. A blind tap must never land in another app."""
+    """Every command acts on Frame only. A blind tap must never land in another app."""
     text = adb("shell", "dumpsys", "activity", "activities")
     top = re.search(r"topResumedActivity=\S+ \S+ (\S+?)/", text)
     package = top.group(1) if top else "unknown"
     if not package.startswith("com.frameglass.player"):
-        sys.exit(f"stopped: {package} is on screen, not Frame Glass")
+        sys.exit(f"stopped: {package} is on screen, not Frame")
 
 
 def main():
