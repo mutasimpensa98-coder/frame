@@ -4,6 +4,7 @@ Updated 2026-11-12, after branch `android13` lowered `minSdk` from 36 to 33 so t
 
 ## Read this first
 
+- **1.0.113 is on the phone (2026-11-12), updated in place.** Seen on the phone: the feature tour opens from Settings, all 6 pages render with the owner's matched covers on page 2, Next walks through them, and Skip lands on Home. The repository is public since this version.
 - **Branch `android13` (2026-11-12): `minSdk` 33 in every module, so the app installs on Android 13 and newer.** `compileSdk` and `targetSdk` stay 37, `arm64-v8a` stays the only ABI, the application ID and key are unchanged. It has not run on any phone: not on the owner's S26 Ultra, and not on any Android 13, 14 or 15 phone. No emulator was used. Every row below keeps the status it had; none of them says anything about Android 13 to 15. `NEXT.md` section 2, items 103 to 115, is the check for the other person's phone.
 Updated 2026-11-12, after the feature tour was built on branch `tour`. Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, the Continue watching widget, the next episode date, the trailer button and tonight's pick were built on branch `pack-home`. R9 applies.
 

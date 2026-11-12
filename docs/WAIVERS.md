@@ -127,3 +127,7 @@ The owner asked for a tour of the app's features and approved its storyboard: si
 - Motion is a light entrance per page and stays off under section 7.9.
 
 It needs no permission, dependency or network host.
+
+## 2026-11-12: Repository made public
+
+The owner asked to make the GitHub repository public so a friend can open it and download the APK. Before the switch: a GPL-3.0 `LICENSE` was added (required by the NextLib FFmpeg build), the whole history was scanned (no keys, keystores, media, screenshots or owner file names; the only 32-hex strings are Room schema hashes and test fixtures; the `eyJ` string is a fake test token), and the pre-commit hook stopped naming the PC user and the phone's serial. Older commits still contain that serial inside the hook's pattern; rewriting public history was not done.
