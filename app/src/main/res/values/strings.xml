@@ -554,4 +554,51 @@
     <string name="app_auto_backup_failed_no_folder">The last try on %1$s failed: no folder is chosen.</string>
     <string name="app_auto_backup_failed_lost">The last try on %1$s failed: the folder is gone or no longer allowed. Choose it again.</string>
     <string name="app_auto_backup_failed_write">The last try on %1$s failed: the file could not be written.</string>
+
+    <!-- Feature tour (owner request of 2026-11-12). The texts follow the approved storyboard. -->
+    <string name="tour_welcome_title">Welcome to Frame</string>
+    <string name="tour_welcome_body">All your videos in one library, and a player that reads any format. No ads, and nothing leaves your phone.</string>
+    <string name="tour_library_title">Your library sorts itself</string>
+    <string name="tour_library_body">It finds every video on the phone and knows films and series by their covers, plots, and TMDB and IMDb ratings.</string>
+    <string name="tour_player_title">A player that gets you</string>
+    <string name="tour_player_body">Arabic subtitles that arrive on their own, two subtitles at once, and sync to the speech. Plus an A-B loop, a sleep timer, and gestures for volume and brightness.</string>
+    <string name="tour_continue_title">Pick up where you left off</string>
+    <string name="tour_continue_body">It remembers your place in every video, offers the next episode as the credits begin, and blurs pictures of episodes you have not seen.</string>
+    <string name="tour_tonight_title">Your evening is ready</string>
+    <string name="tour_tonight_body">“What should I watch tonight?” picks for you, “Watchlist” is your list, and “My stats” counts how much you have watched.</string>
+    <string name="tour_privacy_title">Your things, kept safe</string>
+    <string name="tour_privacy_body">A private folder that opens with your fingerprint, a backup that makes itself, suggestions that free up space, and a widget on your home screen.</string>
+    <string name="tour_next">Next</string>
+    <string name="tour_start">Let\'s start</string>
+    <string name="tour_page">Page %1$d of %2$d</string>
+    <string name="tour_settings">Feature tour</string>
+    <string name="tour_settings_hint">What Frame can do, in six pages</string>
+    <string name="tour_sample_series">Evening Series</string>
+    <string name="tour_sample_series_detail">S2 E4 · 12 min left</string>
+    <string name="tour_sample_episode_one">E5 · The Return</string>
+    <string name="tour_sample_episode_one_length">48 min</string>
+    <string name="tour_sample_episode_two">E6 · After the Storm</string>
+    <string name="tour_sample_episode_two_length">51 min</string>
+    <string name="tour_sample_genre">Drama</string>
+    <string name="tour_sample_week">This week · 6 h 20 min</string>
+    <string name="tour_row_private_hint">Opens with your fingerprint</string>
+    <string name="tour_row_backup">Automatic backup</string>
+    <string name="tour_row_backup_hint">Weekly, the last 5 kept</string>
+    <string name="tour_row_cleanup">Cleanup suggestions</string>
+    <string name="tour_row_cleanup_hint">814 MB could be freed</string>
+    <string name="tour_row_widget">Continue watching widget</string>
+    <string name="tour_row_widget_hint">On your home screen</string>
+    <!-- Sample subtitle lines drawn in the tour: an English second line over an Arabic main line, in every language. -->
+    <string name="tour_sample_line_second" translatable="false">I never said that.</string>
+    <string name="tour_sample_line_main" translatable="false">ما قلت هالكلام أبداً.</string>
+    <!-- First letters of the days from Saturday to Friday, left to right under the sample chart. -->
+    <string-array name="tour_week_days">
+        <item>S</item>
+        <item>S</item>
+        <item>M</item>
+        <item>T</item>
+        <item>W</item>
+        <item>T</item>
+        <item>F</item>
+    </string-array>
 </resources>

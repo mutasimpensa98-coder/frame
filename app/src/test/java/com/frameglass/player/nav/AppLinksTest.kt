@@ -26,4 +26,11 @@ class AppLinksTest {
         assertEquals(false, AppLinks.shouldOpen(listOf(Route.Onboarding), keys))
         assertEquals(true, AppLinks.shouldOpen(emptyList(), keys))
     }
+
+    @Test
+    fun theLinkNeverOpensOverTheFirstRunTourButDoesOverTheOneFromSettings() {
+        val keys = Route.Settings(SettingsTopic.ONLINE)
+        assertEquals(false, AppLinks.shouldOpen(listOf(Route.Tour(setup = true)), keys))
+        assertEquals(true, AppLinks.shouldOpen(listOf(Route.Tabs, Route.Tour(setup = false)), keys))
+    }
 }

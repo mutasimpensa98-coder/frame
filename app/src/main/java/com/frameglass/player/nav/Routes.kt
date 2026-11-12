@@ -19,6 +19,12 @@ internal enum class SettingsTopic { APPEARANCE, LANGUAGE, LIBRARY, PLAYBACK, SUB
 
 internal sealed interface Route {
     data object Onboarding : Route
+
+    /**
+     * The feature tour. With [setup] it is the first run, and the setup steps of [Onboarding] follow it. Without, it
+     * was opened from Settings and returns there.
+     */
+    data class Tour(val setup: Boolean) : Route
     data object Tabs : Route
     data object About : Route
     data object MediaManager : Route
@@ -64,6 +70,7 @@ private fun fields(vararg parts: Any?): String = parts.joinToString(Separator) {
 
 private fun Route.encode(): String = when (this) {
     Route.Onboarding -> "onboarding"
+    is Route.Tour -> fields("tour", setup)
     Route.Tabs -> "tabs"
     Route.About -> "about"
     Route.MediaManager -> "media"
@@ -83,6 +90,7 @@ private fun decode(saved: String): Route? {
     fun text(index: Int): String? = parts.getOrNull(index)?.ifEmpty { null }
     return when (parts[0]) {
         "onboarding" -> Route.Onboarding
+        "tour" -> Route.Tour(setup = text(1).toBoolean())
         "tabs" -> Route.Tabs
         "about" -> Route.About
         "media" -> Route.MediaManager

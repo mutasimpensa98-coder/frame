@@ -19,10 +19,10 @@ internal object AppLinks {
         .setAction(ACTION_SUBTITLE_KEYS)
         .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
 
-    /** Never over onboarding, and never a second copy of the page already on top. */
+    /** Never over onboarding or the first-run tour, and never a second copy of the page already on top. */
     fun shouldOpen(stack: List<Route>, route: Route): Boolean {
         val top = stack.lastOrNull()
-        return top != Route.Onboarding && top != route
+        return top != Route.Onboarding && top != Route.Tour(setup = true) && top != route
     }
 
     /** The page an intent action asks for, or null for a plain launch. */

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Language
@@ -135,6 +136,14 @@ internal fun SettingsScreen() {
                             title = stringResource(R.string.app_settings_backup),
                             description = stringResource(R.string.app_settings_backup_hint),
                             onClick = { navigator.push(Route.Settings(SettingsTopic.BACKUP)) },
+                        )
+                        SettingsDivider(LinkDividerInset)
+                        SettingsLink(
+                            icon = Icons.Rounded.Explore,
+                            hue = TileHue.Sky,
+                            title = stringResource(R.string.tour_settings),
+                            description = stringResource(R.string.tour_settings_hint),
+                            onClick = { navigator.push(Route.Tour(setup = false)) },
                         )
                         SettingsDivider(LinkDividerInset)
                         SettingsLink(

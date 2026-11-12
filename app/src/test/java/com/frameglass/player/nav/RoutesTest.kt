@@ -20,6 +20,8 @@ class RoutesTest {
     fun everyRouteSurvivesProcessDeath() {
         val routes = listOf(
             Route.Onboarding,
+            Route.Tour(setup = true),
+            Route.Tour(setup = false),
             Route.Tabs,
             Route.About,
             Route.MediaManager,

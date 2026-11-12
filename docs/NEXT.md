@@ -1,6 +1,7 @@
 # Next
 
 Updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
+Updated 2026-11-12, after the feature tour was built on branch `tour`. Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
 The history must stay fit to publish. `.gitignore` and `tools/hooks/pre-commit`, set through `core.hooksPath`, keep out what the waiver bans. A new clone needs `git config core.hooksPath tools/hooks`.
 
@@ -15,6 +16,8 @@ The answer to those three requests is committed (`319d718`) with version 1.0.105
 The owner then asked for launcher shortcuts, a Continue watching widget, the next episode date and a trailer on Details, and a "What should I watch tonight?" pick. They are built and unit tested on branch `pack-home`, with schema 5, and not seen on any phone. `STATUS.md`, section "This round", lists them. Shipping them is step 1 of section 7.
 
 The owner then asked for a watchlist «حابب نشوفه», cleanup suggestions in Media Manager, «إحصائياتي» and automatic backup. They are built and unit tested on branch `pack-library`, with schema 6, and not seen on any phone. `STATUS.md`, section "This round: watchlist, cleanup, stats and automatic backup", lists them. Owner checks are items 75 to 91 of section 2.
+
+The owner then asked for a feature tour and approved its storyboard. It is built and unit tested on branch `tour`, and not seen on any phone. `STATUS.md`, section "This round: feature tour", lists it. Owner checks are items 116 to 122 of section 2. The first-run path cannot be seen on the owner's phone, because it has finished onboarding and the app is never uninstalled or cleared; the `qa` build, a separate app, starts fresh and shows it.
 
 The release build is on the phone, updated in place from the first install, with the library, progress, settings and keys intact. `firstInstallTime` did not change.
 
@@ -178,6 +181,15 @@ Android 13 وأحدث (فرع `android13`، تنازل 2026-11-12). هذه لل�
 113. المجلد الخاص: حط كلمة سر، وجرّب البصمة. هل البصمة تفتحه؟ لو التلفون عنده بصمة وجه بس، هل طلب كلمة السر بدلها؟ وهل لقطة الشاشة ممنوعة جوّا المجلد؟
 114. ضيف ويدجت «تابع المشاهدة» للشاشة الرئيسية، واضغط مطوّل على أيقونة التطبيق. هل الويدجت فيه الفيديو اللي وقف فيه، والاختصار يفتحه من نفس المكان؟
 115. لو التطبيق قفل فجأة في أي مكان، اكتب وين كنت، وشنو ضغطت قبلها، ورقم إصدار Android.
+جولة المميزات (فرع `tour`). جرّبها بعد التحديث اللي فيه هذا:
+
+116. افتح الإعدادات › «جولة في المميزات». هل ظهرت ست صفحات، كل وحدة فوقها لون خفيف، وأول صفحة على اليمين؟ جرّب السحب بإصبعك وزر «التالي»: هل الاثنين يمشوا؟
+117. صفحة «مكتبتك ترتّب نفسها»: هل الأغلفة من أفلامك ومسلسلاتك أنت، وعليها تقييم ⁦TMDB⁩ الأزرق أو ⁦IMDb⁩ الأصفر؟ وهل ما فيهاش ولا مقطع ولا حاجة من المجلد الخاص؟
+118. هل الأغلفة طلعت وحدة ورا الثانية بهدوء؟ في «كمّل من وين وقفت»، هل صورة الحلقة الأولى وضحت مرة وحدة والثانية بقت مموّهة؟ وفي «سهرتك جاهزة»، هل الغلاف تبدّل مرة وحدة بس؟
+119. اضغط رجوع في الصفحة الثالثة: هل رجعت للثانية؟ وفي الصفحة الأولى: هل رجعت للإعدادات؟ وجرّب «تخطي» و«يلا نبدأ»: هل الاثنين يرجعوك للإعدادات؟
+120. شغّل «توفير الطاقة» وافتح الجولة: هل كل شي ظاهر في مكانه بدون حركة، والصورة الأولى في «كمّل من وين وقفت» واضحة من الأول؟
+121. لو الثيم عندك فاتح أو لونك مش أبيض: هل الجولة بقت داكنة وزرها أبيض، والساعة والبطارية فوق باينين؟
+122. كبّر الخط من إعدادات التلفون: هل العناوين والنصوص في الجولة كاملة وما انقصّش منها شي؟ وجرّبها بالإنجليزي كمان لو تحب.
 
 ## 3. Watch for on the phone
 
@@ -317,6 +329,14 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 6. **F-S4 local intro detection.** Phase 7b.
 7. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3, 3 to 4, 4 to 5 and 5 to 6, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
 8. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
+1. **Merge and ship `pack-library`.** Watchlist, cleanup suggestions, stats and automatic backup, with schema step 5 to 6 (one nullable `Title` column and the new `WatchLog` table), replayed by `tools/check_update.py` and never run on Android. Send items 75 to 91 of section 2. Then the steps below.
+2. **Ship the shortcuts, widget, next episode, trailer, tonight's pick and the automatic subtitle.** Both branches are merged into `main`. Write `docs/RELEASE-NOTES.md` in Arabic, push `main`, run `.g.ps1 release`, and send the checklist of section 2, items 54 to 74, with items 20 to 53 if the owner has not answered them. This round has schema step 4 to 5: five nullable `Title` columns, replayed by `tools/check_update.py`, and never run on Android yet. Watch the first live automatic subtitle download: Gestdown and SubDL replies in the tests are fixtures.
+3. **Sites line opens the keys page** is built in the same round (`PlayerHost.subtitleKeysIntent()` through `AppLinks`), item 74.
+4. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
+5. **F-S4 local intro detection.** Phase 7b.
+6. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3, 3 to 4, 4 to 5 and 5 to 6, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
+7. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
+8. **Feature tour on branch `tour`.** Merge it after the Android 13 branch, which lowers minSdk to 33; the tour uses no API above 33. Ship it with the next version and send items 116 to 122 of section 2. To see the first run, install the `qa` build and remove it after.
 
 ## 8. Missing project files
 

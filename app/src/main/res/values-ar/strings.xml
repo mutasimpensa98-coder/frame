@@ -654,4 +654,47 @@
     <string name="app_auto_backup_failed_no_folder">فشلت آخر محاولة في %1$s: لم يُختر مجلد.</string>
     <string name="app_auto_backup_failed_lost">فشلت آخر محاولة في %1$s: المجلد غير موجود أو لم يعد مسموحًا به. اختره من جديد.</string>
     <string name="app_auto_backup_failed_write">فشلت آخر محاولة في %1$s: تعذّرت كتابة الملف.</string>
+
+    <!-- Feature tour (owner request of 2026-11-12). The texts follow the approved storyboard. -->
+    <string name="tour_welcome_title">أهلاً في فريم</string>
+    <string name="tour_welcome_body">كل فيديوهاتك في مكتبة وحدة، ومشغّل يقرأ أي صيغة. بدون إعلانات، وما يطلع شي من تلفونك.</string>
+    <string name="tour_library_title">مكتبتك ترتّب نفسها</string>
+    <string name="tour_library_body">يلقى كل فيديو في التلفون، ويعرف الأفلام والمسلسلات بأغلفتها وقصصها وتقييمات ⁦TMDB⁩ و⁦IMDb⁩.</string>
+    <string name="tour_player_title">مشغّل يفهمك</string>
+    <string name="tour_player_body">ترجمة عربية تنزل وحدها، وترجمتين مع بعض، ومزامنة مع الكلام. وفيه كمان تكرار مقطع، ومؤقت نوم، وإيماءات للصوت والإضاءة.</string>
+    <string name="tour_continue_title">كمّل من وين وقفت</string>
+    <string name="tour_continue_body">يتذكر مكانك في كل فيديو، ويقترح الحلقة الجاية مع بداية الشارة، ويموّه صور الحلقات اللي ما شفتها.</string>
+    <string name="tour_tonight_title">سهرتك جاهزة</string>
+    <string name="tour_tonight_body">«ماذا أشاهد الليلة؟» يختار لك، و«حابب نشوفه» قائمتك، و«إحصائياتي» تحسب كم تفرجت.</string>
+    <string name="tour_privacy_title">حاجاتك في أمان</string>
+    <string name="tour_privacy_body">مجلد خاص ببصمتك، ونسخة احتياطية وحدها، واقتراحات تفضّي المساحة، وويدجت على الشاشة الرئيسية.</string>
+    <string name="tour_next">التالي</string>
+    <string name="tour_start">يلا نبدأ</string>
+    <string name="tour_page">الصفحة %1$d من %2$d</string>
+    <string name="tour_settings">جولة في المميزات</string>
+    <string name="tour_settings_hint">أهم ما في فريم في ست صفحات</string>
+    <string name="tour_sample_series">مسلسل المساء</string>
+    <string name="tour_sample_series_detail">م2 ح4 · باقي 12 دقيقة</string>
+    <string name="tour_sample_episode_one">ح5 · العودة</string>
+    <string name="tour_sample_episode_one_length">48 دقيقة</string>
+    <string name="tour_sample_episode_two">ح6 · ما بعد العاصفة</string>
+    <string name="tour_sample_episode_two_length">51 دقيقة</string>
+    <string name="tour_sample_genre">دراما</string>
+    <string name="tour_sample_week">هالأسبوع · 6 ساعات و20 دقيقة</string>
+    <string name="tour_row_private_hint">يفتح ببصمتك بس</string>
+    <string name="tour_row_backup">نسخة احتياطية تلقائية</string>
+    <string name="tour_row_backup_hint">كل أسبوع، آخر 5 نسخ</string>
+    <string name="tour_row_cleanup">اقتراحات التنظيف</string>
+    <string name="tour_row_cleanup_hint">814 م.ب ممكن تتفضى</string>
+    <string name="tour_row_widget">ويدجت تابع المشاهدة</string>
+    <string name="tour_row_widget_hint">على الشاشة الرئيسية</string>
+    <string-array name="tour_week_days">
+        <item>س</item>
+        <item>ح</item>
+        <item>ن</item>
+        <item>ث</item>
+        <item>ر</item>
+        <item>خ</item>
+        <item>ج</item>
+    </string-array>
 </resources>

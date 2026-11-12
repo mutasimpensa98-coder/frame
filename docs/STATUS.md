@@ -5,6 +5,11 @@ Updated 2026-11-12, after branch `android13` lowered `minSdk` from 36 to 33 so t
 ## Read this first
 
 - **Branch `android13` (2026-11-12): `minSdk` 33 in every module, so the app installs on Android 13 and newer.** `compileSdk` and `targetSdk` stay 37, `arm64-v8a` stays the only ABI, the application ID and key are unchanged. It has not run on any phone: not on the owner's S26 Ultra, and not on any Android 13, 14 or 15 phone. No emulator was used. Every row below keeps the status it had; none of them says anything about Android 13 to 15. `NEXT.md` section 2, items 103 to 115, is the check for the other person's phone.
+Updated 2026-11-12, after the feature tour was built on branch `tour`. Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, the Continue watching widget, the next episode date, the trailer button and tonight's pick were built on branch `pack-home`. R9 applies.
+
+## Read this first
+
+- **Branch `tour` (2026-11-12) adds the feature tour «جولة في المميزات».** Built and unit tested, never installed or seen on a phone. See "This round: feature tour".
 - **1.0.111 (2026-11-12): blurred pictures of unseen episodes. The owner checked it on the phone and said it works.**
 - **1.0.108 is on the phone (2026-11-12), updated in place over 1.0.107, first install time kept, schema 6 opened with the library intact.** Seen opening with no crash: Library menu, My stats, tonight's pick, Media Manager Suggestions (one extra version listed with its kept copy named, nothing selected), the subtitle sheet and the Second subtitle sheet. Not tried: dual rendering, A-B loop, sleep end of episode, the credits card, watchlist, automatic backup.
 - **Branch `pack-player` (2026-11-12) adds dual subtitles, an A-B loop, «آخر الحلقة» for the sleep timer and the next-episode card at the credits.** Built and unit tested, never installed or seen on a phone. See "This round: dual subtitles, A-B loop, sleep at the end of the episode, next at the credits".
@@ -170,7 +175,7 @@ No real TMDB, AniList, AniSkip or OMDb call has been made from the app. The test
 | F-U12 | One look, now themes | UNIT TESTED | Not seen | Replaced by the waiver. Dark, light, follow phone, six accents. `ThemeContrastTest` computes contrast and measures no pixels. No light theme, blur, status bar or shader has been seen. |
 | F-U13 | Copy | BUILT | Not seen | Plurals and time left are in resources. |
 | F-U14 | Settings | BUILT | Not seen | Rebuilt as pages: appearance, language, library, playback, online, backup, private folder, Media Manager, about. |
-| F-U15 | Onboarding | VERIFIED ON PHONE | Whole flow, first build (`01` to `06`) | Recheck on the next install: the step dots changed, and the empty Home now searches the phone. |
+| F-U15 | Onboarding | VERIFIED ON PHONE | Whole flow, first build (`01` to `06`) | Recheck on the next install: the step dots changed, and the empty Home now searches the phone. On branch `tour` a fresh install shows the feature tour before these steps; not seen. |
 
 ### Arabic
 
@@ -340,6 +345,20 @@ Five faults from the review of the merge were fixed:
 | A player at the root of its task, opened from a shortcut or the widget, stayed open under the keys page. | The player calls `exit()` after starting the intent, which saves the position. `FrameRoot` uses `AppLinks.shouldOpen`, which skips the page when it is already on top (`AppLinksTest`). |
 | TMDB's air date is the network's local date, so in Libya an episode often lands that night or the next morning. | The episode stays announced until air date + 1 day (`Upcoming.of`, `AirDates.dayOf`), and that case reads «تنزل الليلة» and «حلقة جديدة الليلة»; tomorrow stays «تنزل غدًا». `UpcomingTest`, `AirDatesTest`. |
 
+## This round: feature tour
+
+Owner request with an approved storyboard, built on branch `tour` on 2026-11-12. Waiver "2026-11-12: Feature tour". Not installed and not seen on a phone, in either language, theme or font scale. No permission, dependency, network host or schema change. Code in `app/.../tour/`; it uses no API above 33 (the blur of page 4 is `RenderEffect`, API 31), for the branch that lowers minSdk to 33.
+
+| Part | Status | Notes |
+|---|---|---|
+| Which flow shows it | UNIT TESTED | `TourFlowTest`: a fresh install (`onboardingDone` false) opens on `Route.Tour(setup = true)`, an install that finished onboarding opens on Tabs, the first-run tour hands over to `Route.Onboarding` on «يلا نبدأ» or «تخطي», the one from Settings goes back. `RoutesTest` round-trips both routes; `AppLinksTest`: an intent link never opens over the first-run tour. Back goes to the previous page; on page 1 it leaves the tour as on any page, which on the first run closes the app with onboarding still to do. |
+| Posters from the owner's library | UNIT TESTED | `TourPostersTest`: at most 6, rated first in the order given, clips (ids of the Videos list) and private-folder items (by id and by cover path) never shown, only covers that are files on the phone (checked on IO, only until the slots are full), one cover shown once, drawn placeholders fill the slots left with their own designs. A cover may be a video frame for a title with no poster. Loading is capped at 3 s; placeholders stay if it is slower. Page 5 swaps from the second cover to the first, or to drawn ones. |
+| Pages, motion, Settings entry | BUILT | Six pages in a `HorizontalPager` (right to left in Arabic), the storyboard's lights, app-icon layers, filter chips, `RatingBadge`, `ProgressLine`, `ColorIconTile` rows, player icons and the player's own «تم تحميل ترجمة عربية من …» and «غيّرها» strings. Always dark (`DarkLook` in `:glass`, which changes only `FrameTheme.colors`). Entrances: cards and rows fade and rise in turn, page 4's next episode picture clears once while the other stays blurred, page 5's pick swaps once; none under section 7.9. Settings › App › «جولة في المميزات» (sky tile). No UI test; nothing seen on screen, so the fit of the illustrations on the S26 Ultra and at font scale 1.3 is unchecked. |
+
+The first-run path cannot be seen on the owner's phone: it has finished onboarding, and the app is never uninstalled or cleared. The `qa` build starts fresh and would show it.
+
+Build on this PC on 2026-11-12, branch `tour`, with the build cache: `testDebugUnitTest`, `assembleRelease` and `:app:lintRelease` pass. Log: `D:\FrameGlass\logs\build-tour.log`. Unit tests: 1,170 run, 1,169 passed, 0 failed, 1 skipped (`AnimeIndexTest`): data 526, net 353, engine 75, player 99, app 84 (13 new: `TourPostersTest` 8, `TourFlowTest` 4, one in `AppLinksTest`), glass 33. `:parser:test`, `assembleQa`, `fg.ps1 build` and `tools/check_update.py` were not run; no schema changed. `:app` lint: 0 errors, 10 warnings, none in a file of this round. Release APK 23,508,053 bytes. Nothing was installed.
+
 ## This round: watchlist, cleanup, stats and automatic backup
 
 Four owner requests, built on branch `pack-library` on 2026-11-12. Not installed, and not seen on a phone, in either theme or in Arabic. Nothing in this round goes online (R2). No permission and no dependency were added.
@@ -414,6 +433,7 @@ From `WAIVERS.md`.
 | Launcher shortcuts and the Continue watching widget | UNIT TESTED | Waiver of 2026-11-08. See "This round". Never run. |
 | Next episode date, trailer, tonight's pick | UNIT TESTED | See "This round". Never run. |
 | Watchlist, cleanup suggestions, stats, automatic backup | UNIT TESTED | Built on `pack-library`. See "This round: watchlist, cleanup, stats and automatic backup". Never run. |
+| Feature tour | UNIT TESTED | Built on `tour`. See "This round: feature tour". Never run. |
 
 ## Gates
 

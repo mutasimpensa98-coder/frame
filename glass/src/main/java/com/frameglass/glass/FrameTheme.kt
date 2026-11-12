@@ -130,6 +130,30 @@ private fun TrackThemeWindow(palette: FramePalette) {
 }
 
 /**
+ * The dark look with the white accent for one part of a screen, whatever the app's theme, such as the feature
+ * tour. Unlike a nested [FrameTheme] it opens no theme window: it changes what [FrameTheme.colors] and Material
+ * read below it, and plain [FrameColors] reads keep following the app. Read colours through [FrameTheme.colors]
+ * inside it.
+ */
+@Composable
+fun DarkLook(content: @Composable () -> Unit) {
+    val palette = FramePalettes.Default
+    CompositionLocalProvider(LocalFramePalette provides palette) {
+        MaterialTheme(
+            colorScheme = remember(palette) { palette.materialColors() },
+            shapes = FrameMaterialShapes,
+            typography = FrameTypography,
+        ) {
+            CompositionLocalProvider(
+                LocalContentColor provides palette.content,
+                LocalTextStyle provides FrameType.Body,
+                content = content,
+            )
+        }
+    }
+}
+
+/**
  * The Frame Glass theme, glass state and overlay layer. It paints no background of its own.
  *
  * With no arguments it is the dark look, which is also what the player keeps in every theme. [coverTint]
