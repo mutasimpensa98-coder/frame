@@ -104,3 +104,15 @@ The owner renamed the app "Frame" (Arabic «فريم») and asked for the play m
 ## 2026-11-12: Blur unseen episode pictures
 
 The owner asked that an episode's picture not give the story away. An episode's own image (its TMDB still, or a frame of its file) is blurred in the episode list and on the Home card until the episode is started; a series backdrop or poster standing in is never blurred. A Library setting turns it off; on by default; in backups.
+
+## 2026-11-12: Feature tour
+
+The owner asked for a tour of the app's features and approved its storyboard: six full-screen pages, each with a soft coloured light at the top, an illustration built from the app's own pieces, a title, a short body, page dots, a full-width «التالي» («يلا نبدأ» on the last page) and «تخطي». This changes the brief as follows:
+
+- F-U15: a fresh install shows the tour first, then the setup steps. «تخطي» goes straight to the setup steps. An install that has finished onboarding, such as one updated in place, never shows it by itself. Settings › «جولة في المميزات» opens it at any time, and it then returns to Settings.
+- Section 7.1 and 7.2: the tour keeps the dark look and the white primary pill in every theme and accent, as the player does. Its page lights reach 60% alpha at their centre, above the 16% cap of the cover glow, because the storyboard shows them so. They fade into the near-black canvas by the time they reach the text.
+- R8: no film or series art ships in the APK. The library page shows up to 6 covers already stored on the phone from the owner's own library, rated titles first, never a clip or a private-folder item, with their own TMDB or IMDb badge. Slots left over, as on a fresh install, get quiet geometric posters drawn in code. Nothing is fetched or sent for this.
+- Section 7.3: the see-through panels in the illustrations are tint and a 1 dp rim only. They add no blurred layer.
+- Motion is a light entrance per page and stays off under section 7.9.
+
+It needs no permission, dependency or network host.

@@ -62,6 +62,8 @@ import com.frameglass.player.ui.LocalArtUnderBars
 import com.frameglass.player.ui.rememberUiModel
 import com.frameglass.player.vault.MoveSheet
 import com.frameglass.player.stats.StatsScreen
+import com.frameglass.player.tour.TourFlow
+import com.frameglass.player.tour.TourScreen
 import com.frameglass.player.vault.PrivateFolderScreen
 import com.frameglass.playerui.PlayerRoute
 
@@ -76,6 +78,12 @@ internal class Navigator(private val stack: SnapshotStateList<Route>, private va
 
     fun back() {
         if (stack.size > 1) stack.removeAt(stack.lastIndex)
+    }
+
+    /** Leaves the feature tour for the setup steps on the first run, or back to Settings. */
+    fun leaveTour(tour: Route.Tour) {
+        val next = TourFlow.after(tour)
+        if (next != null) stack[stack.lastIndex] = next else back()
     }
 
     /** Leaves onboarding for the tabs. */
@@ -140,7 +148,7 @@ internal fun FrameRoot(link: Route? = null, onLinkOpened: () -> Unit = {}) {
         // DataStore answers in a few milliseconds; the canvas is what shows until then.
         val loaded = settings ?: return@Box
         val stack = rememberSaveable(saver = RouteStackSaver) {
-            mutableStateListOf(if (loaded.onboardingDone) Route.Tabs else Route.Onboarding)
+            mutableStateListOf(TourFlow.firstRoute(loaded.onboardingDone))
         }
         val context = LocalContext.current
         val navigator = remember(stack, context) { Navigator(stack, context) }
@@ -172,6 +180,7 @@ internal fun FrameRoot(link: Route? = null, onLinkOpened: () -> Unit = {}) {
                         predictivePopTransitionSpec = { popTransform(rtl, reduced) },
                         entryProvider = entryProvider {
                             entry<Route.Onboarding> { OnboardingScreen() }
+                            entry<Route.Tour> { TourScreen(it) }
                             entry<Route.Tabs> { TabsScreen(tab, onSelect = { tab = it }) }
                             entry<Route.About> { AboutScreen() }
                             entry<Route.Details> { DetailsScreen(it) }
