@@ -453,11 +453,12 @@ class MatrixActivity : ComponentActivity() {
 
     // ---- census -------------------------------------------------------------
 
+    // SDK_INT_FULL needs API 36 and getHdrSdrRatio API 34; older phones record null for them.
     private fun census() {
         val j = JSONObject()
         val d = display ?: windowManager.defaultDisplay
         j.put("model", android.os.Build.MODEL).put("sdkInt", android.os.Build.VERSION.SDK_INT)
-            .put("sdkIntFull", android.os.Build.VERSION.SDK_INT_FULL).put("incremental", android.os.Build.VERSION.INCREMENTAL)
+            .put("sdkIntFull", if (android.os.Build.VERSION.SDK_INT >= 36) android.os.Build.VERSION.SDK_INT_FULL else JSONObject.NULL).put("incremental", android.os.Build.VERSION.INCREMENTAL)
             .put("security", android.os.Build.VERSION.SECURITY_PATCH).put("fingerprint", android.os.Build.FINGERPRINT)
         val modes = JSONArray()
         for (m in d.supportedModes) modes.put(JSONObject().put("w", m.physicalWidth).put("h", m.physicalHeight).put("hz", m.refreshRate.toDouble()).put("alt", m.alternativeRefreshRates.joinToString()))
@@ -465,7 +466,7 @@ class MatrixActivity : ComponentActivity() {
         val hdr = d.hdrCapabilities
         j.put("hdrTypes", JSONArray(hdr?.supportedHdrTypes?.toList() ?: emptyList<Int>()))
             .put("hdrMaxNits", hdr?.desiredMaxLuminance?.toDouble() ?: 0.0).put("hdrAvgNits", hdr?.desiredMaxAverageLuminance?.toDouble() ?: 0.0)
-            .put("isHdr", d.isHdr).put("hdrSdrRatio", d.hdrSdrRatio.toDouble())
+            .put("isHdr", d.isHdr).put("hdrSdrRatio", if (android.os.Build.VERSION.SDK_INT >= 34) d.hdrSdrRatio.toDouble() else JSONObject.NULL)
         val codecs = JSONArray()
         for (info in MediaCodecList(MediaCodecList.ALL_CODECS).codecInfos) codecs.put(codecJson(info))
         j.put("codecs", codecs)

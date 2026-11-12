@@ -8,7 +8,7 @@
 
 A video library and player for Android, with a glass interface and full Arabic support.
 
-![Android 16+](https://img.shields.io/badge/Android-16%2B-3DDC84?logo=android&logoColor=white)
+![Android 13+](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.4-7F52FF?logo=kotlin&logoColor=white)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
 ![arm64-v8a](https://img.shields.io/badge/ABI-arm64--v8a-555555)
@@ -66,6 +66,8 @@ A video library and player for Android, with a glass interface and full Arabic s
 نزّل ملف APK من صفحة [الإصدارات](../../releases/latest) وافتحه على الهاتف، ثم اختر **تحديث**. لا تحذف التطبيق قبل التحديث، لأن الحذف يمسح المكتبة والمفاتيح والمجلد الخاص.
 
 للأغلفة والتقييمات أضف مفتاح TMDB من الإعدادات. بدونه يعمل التطبيق مشغلاً محلياً كاملاً.
+
+يحتاج التطبيق Android 13 أو أحدث، على هاتف بمعالج arm64 (ARM بنظام 64 بت). صُمّم وجُرّب على Galaxy S26 Ultra بنظام Android 17، ولم يُجرَّب بعد على أي هاتف بنظام Android 13 أو 14 أو 15.
 
 </div>
 
@@ -141,7 +143,7 @@ Add a TMDB key in Settings for covers and ratings. Without one, Frame Glass is a
 
 Requires JDK 21 and Android SDK 37. The signing key is not in this repository, so a build needs your own key through `FG_SECRETS`. See `tools/env.ps1` and `fg.ps1`.
 
-Built and tuned for the Galaxy S26 Ultra on Android 17. Other arm64 phones on Android 16 or newer are untested.
+Requires Android 13 or newer on an arm64 (64-bit ARM) phone. Built and tuned for the Galaxy S26 Ultra on Android 17; it has not been tried on any phone running Android 13, 14 or 15, and other arm64 phones on Android 16 or newer are untested too.
 
 ## Credits
 

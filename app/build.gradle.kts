@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "com.frameglass.player"
-        minSdk = 36
+        minSdk = 33
         targetSdk = 37
         versionCode = appVersion.getProperty("versionCode").toInt()
         versionName = "${appVersion.getProperty("versionName")}.${appVersion.getProperty("versionCode")}"

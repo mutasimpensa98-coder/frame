@@ -40,4 +40,4 @@ Edit only the folders you own. If you need a change elsewhere, write it in your 
 - No hard-coded user text. Each module keeps `res/values/strings.xml` and `res/values-ar/strings.xml`, with string names prefixed by the module (`glass_`, `player_`, `app_`). Arabic must be natural, not literal.
 - Code and comments are in English. Keep comments to the non-obvious.
 - No Nuvio code, fonts, icons or assets. The look comes from `D:\FrameGlass\reference\REFERENCE.md` and its images, which stay outside the repo.
-- Dark is the default, and the player stays dark in every theme (`WAIVERS.md`). `minSdk` 36. Android 17 rules in brief section 4.8 apply.
+- Dark is the default, and the player stays dark in every theme (`WAIVERS.md`). `minSdk` 33 since the waiver of 2026-11-12 (36 before). Android 17 rules in brief section 4.8 apply.

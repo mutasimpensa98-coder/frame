@@ -104,3 +104,14 @@ The owner renamed the app "Frame" (Arabic «فريم») and asked for the play m
 ## 2026-11-12: Blur unseen episode pictures
 
 The owner asked that an episode's picture not give the story away. An episode's own image (its TMDB still, or a frame of its file) is blurred in the episode list and on the Home card until the episode is started; a series backdrop or poster standing in is never blurred. A Library setting turns it off; on by default; in backups.
+
+## 2026-11-12: Android 13 and newer
+
+The owner will give the app to someone else, whose phone may not run Android 16. This changes R5 "One device" as follows:
+
+- `minSdk` is 33 (Android 13) in every module, instead of 36. `compileSdk` and `targetSdk` stay 37, `arm64-v8a` stays the only ABI, and the application ID and signing key do not change.
+- Every platform call above API 33 is guarded with `Build.VERSION.SDK_INT` and has a fallback on 33 to 35. Lint `NewApi` and `InlinedApi` are 0 in every module, and the compiled classes were checked against the SDK's API table.
+- Glass that would need a newer API falls back to what section 7.5 and 7.9 already allow: `SurfaceView.setBlurRegions()` stays off below API 37 (and stays off everywhere until step 0.7 passes), and Haze picks its own blur path below API 36. No new effect was added for older phones.
+- Brief 4.8 "Predictive back is on" now also holds on Android 13 to 15 through `android:enableOnBackInvokedCallback="true"`; Android 16 and newer already had it from target 37.
+- R11 "the phone reports API below 37" still applies to the owner's phone. The other person's phone may report 33 to 37.
+- The S26 Ultra stays the phone the app is designed and tuned for. Nothing has run on an Android 13, 14 or 15 phone yet, so every behaviour there is untested. `NEXT.md` lists what to check on the other person's phone.

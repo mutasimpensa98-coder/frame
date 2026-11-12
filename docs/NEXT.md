@@ -1,6 +1,6 @@
 # Next
 
-Updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
+Updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
 The history must stay fit to publish. `.gitignore` and `tools/hooks/pre-commit`, set through `core.hooksPath`, keep out what the waiver bans. A new clone needs `git config core.hooksPath tools/hooks`.
 
@@ -163,10 +163,28 @@ Send this to the owner as it stands, and record the answers in `docs/evidence/ph
 101. مسلسل ما عندهش أوقات للشارة: في آخر دقيقة من الحلقة، هل ظهر زر خفيف «الحلقة الجاية» بدون عدّاد؟ اضغطه: هل شغّل الحلقة الجاية؟
 102. المزيد › «تحديد المقدمة»: روح لبداية الشارة واضغط «شارة النهاية تبدأ هنا». في الحلقة اللي بعدها، هل البطاقة طلعت تقريبًا في نفس المكان من الشارة؟
 
+Android 13 وأحدث (فرع `android13`، تنازل 2026-11-12). هذه للشخص اللي بياخذ التطبيق، يجربها على تلفونه هو. التطبيق ما تجرّبش على أي تلفون فيه Android 13 أو 14 أو 15، فكل سؤال هنا جديد:
+
+103. افتح الإعدادات › حول الهاتف › معلومات البرنامج. شنو إصدار Android، وشنو نوع التلفون؟ لازم يكون Android 13 أو أحدث، والمعالج 64 بت (arm64).
+104. ثبّت ملف APK. هل تثبّت عادي، بدون رسالة «التطبيق غير متوافق» أو «حدث خطأ في تحليل الحزمة»؟ هذا تثبيت جديد على التلفون، مش تحديث.
+105. أول فتح: هل طلب إذن الإشعارات، وفتح صفحة «الوصول إلى كل الملفات»؟ بعد ما تسمح، هل بدأ يبحث عن الفيديوهات وحده وظهرت في الرئيسية؟
+106. شغّل فيديو MP4 عادي، وبعده ملف MKV فيه ترجمة ASS عربية. هل الصورة والصوت شغالين، والحروف العربية متصلة واتجاهها صح؟
+107. لو عندك فيديو HEVC 10-bit أو 4K أو HDR: هل يشتغل بدون تقطيع، والألوان طبيعية مش باهتة؟ لو ما اشتغلش، اكتب اسم الصيغة اللي ظهرت في رسالة الخطأ.
+108. وأنت تشغّل فيديو، اطلع للشاشة الرئيسية. هل ظهرت النافذة العائمة، وفيها أزرار الرجوع 10 ثواني والإيقاف والتقديم؟
+109. طفّي الشاشة والفيديو شغال. هل الصوت يكمل، وفيه إشعار فيه أزرار التحكم؟ وبعد دقيقتين، هل الصوت لسه شغال؟
+110. الزجاج: هل الأشرطة والقوائم فوق المكتبة شفافة ومغبّشة، والنص واضح؟ شغّل «توفير الطاقة»: هل الزجاج صار أبسط، والنص بقى واضح، وما فيش شي اختفى؟
+111. الرجوع: اسحب من طرف الشاشة وأنت في صفحة التفاصيل، وفي قائمة مفتوحة، وفي المشغّل. هل يرجع خطوة وحدة كل مرة، وما يطلعش من التطبيق فجأة؟
+112. غيّر لغة التطبيق من الإعدادات للعربية وبعدين للإنجليزية. هل الواجهة تغيّرت كلها، ورجعت من اليمين لليسار في العربي؟
+113. المجلد الخاص: حط كلمة سر، وجرّب البصمة. هل البصمة تفتحه؟ لو التلفون عنده بصمة وجه بس، هل طلب كلمة السر بدلها؟ وهل لقطة الشاشة ممنوعة جوّا المجلد؟
+114. ضيف ويدجت «تابع المشاهدة» للشاشة الرئيسية، واضغط مطوّل على أيقونة التطبيق. هل الويدجت فيه الفيديو اللي وقف فيه، والاختصار يفتحه من نفس المكان؟
+115. لو التطبيق قفل فجأة في أي مكان، اكتب وين كنت، وشنو ضغطت قبلها، ورقم إصدار Android.
+
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
 
+- **Android 13 to 15 (`android13`).** A crash at first open or on one screen with `NoSuchMethodError`, `NoSuchFieldError` or `NoClassDefFoundError` would mean a platform call above API 33 that lint and the class scan both missed. Item 115 asks for where it happened.
+- **AGSL on API 33.** `GlassAgsl` catches a shader that does not compile and drops only the finger highlight or the tilt sheen. Haze's own glass shaders are Haze's; if one fails on Android 13 the glass may look flat there.
 - **Time and heat of the first search.** Every new file is hashed, then probed with up to 3 at once. A phone with thousands of clips will run this for a while.
 - **Playback during the first search.** The probing does not pause while a video plays, and playback has priority under section 7.9. If playback stutters, pause `Enricher` while the player is open.
 - **All Files granted without leaving the app.** A catch-up starts only when `MainActivity` is stopped and started again. In split screen or a pop-up window it may not stop, and Home then says no videos until Search again is tapped.
@@ -210,6 +228,16 @@ From this round's three requests, read in the code and never run:
 - **The sites line under subtitle results** is text only. Nothing in `:app` implements `PlayerHost.subtitleKeysIntent()`, so it cannot open the keys page.
 
 ## 4. Known limits in this build
+
+Android 13 and newer (`android13`, not seen on any phone below Android 17):
+
+- Nothing has run on Android 13, 14 or 15. Lint and a scan of the compiled classes against the SDK's API table show only that no platform call above API 33 runs unguarded in this project's own code; libraries guard their own.
+- Below API 36 Haze draws its blur through its own RenderNode path instead of the platform backdrop path it picks on newer phones. The look and the frame cost there have not been seen.
+- `VideoBlurHook` needs API 37 and step 0.7, so the player keeps the scrim fallback of section 7.5 on every phone, as before.
+- Android 13 and 14 do not force edge-to-edge. The app asks for it itself (`enableEdgeToEdge` in `MainActivity`, `setDecorFitsSystemWindows(false)` in `PlayerActivity`), so the screens should match, but system dialogs may show their bars differently.
+- Predictive back: with the new manifest flag the back action goes through the same callbacks as on Android 16, and on Android 14 and 15 the sheets get the gesture progress. The system's own back animations on 13 and 14 still need the developer option.
+- Hardware decoders, HDR types and Bluetooth outputs depend on that phone. The engine's fallbacks are the same as on the S26 Ultra, but they were tuned only there.
+- The other person installs fresh. `fg.ps1 ship` refuses a fresh install by design and is for the owner's phone, so they install the release APK themselves and their library starts empty.
 
 Watchlist, cleanup, stats and automatic backup (`pack-library`, not seen on a phone):
 
@@ -281,13 +309,14 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 
 ## 7. Build next, in order
 
-1. **Merge and ship `pack-library`.** Watchlist, cleanup suggestions, stats and automatic backup, with schema step 5 to 6 (one nullable `Title` column and the new `WatchLog` table), replayed by `tools/check_update.py` and never run on Android. Send items 75 to 91 of section 2. Then the steps below.
-2. **Ship the shortcuts, widget, next episode, trailer, tonight's pick and the automatic subtitle.** Both branches are merged into `main`. Write `docs/RELEASE-NOTES.md` in Arabic, push `main`, run `.g.ps1 release`, and send the checklist of section 2, items 54 to 74, with items 20 to 53 if the owner has not answered them. This round has schema step 4 to 5: five nullable `Title` columns, replayed by `tools/check_update.py`, and never run on Android yet. Watch the first live automatic subtitle download: Gestdown and SubDL replies in the tests are fixtures.
-3. **Sites line opens the keys page** is built in the same round (`PlayerHost.subtitleKeysIntent()` through `AppLinks`), item 74.
-4. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
-5. **F-S4 local intro detection.** Phase 7b.
-6. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3, 3 to 4, 4 to 5 and 5 to 6, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
-7. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
+1. **Android 13 and newer (`android13`).** Review and merge into `main`, then ship as usual: the owner's phone takes it as an update, because the application ID, the key and the `versionCode` rule do not change. Then send items 103 to 115 for the other person's phone and record the answers.
+2. **Merge and ship `pack-library`.** Watchlist, cleanup suggestions, stats and automatic backup, with schema step 5 to 6 (one nullable `Title` column and the new `WatchLog` table), replayed by `tools/check_update.py` and never run on Android. Send items 75 to 91 of section 2. Then the steps below.
+3. **Ship the shortcuts, widget, next episode, trailer, tonight's pick and the automatic subtitle.** Both branches are merged into `main`. Write `docs/RELEASE-NOTES.md` in Arabic, push `main`, run `.\fg.ps1 release`, and send the checklist of section 2, items 54 to 74, with items 20 to 53 if the owner has not answered them. This round has schema step 4 to 5: five nullable `Title` columns, replayed by `tools/check_update.py`, and never run on Android yet. Watch the first live automatic subtitle download: Gestdown and SubDL replies in the tests are fixtures.
+4. **Sites line opens the keys page** is built in the same round (`PlayerHost.subtitleKeysIntent()` through `AppLinks`), item 74.
+5. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
+6. **F-S4 local intro detection.** Phase 7b.
+7. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3, 3 to 4, 4 to 5 and 5 to 6, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
+8. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
 
 ## 8. Missing project files
 
