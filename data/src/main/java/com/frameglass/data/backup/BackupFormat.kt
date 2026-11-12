@@ -130,6 +130,8 @@ internal data class BackupTitle(
     val removed: Boolean,
     val createdAt: Long,
     val favorite: Boolean = false,
+    /** When the title joined the watchlist. Null when it is not there, and in a backup written before the watchlist. */
+    val watchlistAt: Long? = null,
 )
 
 @Serializable

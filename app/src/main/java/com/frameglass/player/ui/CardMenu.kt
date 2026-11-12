@@ -5,6 +5,8 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.BookmarkAdd
+import androidx.compose.material.icons.rounded.BookmarkRemove
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
@@ -183,6 +185,14 @@ private fun TitleActions(target: CardTarget.Title, sheet: GlassSheetState) {
         return
     }
     val files = detail.files.filter { it.available }
+    GlassRow(
+        text = stringResource(if (detail.watchlist) R.string.app_menu_watchlist_remove else R.string.app_menu_watchlist_add),
+        icon = if (detail.watchlist) Icons.Rounded.BookmarkRemove else Icons.Rounded.BookmarkAdd,
+        onClick = {
+            sheet.close()
+            model.launch { library.setWatchlist(detail.id, !detail.watchlist) }
+        },
+    )
     GlassRow(
         text = stringResource(if (detail.favorite) R.string.app_menu_favorite_remove else R.string.app_menu_favorite_add),
         icon = if (detail.favorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,

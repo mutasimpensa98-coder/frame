@@ -63,6 +63,7 @@ internal fun RowScreen(kind: HomeRowKind, label: String?) {
         HomeRowKind.COLLECTION -> label ?: stringResource(R.string.app_collection)
         HomeRowKind.VIDEOS -> stringResource(R.string.app_section_videos)
         HomeRowKind.RECENT -> stringResource(R.string.app_sort_recent)
+        HomeRowKind.WATCHLIST -> stringResource(R.string.app_filter_watchlist)
     }
     TitleListScreen(title, titles, "row:$kind:$label", frames = kind == HomeRowKind.VIDEOS)
 }

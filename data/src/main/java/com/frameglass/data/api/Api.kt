@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.flowOf
  */
 
 enum class TitleKind { MOVIE, SERIES, ANIME }
-enum class LibraryFilter { ALL, MOVIES, SERIES, ANIME, VIDEOS, FAVORITES, FOLDERS }
+enum class LibraryFilter { ALL, MOVIES, SERIES, ANIME, VIDEOS, FAVORITES, WATCHLIST, FOLDERS }
 enum class LibrarySort { RECENT, NAME, RATING }
 enum class RatingSource { TMDB, IMDB }
 enum class MatchState { UNMATCHED, QUEUED, AUTO, NEEDS_CHOICE, MANUAL, NONE_FOUND }
@@ -104,7 +104,16 @@ data class ResumeEntry(
 /** A title "What should I watch tonight?" may pick: an unstarted available film or series. */
 data class PickOption(val titleId: Long, val isMovie: Boolean, val genres: List<String>)
 
-enum class HomeRowKind { TOP_RATED, GENRE, COLLECTION, VIDEOS, RECENT }
+/**
+ * WATCHLIST is the owner's own row, not an automatic one: it comes first in HomeFeed.rows when the watchlist holds
+ * an unstarted title, and it is not counted in HomeFeed.MAX_AUTOMATIC_ROWS.
+ */
+enum class HomeRowKind {
+    TOP_RATED, GENRE, COLLECTION, VIDEOS, RECENT, WATCHLIST;
+
+    /** Counted among the F-U5 automatic rows. */
+    val automatic: Boolean get() = this != VIDEOS && this != WATCHLIST
+}
 
 data class HomeRow(val kind: HomeRowKind, val label: String?, val titles: List<TitleCard>, val moreCount: Int)
 
@@ -175,6 +184,8 @@ data class TitleDetail(
     val seasons: List<Int>,
     val unavailable: Boolean,
     val favorite: Boolean = false,
+    /** On the watchlist, which is separate from favourites. A title leaves it by itself once it is watched (F-S3). */
+    val watchlist: Boolean = false,
     /** Facts about the files behind this title, shown on Details, most useful for unmatched videos. */
     val files: List<FileFacts> = emptyList(),
     /** The next episode of a returning series, while it is still to come. Null for films, ended series and OMDb matches. */
@@ -267,6 +278,7 @@ interface LibraryRepository {
     suspend fun removeFromLibrary(titleId: Long)
     suspend fun setWatched(target: WatchTarget, watched: Boolean)
     suspend fun setFavorite(titleId: Long, favorite: Boolean)
+    suspend fun setWatchlist(titleId: Long, onWatchlist: Boolean) = Unit
     /** Folders the owner excluded. Their videos leave the library and scanning skips them. */
     val excludedFolders: Flow<List<String>>
     suspend fun excludeFolder(path: String)

@@ -11,9 +11,9 @@ import androidx.room.RoomDatabase
         SeriesPrefs::class, FilePrefs::class, Person::class, TitlePerson::class, Genre::class, TitleGenre::class,
         CollectionEntity::class, Rating::class, IntroSegment::class, AnimeMap::class, LookupQueue::class,
         ScanLog::class, SearchIndex::class, GroupAlias::class, AudioDeviceDelay::class, PlaySession::class,
-        ExcludedFolder::class, VaultItem::class, VaultSidecar::class,
+        ExcludedFolder::class, VaultItem::class, VaultSidecar::class, WatchLog::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 abstract class FrameDb : RoomDatabase() {
@@ -31,6 +31,7 @@ abstract class FrameDb : RoomDatabase() {
             Room.databaseBuilder(context, FrameDb::class.java, NAME)
                 .addMigrations(
                     Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3, Migrations.MIGRATION_3_4, Migrations.MIGRATION_4_5,
+                    Migrations.MIGRATION_5_6,
                 )
                 .build()
     }

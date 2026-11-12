@@ -61,7 +61,10 @@ class MigrationSchemaTest {
     @Test
     fun noStatementTouchesAnExistingRow() {
         val addColumn = Regex("""^ALTER TABLE `\w+` ADD COLUMN """)
-        (Migrations.STATEMENTS_1_2 + Migrations.STATEMENTS_2_3 + Migrations.STATEMENTS_3_4 + Migrations.STATEMENTS_4_5).forEach { sql ->
+        (
+            Migrations.STATEMENTS_1_2 + Migrations.STATEMENTS_2_3 + Migrations.STATEMENTS_3_4 + Migrations.STATEMENTS_4_5 +
+                Migrations.STATEMENTS_5_6
+        ).forEach { sql ->
             assertTrue(sql, sql.startsWith("CREATE ") || addColumn.containsMatchIn(sql))
         }
     }
@@ -123,6 +126,27 @@ class MigrationSchemaTest {
         assertEquals(types.size, Migrations.STATEMENTS_4_5.size)
         assertEquals(4, Migrations.MIGRATION_4_5.startVersion)
         assertEquals(5, Migrations.MIGRATION_4_5.endVersion)
+    }
+
+    @Test
+    fun stepSixAddsTheWatchlistToTitleAndCreatesTheWatchLogAsRoomExpects() {
+        val old = entities(5)
+        val new = entities(6)
+        assertEquals(old.keys + "WatchLog", new.keys)
+        val changed = old.keys.filter { old.getValue(it).createSql(it) != new.getValue(it).createSql(it) }
+        assertEquals(listOf("Title"), changed)
+        assertEquals(columns(old.getValue("Title")) + "watchlistAt", columns(new.getValue("Title")))
+        assertEquals(old.getValue("Title").indexSql("Title"), new.getValue("Title").indexSql("Title"))
+        val watchlist = field(6, "Title", "watchlistAt")
+        assertEquals("INTEGER", watchlist.getValue("affinity").jsonPrimitive.content)
+        assertTrue(watchlist["notNull"]?.jsonPrimitive?.content != "true")
+        assertTrue("ALTER TABLE `Title` ADD COLUMN `watchlistAt` INTEGER" in Migrations.STATEMENTS_5_6)
+        val log = new.getValue("WatchLog")
+        assertTrue(log.createSql("WatchLog") in Migrations.STATEMENTS_5_6)
+        assertTrue(log.indexSql("WatchLog").isEmpty())
+        assertEquals(2, Migrations.STATEMENTS_5_6.size)
+        assertEquals(5, Migrations.MIGRATION_5_6.startVersion)
+        assertEquals(6, Migrations.MIGRATION_5_6.endVersion)
     }
 
     @Test

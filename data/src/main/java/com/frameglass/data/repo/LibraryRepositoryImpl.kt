@@ -30,6 +30,10 @@ import com.frameglass.data.api.TitleCard
 import com.frameglass.data.api.TitleDetail
 import com.frameglass.data.api.VersionSource
 import com.frameglass.data.api.WatchTarget
+import com.frameglass.data.api.AutoBackupSource
+import com.frameglass.data.api.StatsSource
+import com.frameglass.data.api.WatchStats
+import com.frameglass.data.backup.AutoBackupManager
 import com.frameglass.data.backup.BackupManager
 import com.frameglass.data.db.ExcludedFolder
 import com.frameglass.data.db.FrameDb
@@ -63,6 +67,7 @@ import com.frameglass.data.logic.VaultRefs
 import com.frameglass.data.logic.Versions
 import com.frameglass.data.logic.WatchRules
 import com.frameglass.data.logic.WideArt
+import com.frameglass.data.logic.WatchStatsBuilder
 import com.frameglass.data.logic.card
 import com.frameglass.data.logic.ref
 import com.frameglass.data.meta.Credits
@@ -87,6 +92,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.time.LocalDate
+import java.time.temporal.WeekFields
+import java.util.Locale
 
 internal class LibraryRepositoryImpl(
     private val context: Context,
@@ -103,7 +111,8 @@ internal class LibraryRepositoryImpl(
     private val backup: BackupManager,
     private val clock: Clock,
     private val vault: Lazy<VaultPlayback>,
-) : LibraryRepository, VersionSource, RefreshSource {
+    private val backups: AutoBackupManager,
+) : LibraryRepository, VersionSource, RefreshSource, StatsSource, AutoBackupSource by backups {
 
     private fun <T> view(block: suspend (Snapshot) -> T): Flow<T> =
         snapshots.flow.map(block).distinctUntilChanged().flowOn(Dispatchers.Default)
@@ -117,6 +126,16 @@ internal class LibraryRepositoryImpl(
     override val resumeChanges: Flow<Unit> = db.invalidationTracker.createFlow("WatchState", "MediaFile", "Title").map { }
 
     override val tonightPool: Flow<List<PickOption>> = view { TonightPool.build(it) }
+
+    /** The week starts on the day the phone's region starts it, Saturday for Libya. */
+    override val watchStats: Flow<WatchStats> =
+        combine(snapshots.flow, db.invalidationTracker.createFlow("WatchLog")) { s, _ -> s }
+            .map { s ->
+                val today = LocalDate.parse(EpisodeRows.today(clock.now()))
+                WatchStatsBuilder.build(db.watch().allLog(), s, today, WeekFields.of(Locale.getDefault()).firstDayOfWeek)
+            }
+            .distinctUntilChanged()
+            .flowOn(Dispatchers.IO)
 
     override val scanState: Flow<ScanState> = combine(
         progress.state,
@@ -174,6 +193,7 @@ internal class LibraryRepositoryImpl(
             seasons = seasons(info),
             unavailable = !info.available,
             favorite = title.favorite,
+            watchlist = title.watchlistAt != null,
             files = FileFactsBuilder.of(s, id),
             upcoming = Upcoming.of(info, EpisodeRows.today(s.now)),
             trailerKey = title.trailerKey,
@@ -226,7 +246,10 @@ internal class LibraryRepositoryImpl(
 
     override fun rowTitles(row: HomeRowKind, label: String?): Flow<List<TitleCard>> = view { HomeBuilder.rowTitles(it, row, label) }
 
-    override fun startCatchUp() = catchUp.onOpen()
+    override fun startCatchUp() {
+        catchUp.onOpen()
+        backups.onAppOpen()
+    }
 
     override suspend fun addFolder(path: String) = withContext(Dispatchers.IO) {
         val (volume, rel) = volumes.locate(path) ?: return@withContext
@@ -319,6 +342,11 @@ internal class LibraryRepositoryImpl(
         db.titles().setFavorite(titleId, favorite)
     }
 
+    /** A title already watched stays for a rewatch, and leaves when it is finished again. */
+    override suspend fun setWatchlist(titleId: Long, onWatchlist: Boolean) = withContext(Dispatchers.IO) {
+        db.titles().setWatchlist(titleId, if (onWatchlist) clock.now() else null)
+    }
+
     override val excludedFolders: Flow<List<String>> = db.scan().excludedPaths()
         .map { rows -> rows.map { row -> row.base?.let { ParsePaths.join(it, row.relPath) } ?: row.relPath } }
         .distinctUntilChanged()
@@ -381,6 +409,7 @@ internal class LibraryRepositoryImpl(
         db.withTransaction {
             keys.forEach { (key, titleId) -> watch.upsert(WatchRules.onManual(watch.get(key), key, titleId, watched)) }
         }
+        if (watched) keys.mapNotNull { it.second }.distinct().forEach { WatchlistKeeper.settle(db, it) }
     }
 
     private fun coveredKeys(file: MediaFile): List<Pair<String, Long?>> {

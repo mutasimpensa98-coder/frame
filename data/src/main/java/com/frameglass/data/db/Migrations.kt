@@ -63,4 +63,15 @@ internal object Migrations {
     val MIGRATION_4_5 = object : Migration(4, 5) {
         override fun migrate(db: SupportSQLiteDatabase) = STATEMENTS_4_5.forEach(db::execSQL)
     }
+
+    /** The watchlist, as the moment a title joined it, and the local watch log behind the stats page. */
+    val STATEMENTS_5_6: List<String> = listOf(
+        "ALTER TABLE `Title` ADD COLUMN `watchlistAt` INTEGER",
+        "CREATE TABLE IF NOT EXISTS `WatchLog` (`day` TEXT NOT NULL, `titleId` INTEGER NOT NULL, " +
+            "`watchedMs` INTEGER NOT NULL, PRIMARY KEY(`day`, `titleId`))",
+    )
+
+    val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) = STATEMENTS_5_6.forEach(db::execSQL)
+    }
 }

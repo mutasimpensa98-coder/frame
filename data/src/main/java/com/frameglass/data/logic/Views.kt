@@ -66,6 +66,7 @@ internal object TitleLists {
                 // With All narrowed, this is the only list left for what All no longer holds.
                 LibraryFilter.VIDEOS -> if (cinema) !info.isRealTitle else info.isClip
                 LibraryFilter.FAVORITES -> info.title.favorite
+                LibraryFilter.WATCHLIST -> info.title.watchlistAt != null
                 LibraryFilter.FOLDERS -> false
             }
         }
@@ -129,7 +130,7 @@ internal object HomeBuilder {
         return HomeFeed(
             heroes = heroes,
             continueWatching = continuing,
-            rows = rows(titles, s).take(slots) + listOfNotNull(videosRow(shown)),
+            rows = listOfNotNull(watchlistRow(shown)) + rows(titles, s).take(slots) + listOfNotNull(videosRow(shown)),
             empty = empty,
             cinemaEmpty = !empty && s.settings.cinemaMode && shown.isEmpty(),
         )
@@ -213,6 +214,20 @@ internal object HomeBuilder {
 
     private fun clips(live: List<TitleInfo>) = TitleLists.recent(live.filter { it.isClip })
 
+    /**
+     * The owner's watchlist, newest first. A started title is already in Continue watching, so only unstarted ones
+     * show here. Unlike the automatic rows it shows with a single title.
+     */
+    private fun watchlist(live: List<TitleInfo>): List<TitleInfo> =
+        live.filter { it.title.watchlistAt != null && !it.started && !it.watched }
+            .sortedWith(compareByDescending<TitleInfo> { it.title.watchlistAt }.thenBy { it.id })
+
+    private fun watchlistRow(live: List<TitleInfo>): HomeRow? {
+        val items = watchlist(live)
+        if (items.isEmpty()) return null
+        return HomeRow(HomeRowKind.WATCHLIST, null, items.take(ROW_TITLES).map { it.card() }, (items.size - ROW_TITLES).coerceAtLeast(0))
+    }
+
     private fun videosRow(live: List<TitleInfo>): HomeRow? = row(HomeRowKind.VIDEOS, null, clips(live))
 
     private fun topRated(live: List<TitleInfo>) = TitleLists.ranked(live.filter { it.rating != null })
@@ -239,6 +254,7 @@ internal object HomeBuilder {
             HomeRowKind.COLLECTION -> s.collections.entries.firstOrNull { it.value == label }?.let { ofCollection(shown, it.key) }.orEmpty()
             HomeRowKind.VIDEOS -> clips(live)
             HomeRowKind.RECENT -> TitleLists.recent(shown.filter { !it.isClip })
+            HomeRowKind.WATCHLIST -> watchlist(shown)
         }
         return items.map { it.card() }
     }

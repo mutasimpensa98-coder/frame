@@ -31,6 +31,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ManageSearch
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.BookmarkAdd
+import androidx.compose.material.icons.rounded.BookmarkRemove
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.DeleteOutline
@@ -578,6 +580,14 @@ private fun OverflowMenu(
             onClick = {
                 onDismiss()
                 scope.launch { library.setWatched(WatchTarget.Title(detail.id), !watched) }
+            },
+        )
+        GlassRow(
+            text = stringResource(if (detail.watchlist) R.string.app_menu_watchlist_remove else R.string.app_menu_watchlist_add),
+            icon = if (detail.watchlist) Icons.Rounded.BookmarkRemove else Icons.Rounded.BookmarkAdd,
+            onClick = {
+                onDismiss()
+                scope.launch { library.setWatchlist(detail.id, !detail.watchlist) }
             },
         )
         if (choices.size > 1) {

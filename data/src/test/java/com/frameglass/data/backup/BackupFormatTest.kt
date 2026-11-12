@@ -206,6 +206,23 @@ class BackupFormatTest {
     }
 
     @Test
+    fun theWatchlistSurvivesABackupApartFromFavourites() {
+        val saved = doc.copy(titles = listOf(title.copy(watchlistAt = 77)))
+        val back = read(zip(BackupCodec.encode(saved), cover)).doc.titles.single()
+        assertEquals(77L, back.watchlistAt)
+        assertFalse(back.favorite)
+    }
+
+    @Test
+    fun aBackupWrittenBeforeTheWatchlistStillRestores() {
+        val full = Json.parseToJsonElement(BackupCodec.encode(doc)).jsonObject
+        val titles = full.getValue("titles").jsonArray.map { JsonObject(it.jsonObject - "watchlistAt") }
+        val older = JsonObject(full + ("titles" to JsonArray(titles))).toString()
+        assertFalse(older.contains("watchlistAt"))
+        assertEquals(null, BackupCodec.decode(older).titles.single().watchlistAt)
+    }
+
+    @Test
     fun aBackupWrittenBeforeFavoritesStillRestores() {
         val full = Json.parseToJsonElement(BackupCodec.encode(doc)).jsonObject
         val titles = full.getValue("titles").jsonArray.map { JsonObject(it.jsonObject - "favorite") }

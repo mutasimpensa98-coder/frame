@@ -12,6 +12,7 @@ import com.frameglass.data.api.OnlineSubtitles
 import com.frameglass.data.api.PlaybackRepository
 import com.frameglass.data.api.PrivateVault
 import com.frameglass.data.api.SettingsRepository
+import com.frameglass.data.backup.AutoBackupManager
 import com.frameglass.data.backup.BackupManager
 import com.frameglass.data.db.FrameDb
 import com.frameglass.data.logic.Clock
@@ -34,6 +35,7 @@ import com.frameglass.data.repo.ResourceLabels
 import com.frameglass.data.repo.SettingsStore
 import com.frameglass.data.repo.SidecarLabels
 import com.frameglass.data.repo.SnapshotSource
+import com.frameglass.data.repo.WatchLogger
 import com.frameglass.data.scan.CatchUp
 import com.frameglass.data.scan.ChangeWatcher
 import com.frameglass.data.scan.ClipPass
@@ -129,15 +131,19 @@ internal class DataServices(context: Context, clock: Clock) : FrameServices {
 
     private val backup: BackupManager = BackupManager(context, db, settingsStore, images, ops, index, clock)
 
+    val autoBackup: AutoBackupManager = AutoBackupManager(context, backup, clock, scope)
+
+    private val watchLogger = WatchLogger(db, clock)
+
     override val library: LibraryRepository by lazy {
         LibraryRepositoryImpl(
             context, db, snapshots, labels, settingsStore, volumes, scanner, progress, catchUp, pipeline, images, backup, clock,
-            privateFolder,
+            privateFolder, autoBackup,
         )
     }
 
     override val playback: PlaybackRepository by lazy {
-        PlaybackRepositoryImpl(context, db, volumes, labels, pipeline, images, scope, clock, sidecarLabels, privateFolder)
+        PlaybackRepositoryImpl(context, db, volumes, labels, pipeline, images, scope, clock, sidecarLabels, privateFolder, watchLogger)
     }
 
     override val settings: SettingsRepository get() = settingsStore

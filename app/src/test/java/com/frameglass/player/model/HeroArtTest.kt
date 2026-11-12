@@ -100,6 +100,18 @@ class HeroArtTest {
     }
 
     @Test
+    fun theWatchlistRowIsTheOwnersAndNeverGivesWay() {
+        val rows = listOf(row(HomeRowKind.WATCHLIST)) + fullRows
+        val out = feed(listOf(hero(3, null, null).copy(continueItem = card(3))), emptyList(), rows)
+        assertEquals(
+            listOf(HomeRowKind.WATCHLIST, HomeRowKind.TOP_RATED, HomeRowKind.GENRE, HomeRowKind.VIDEOS),
+            out.rows.map { it.kind },
+        )
+        val fewer = listOf(row(HomeRowKind.WATCHLIST), row(HomeRowKind.TOP_RATED), row(HomeRowKind.GENRE))
+        assertEquals(fewer, feed(listOf(hero(3, null, null).copy(continueItem = card(3))), emptyList(), fewer).rows)
+    }
+
+    @Test
     fun fewerTitleRowsLeaveRoomForIt() {
         val rows = listOf(row(HomeRowKind.RECENT), row(HomeRowKind.VIDEOS))
         val out = feed(listOf(hero(3, null, null).copy(continueItem = card(3))), emptyList(), rows)

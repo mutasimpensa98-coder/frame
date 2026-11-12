@@ -8,7 +8,6 @@ import coil3.request.SuccessResult
 import com.frameglass.data.api.HeroItem
 import com.frameglass.data.api.HomeFeed
 import com.frameglass.data.api.HomeRow
-import com.frameglass.data.api.HomeRowKind
 import java.io.File
 
 // A small decode still reads the whole file, which is all the check needs.
@@ -45,8 +44,8 @@ internal suspend fun HomeFeed.withDrawableHeroes(decodes: suspend (String) -> Bo
 }
 
 private fun withoutLastTitleRow(rows: List<HomeRow>): List<HomeRow> {
-    if (rows.count { it.kind != HomeRowKind.VIDEOS } < HomeFeed.MAX_AUTOMATIC_ROWS) return rows
-    val last = rows.indexOfLast { it.kind != HomeRowKind.VIDEOS }
+    if (rows.count { it.kind.automatic } < HomeFeed.MAX_AUTOMATIC_ROWS) return rows
+    val last = rows.indexOfLast { it.kind.automatic }
     return rows.filterIndexed { index, _ -> index != last }
 }
 

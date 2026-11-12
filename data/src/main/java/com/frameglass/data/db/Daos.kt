@@ -232,6 +232,9 @@ interface TitleDao {
     @Query("UPDATE Title SET favorite = :favorite WHERE id = :id")
     suspend fun setFavorite(id: Long, favorite: Boolean)
 
+    @Query("UPDATE Title SET watchlistAt = :at WHERE id = :id")
+    suspend fun setWatchlist(id: Long, at: Long?)
+
     @Query("UPDATE Title SET matchState = :state WHERE id = :id")
     suspend fun setMatchState(id: Long, state: MatchState)
 
@@ -253,14 +256,14 @@ interface TitleDao {
 
     @Query(
         "SELECT id, kind, name, year, coverPath, framePath, backdropPath, logoPath, dominantColor, collectionId, " +
-            "matchState, sortKey, createdAt, favorite, seriesStatus, nextAirDate, nextSeason, nextEpisode FROM Title " +
+            "matchState, sortKey, createdAt, favorite, seriesStatus, nextAirDate, nextSeason, nextEpisode, watchlistAt FROM Title " +
             "WHERE removed = 0",
     )
     suspend fun titleRows(): List<TitleRow>
 
     @Query(
         "SELECT id, kind, name, year, coverPath, framePath, backdropPath, logoPath, dominantColor, collectionId, " +
-            "matchState, sortKey, createdAt, favorite, seriesStatus, nextAirDate, nextSeason, nextEpisode FROM Title " +
+            "matchState, sortKey, createdAt, favorite, seriesStatus, nextAirDate, nextSeason, nextEpisode, watchlistAt FROM Title " +
             "WHERE removed = 1",
     )
     suspend fun hiddenRows(): List<TitleRow>
@@ -385,6 +388,21 @@ interface WatchDao {
 
     @Query("DELETE FROM PlaySession")
     suspend fun clearSession()
+
+    @Query("SELECT * FROM WatchLog WHERE day = :day AND titleId = :titleId")
+    suspend fun logRow(day: String, titleId: Long): WatchLog?
+
+    @Upsert
+    suspend fun upsertLog(row: WatchLog)
+
+    @Query("SELECT * FROM WatchLog")
+    suspend fun allLog(): List<WatchLog>
+
+    @Query("SELECT * FROM WatchLog WHERE titleId = :titleId")
+    suspend fun logOfTitle(titleId: Long): List<WatchLog>
+
+    @Query("DELETE FROM WatchLog WHERE titleId = :titleId")
+    suspend fun deleteLogOfTitle(titleId: Long)
 }
 
 @Dao

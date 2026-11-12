@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.IntentSender
 import android.net.Uri
 import com.frameglass.data.R
+import com.frameglass.data.api.CleanupSource
+import com.frameglass.data.api.CleanupSuggestions
 import com.frameglass.data.api.DeletePlan
 import com.frameglass.data.api.DeleteResult
 import com.frameglass.data.api.MediaEntry
@@ -13,6 +15,7 @@ import com.frameglass.data.api.StorageSummary
 import com.frameglass.data.api.TrashConsentSource
 import com.frameglass.data.db.FrameDb
 import com.frameglass.data.db.MediaFile
+import com.frameglass.data.logic.CleanupRules
 import com.frameglass.data.logic.DeletePlanner
 import com.frameglass.data.logic.DeleteTarget
 import com.frameglass.data.logic.MediaViews
@@ -51,7 +54,7 @@ internal class MediaManagerImpl(
     private val volumes: Volumes,
     private val store: MediaStoreTrash,
     private val catchUp: () -> CatchUp,
-) : MediaManager, TrashConsentSource {
+) : MediaManager, TrashConsentSource, CleanupSource {
     private val running = Mutex()
     private val consents = MutableSharedFlow<IntentSender>(extraBufferCapacity = 1)
     private val answers = Channel<Boolean>(Channel.CONFLATED)
@@ -67,6 +70,8 @@ internal class MediaManagerImpl(
     override fun entries(group: MediaGroup): Flow<List<MediaEntry>> = view { MediaViews.entries(it, group, clipsName) }
 
     override fun children(entry: MediaEntry): Flow<List<MediaEntry>> = view { MediaViews.children(it, entry) }
+
+    override val cleanupSuggestions: Flow<CleanupSuggestions> = view { CleanupRules.build(it) }
 
     override suspend fun planDelete(entries: List<MediaEntry>, includeSidecars: Boolean): DeletePlan = withContext(Dispatchers.IO) {
         val paths = volumes.pathMap()

@@ -53,7 +53,7 @@ internal object MediaViews {
     private fun cover(s: Snapshot, f: MediaFile): String? =
         f.framePath ?: f.titleId?.let { (s.infos[it] ?: s.hiddenInfos[it])?.cover }
 
-    private fun fileEntry(s: Snapshot, f: MediaFile): MediaEntry {
+    fun fileEntry(s: Snapshot, f: MediaFile): MediaEntry {
         val folder = folderPath(s, f)
         return MediaEntry(
             id = "file|${f.rowId}",

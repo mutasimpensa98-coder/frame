@@ -61,6 +61,7 @@ import com.frameglass.player.ui.CardMenuHost
 import com.frameglass.player.ui.LocalArtUnderBars
 import com.frameglass.player.ui.rememberUiModel
 import com.frameglass.player.vault.MoveSheet
+import com.frameglass.player.stats.StatsScreen
 import com.frameglass.player.vault.PrivateFolderScreen
 import com.frameglass.playerui.PlayerRoute
 
@@ -181,6 +182,7 @@ internal fun FrameRoot(link: Route? = null, onLinkOpened: () -> Unit = {}) {
                             entry<Route.MediaManager> { MediaManagerScreen() }
                             entry<Route.MediaItems> { MediaItemsScreen(it) }
                             entry<Route.PrivateFolder> { PrivateFolderScreen() }
+                            entry<Route.Stats> { StatsScreen() }
                             entry<Route.Settings> { route ->
                                 when (route.topic) {
                                     SettingsTopic.APPEARANCE -> AppearanceScreen()

@@ -68,6 +68,11 @@ internal class UiModel(
         .distinctUntilChanged()
         .stateIn(scope, sharing, false)
 
+    val hasWatchlist: StateFlow<Boolean> = library.titles(LibraryFilter.WATCHLIST, LibrarySort.RECENT)
+        .map { it.isNotEmpty() }
+        .distinctUntilChanged()
+        .stateIn(scope, sharing, false)
+
     fun changeQuery(change: (LibraryQuery) -> LibraryQuery) = query.update(change)
 
     /** Starts a scan that belongs to the app, so leaving the screen that asked for it does not stop the walk. */

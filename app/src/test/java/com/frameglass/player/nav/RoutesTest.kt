@@ -24,6 +24,7 @@ class RoutesTest {
             Route.About,
             Route.MediaManager,
             Route.PrivateFolder,
+            Route.Stats,
             Route.Details(7, ArtRef("library:7", "/data/cover.jpg")),
             Route.Details(8),
             Route.Person(3),

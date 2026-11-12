@@ -39,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -60,7 +61,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.frameglass.data.api.CleanupItem
+import com.frameglass.data.api.CleanupSuggestions
 import com.frameglass.data.api.LibraryRepository
+import com.frameglass.data.api.cleanupSuggestions
 import com.frameglass.data.api.MediaEntry
 import com.frameglass.data.api.MediaEntryKind
 import com.frameglass.data.api.MediaGroup
@@ -77,6 +81,7 @@ import com.frameglass.glass.GlassIconButton
 import com.frameglass.glass.GlassKind
 import com.frameglass.glass.GlassSource
 import com.frameglass.glass.GlassSurface
+import com.frameglass.glass.OutlinePill
 import com.frameglass.glass.PressableGlass
 import com.frameglass.glass.Skeleton
 import com.frameglass.glass.TopGlassBar
@@ -98,6 +103,7 @@ import com.frameglass.player.ui.navigationInset
 import com.frameglass.player.ui.rememberUiModel
 import com.frameglass.player.ui.statusInset
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 private val Groups = listOf(MediaGroup.FOLDERS, MediaGroup.LARGEST_VIDEOS, MediaGroup.TITLES, MediaGroup.CLIPS)
@@ -133,6 +139,12 @@ private class Selection {
         active = true
     }
 
+    fun selectAll(entries: List<MediaEntry>) {
+        if (entries.isEmpty()) return
+        active = true
+        entries.forEach { picked[it.id] = it }
+    }
+
     fun clear() {
         picked.clear()
         active = false
@@ -144,8 +156,12 @@ private class Selection {
 internal fun MediaManagerScreen() {
     val media = LocalContext.current.frameServices.media
     val summary by remember(media) { media.summary }.collectAsStateWithLifecycle(null as StorageSummary?)
-    var group by rememberSaveable { mutableStateOf(MediaGroup.FOLDERS) }
-    val entries by remember(media, group) { media.entries(group) }.collectAsStateWithLifecycle(null as List<MediaEntry>?)
+    // The groups, then Suggestions as the last chip.
+    var tab by rememberSaveable { mutableIntStateOf(0) }
+    val group = Groups.getOrNull(tab)
+    val entries by remember(media, group) { group?.let(media::entries) ?: flowOf(emptyList()) }
+        .collectAsStateWithLifecycle(null as List<MediaEntry>?)
+    val suggestions by remember(media) { media.cleanupSuggestions }.collectAsStateWithLifecycle(null as CleanupSuggestions?)
     val selection = remember { Selection() }
     val list = rememberLazyListState()
     val labels = listOf(
@@ -153,8 +169,9 @@ internal fun MediaManagerScreen() {
         stringResource(R.string.app_media_tab_largest),
         stringResource(R.string.app_search_titles),
         stringResource(R.string.app_media_tab_clips),
+        stringResource(R.string.app_media_tab_suggestions),
     )
-    LaunchedEffect(group) { selection.clear() }
+    LaunchedEffect(tab) { selection.clear() }
 
     MediaPage(
         title = stringResource(R.string.app_settings_media),
@@ -165,13 +182,104 @@ internal fun MediaManagerScreen() {
         item(key = "tabs") {
             FilterChips(
                 labels = labels,
-                selectedIndex = Groups.indexOf(group),
-                onSelect = { group = Groups[it] },
+                selectedIndex = tab,
+                onSelect = { tab = it },
                 modifier = Modifier.bleed(FrameSpacing.S16),
             )
         }
-        mediaRows(entries, selection)
+        if (group != null) mediaRows(entries, selection) else suggestionRows(suggestions, selection)
     }
+}
+
+/**
+ * The cleanup assistant. Every row is a plain file entry, so a delete from here goes through the same confirmation
+ * sheet, trash path and checks as any other. Private-folder videos are never in the list.
+ */
+private fun LazyListScope.suggestionRows(suggestions: CleanupSuggestions?, selection: Selection) {
+    if (suggestions == null) {
+        items(RowSkeletons, key = { "skeleton$it" }) { Skeleton(Modifier.fillMaxWidth().height(RowSkeletonHeight)) }
+        return
+    }
+    item(key = "cleanup-head") {
+        CleanupHeader(suggestions, onSelectAll = { selection.selectAll(suggestions.all.map { it.entry }) })
+    }
+    if (suggestions.versions.isNotEmpty()) {
+        item(key = "cleanup-versions") { SuggestionLabel(stringResource(R.string.app_cleanup_versions)) }
+        suggestionItems(suggestions.versions, selection)
+    }
+    if (suggestions.watched.isNotEmpty()) {
+        item(key = "cleanup-watched") { SuggestionLabel(stringResource(R.string.app_cleanup_watched)) }
+        suggestionItems(suggestions.watched, selection)
+    }
+}
+
+private fun LazyListScope.suggestionItems(items: List<CleanupItem>, selection: Selection) {
+    items(items, key = { "cleanup:" + it.entry.id }, contentType = { "media" }) { item ->
+        val navigator = LocalNavigator.current
+        val library = LocalContext.current.frameServices.library
+        val scope = rememberCoroutineScope()
+        val entry = item.entry
+        MediaRow(
+            entry = entry,
+            selecting = selection.active,
+            selected = entry.id in selection.picked,
+            note = item.keptName?.let { stringResource(R.string.app_cleanup_keeps, bidiIsolate(it)) },
+            onClick = {
+                if (selection.active) {
+                    selection.toggle(entry)
+                } else {
+                    scope.launch { navigator.openFile(entry, library.hasDetails(entry.titleId)) }
+                }
+            },
+            onLongClick = { if (selection.active) selection.toggle(entry) else selection.start(entry) },
+        )
+    }
+}
+
+@Composable
+private fun CleanupHeader(suggestions: CleanupSuggestions, onSelectAll: () -> Unit) {
+    val count = suggestions.all.size
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(FrameShapes.Card)
+            .background(FrameColors.Card)
+            .padding(FrameSpacing.S16),
+        verticalArrangement = Arrangement.spacedBy(FrameSpacing.S8),
+    ) {
+        if (count == 0) {
+            Text(stringResource(R.string.app_cleanup_none), style = FrameType.Title, color = FrameColors.White)
+        } else {
+            Text(
+                text = stringResource(R.string.app_cleanup_total, fileSizeLabel(suggestions.totalBytes)),
+                style = FrameType.Title,
+                color = FrameColors.White,
+            )
+            Text(
+                text = pluralStringResource(R.plurals.app_videos, count, count),
+                style = FrameType.Label,
+                color = FrameColors.SecondaryText,
+            )
+        }
+        Text(stringResource(R.string.app_cleanup_hint), style = FrameType.Label, color = FrameColors.SecondaryText)
+        if (count > 0) {
+            OutlinePill(
+                text = stringResource(R.string.app_cleanup_select_all),
+                onClick = onSelectAll,
+                icon = Icons.Rounded.Checklist,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SuggestionLabel(text: String) {
+    Text(
+        text = bidiIsolate(text),
+        style = FrameType.Label,
+        color = FrameColors.SecondaryText,
+        modifier = Modifier.padding(start = FrameSpacing.S8, top = FrameSpacing.S8),
+    )
 }
 
 /** The contents of one folder, title or clip group, biggest first. */
@@ -456,6 +564,7 @@ private fun MediaRow(
     selected: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    note: String? = null,
 ) {
     PressableGlass(
         onClick = onClick,
@@ -492,6 +601,15 @@ private fun MediaRow(
                         text = bidiIsolate(path),
                         style = FrameType.Caption,
                         color = FrameColors.SecondaryText,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                note?.let {
+                    Text(
+                        text = it,
+                        style = FrameType.Caption,
+                        color = FrameColors.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )

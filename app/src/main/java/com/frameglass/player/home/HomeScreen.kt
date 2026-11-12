@@ -362,6 +362,7 @@ private fun TitleRow(row: HomeRow) {
         HomeRowKind.COLLECTION -> row.label ?: stringResource(R.string.app_collection)
         HomeRowKind.VIDEOS -> stringResource(R.string.app_section_videos)
         HomeRowKind.RECENT -> stringResource(R.string.app_sort_recent)
+        HomeRowKind.WATCHLIST -> stringResource(R.string.app_filter_watchlist)
     }
     val source = "home:${row.kind}"
     Column(verticalArrangement = Arrangement.spacedBy(HeaderGap)) {

@@ -61,6 +61,7 @@ internal class PlaybackRepositoryImpl(
     private val clock: Clock,
     private val sidecarLabels: SidecarLabels,
     private val vault: Lazy<VaultPlayback>,
+    private val logger: WatchLogger,
 ) : PlaybackRepository, SegmentSource {
     private val scan get() = db.scan()
     private val watch get() = db.watch()
@@ -255,17 +256,24 @@ internal class PlaybackRepositoryImpl(
     }.getOrNull()
 
     override suspend fun savePosition(item: PlaybackItem, positionMs: Long, durationMs: Long) = withContext(Dispatchers.IO) {
+        // Private time counts in the totals only, so the log never holds a private title.
+        logger.onPosition(item.playableKey, item.titleId.takeUnless { item.isPrivate }, positionMs)
         if (item.isPrivate) return@withContext vault.value.savePosition(item, positionMs, durationMs)
         val now = clock.now()
-        db.withTransaction {
+        val reached = db.withTransaction {
             val key = item.playableKey
-            watch.upsert(WatchRules.onPosition(watch.get(key), key, item.titleId, positionMs, durationMs, now))
+            val before = watch.get(key)
+            val after = WatchRules.onPosition(before, key, item.titleId, positionMs, durationMs, now)
+            watch.upsert(after)
             watch.upsertSession(PlaySession(playableKey = item.ref.playableKey, fileRowId = item.ref.fileRowId, uri = item.ref.uri, watchKey = key, updatedAt = now))
             if (item.fileRowId != null && durationMs > 0) scan.fillDuration(item.fileRowId, durationMs)
+            after.watched && before?.watched != true
         }
+        if (reached) WatchlistKeeper.settle(db, item.titleId)
     }
 
     override suspend fun markFinished(item: PlaybackItem) = withContext(Dispatchers.IO) {
+        logger.onFinished(item.playableKey, item.titleId.takeUnless { item.isPrivate }, item.durationMs)
         if (item.isPrivate) return@withContext vault.value.markFinished(item)
         val now = clock.now()
         val file = item.fileRowId?.let { scan.file(it) }
@@ -279,6 +287,7 @@ internal class PlaybackRepositoryImpl(
             keys.forEach { key -> watch.upsert(WatchRules.onFinished(watch.get(key), key, titleId, item.durationMs, now)) }
             watch.clearSession()
         }
+        WatchlistKeeper.settle(db, titleId)
     }
 
     override suspend fun savePrefs(item: PlaybackItem, prefs: TrackPrefs) = withContext(Dispatchers.IO) {

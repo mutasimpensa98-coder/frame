@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ViewList
+import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Shuffle
@@ -71,6 +72,7 @@ internal fun LibraryScreen() {
     val query by model.libraryQuery.collectAsStateWithLifecycle()
     val titles by model.titles.collectAsStateWithLifecycle()
     val hasAnime by model.hasAnime.collectAsStateWithLifecycle()
+    val hasWatchlist by model.hasWatchlist.collectAsStateWithLifecycle()
     val root by model.rootFolder.collectAsStateWithLifecycle()
     val settings by model.settings.collectAsStateWithLifecycle()
     val grid = rememberLazyGridState()
@@ -85,6 +87,8 @@ internal fun LibraryScreen() {
         if (hasAnime) add(LibraryFilter.ANIME)
         add(LibraryFilter.VIDEOS)
         add(LibraryFilter.FAVORITES)
+        // R13: the chip shows only while the watchlist holds something.
+        if (hasWatchlist || query.filter == LibraryFilter.WATCHLIST) add(LibraryFilter.WATCHLIST)
         add(LibraryFilter.FOLDERS)
     }
     LaunchedEffect(hasAnime) {
@@ -102,6 +106,7 @@ internal fun LibraryScreen() {
                 LibraryFilter.ANIME -> R.string.app_filter_anime
                 LibraryFilter.VIDEOS -> R.string.app_section_videos
                 LibraryFilter.FAVORITES -> R.string.app_filter_favorites
+                LibraryFilter.WATCHLIST -> R.string.app_filter_watchlist
                 LibraryFilter.FOLDERS -> R.string.app_filter_folders
             },
         )
@@ -168,6 +173,7 @@ internal fun LibraryScreen() {
                                     stringResource(
                                         when {
                                             query.filter == LibraryFilter.FAVORITES -> R.string.app_favorites_empty
+                                            query.filter == LibraryFilter.WATCHLIST -> R.string.app_watchlist_empty
                                             query.filter == LibraryFilter.ALL && cinema -> R.string.app_cinema_library_empty
                                             else -> R.string.app_library_empty
                                         },
@@ -204,6 +210,7 @@ internal fun LibraryScreen() {
 /** R13: the random pick lives behind this menu, so the bar keeps its two buttons in view. */
 @Composable
 private fun LibraryMenu(tonight: GlassSheetState) {
+    val navigator = LocalNavigator.current
     Box {
         var open by remember { mutableStateOf(false) }
         GlassIconButton(
@@ -219,6 +226,14 @@ private fun LibraryMenu(tonight: GlassSheetState) {
                 onClick = {
                     open = false
                     tonight.open()
+                },
+            )
+            GlassRow(
+                text = stringResource(R.string.app_stats),
+                icon = Icons.Rounded.BarChart,
+                onClick = {
+                    open = false
+                    navigator.push(Route.Stats)
                 },
             )
         }

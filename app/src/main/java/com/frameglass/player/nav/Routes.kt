@@ -23,6 +23,7 @@ internal sealed interface Route {
     data object About : Route
     data object MediaManager : Route
     data object PrivateFolder : Route
+    data object Stats : Route
     data class Settings(val topic: SettingsTopic) : Route
 
     /** One folder, title or clip group in Media Manager: the fields MediaManager.children reads, as plain values. */
@@ -67,6 +68,7 @@ private fun Route.encode(): String = when (this) {
     Route.About -> "about"
     Route.MediaManager -> "media"
     Route.PrivateFolder -> "private"
+    Route.Stats -> "stats"
     is Route.Settings -> fields("settings", topic.name)
     is Route.MediaItems -> fields("mediaItems", kind.name, id, name, titleId, folderPath)
     is Route.Details -> fields("details", titleId, art.key, art.path)
@@ -85,6 +87,7 @@ private fun decode(saved: String): Route? {
         "about" -> Route.About
         "media" -> Route.MediaManager
         "private" -> Route.PrivateFolder
+        "stats" -> Route.Stats
         "settings" -> text(1)?.let { Route.Settings(SettingsTopic.valueOf(it)) }
         "mediaItems" -> {
             val kind = text(1)

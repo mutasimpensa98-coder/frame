@@ -24,6 +24,7 @@ data class TitleRow(
     val nextAirDate: String? = null,
     val nextSeason: Int? = null,
     val nextEpisode: Int? = null,
+    val watchlistAt: Long? = null,
 )
 
 data class EpisodeLite(

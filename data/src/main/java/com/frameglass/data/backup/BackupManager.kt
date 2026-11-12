@@ -68,6 +68,7 @@ internal class BackupManager(
                 tmdbIsMovie = title.tmdbIsMovie, anilistId = title.anilistId, malId = title.malId, imdbId = title.imdbId,
                 matchState = title.matchState.name, matchConfidence = title.matchConfidence, manualMatch = title.manualMatch,
                 coverFile = entry, removed = title.removed, createdAt = title.createdAt, favorite = title.favorite,
+                watchlistAt = title.watchlistAt,
             )
         }
         val files = scan.allFiles()
@@ -107,6 +108,9 @@ internal class BackupManager(
         playableKey = f.playableKey, parsedSeason = f.parsedSeason, parsedEpisode = f.parsedEpisode,
         parsedEpisodeEnd = f.parsedEpisodeEnd, parsedAbsolute = f.parsedAbsolute, nameKind = f.nameKind,
     )
+
+    /** The same zip as [export], for the automatic backup, which opens its own file. */
+    suspend fun writeTo(out: OutputStream) = write(out)
 
     private suspend fun write(out: OutputStream) {
         val (doc, covers) = collect()
@@ -155,6 +159,7 @@ internal class BackupManager(
                     tmdbId = item.tmdbId, tmdbIsMovie = item.tmdbIsMovie, anilistId = item.anilistId, malId = item.malId,
                     imdbId = item.imdbId, matchState = state, matchConfidence = item.matchConfidence,
                     manualMatch = item.manualMatch, removed = item.removed, favorite = item.favorite,
+                    watchlistAt = item.watchlistAt,
                     coverPath = cover?.path ?: existing.coverPath, manualCover = cover != null || existing.manualCover,
                     dominantColor = colors?.dominant ?: existing.dominantColor,
                     coverLuma = colors?.luma ?: existing.coverLuma,
@@ -174,7 +179,7 @@ internal class BackupManager(
                 manualMatch = item.manualMatch, coverPath = cover?.path, manualCover = cover != null,
                 dominantColor = colors?.dominant, coverLuma = colors?.luma,
                 sortKey = Keys.normalize(item.localName), removed = item.removed, createdAt = item.createdAt,
-                favorite = item.favorite,
+                favorite = item.favorite, watchlistAt = item.watchlistAt,
             ),
         )
     }

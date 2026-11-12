@@ -156,6 +156,8 @@ data class Title(
     val nextEpisode: Int? = null,
     /** A YouTube video key from TMDB, opened outside the app. */
     val trailerKey: String? = null,
+    /** When the owner put this title on the watchlist, or null when it is not there. Cleared once it is watched. */
+    val watchlistAt: Long? = null,
 )
 
 @Entity(tableName = "Episode", indices = [Index(value = ["titleId", "season", "number"], unique = true)])
@@ -331,6 +333,23 @@ data class AudioDeviceDelay(
     @PrimaryKey val deviceKey: String,
     val delayMs: Long,
 )
+
+/**
+ * Watched time per local day and title, for the stats page. It never leaves the phone and backups leave it out.
+ * [titleId] is [NO_TITLE] for a video with no title, such as Open with, and for every private-folder video, so no
+ * private name can be reached from here.
+ */
+@Entity(tableName = "WatchLog", primaryKeys = ["day", "titleId"])
+data class WatchLog(
+    /** The phone's local date, yyyy-MM-dd. */
+    val day: String,
+    val titleId: Long,
+    val watchedMs: Long,
+) {
+    companion object {
+        const val NO_TITLE = 0L
+    }
+}
 
 /** One row, written on every position save. Cleared when the item finishes. */
 @Entity(tableName = "PlaySession")

@@ -1,6 +1,6 @@
 # Next
 
-Updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
+Updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
 The history must stay fit to publish. `.gitignore` and `tools/hooks/pre-commit`, set through `core.hooksPath`, keep out what the waiver bans. A new clone needs `git config core.hooksPath tools/hooks`.
 
@@ -13,6 +13,8 @@ The phone runs 1.0.104, which holds the owner-requests package and the TMDB and 
 The answer to those three requests is committed (`319d718`) with version 1.0.105 (`65b53b6`). Whether the phone runs 1.0.105 is not recorded here, and none of it has been seen on a phone.
 
 The owner then asked for launcher shortcuts, a Continue watching widget, the next episode date and a trailer on Details, and a "What should I watch tonight?" pick. They are built and unit tested on branch `pack-home`, with schema 5, and not seen on any phone. `STATUS.md`, section "This round", lists them. Shipping them is step 1 of section 7.
+
+The owner then asked for a watchlist «حابب نشوفه», cleanup suggestions in Media Manager, «إحصائياتي» and automatic backup. They are built and unit tested on branch `pack-library`, with schema 6, and not seen on any phone. `STATUS.md`, section "This round: watchlist, cleanup, stats and automatic backup", lists them. Owner checks are items 75 to 91 of section 2.
 
 The release build is on the phone, updated in place from the first install, with the library, progress, settings and keys intact. `firstInstallTime` did not change.
 
@@ -114,6 +116,26 @@ Send this to the owner as it stands, and record the answers in `docs/evidence/ph
 73. حط الاختيار على «العربية ثم الإنجليزية»، وشغّل حلقة جديدة ما لقيتلهاش ترجمة عربية. هل نزلت إنجليزية والرسالة تقول إنجليزية؟ وحطه على «متوقفة»: هل ما عاد ينزل شي وحده؟
 74. افتح الترجمة › البحث عبر الإنترنت وبدون مفاتيح. تحت النتائج، هل السطر الصغير مكتوب فيه «أضف مفتاح SubDL مجاني للأفلام والترجمة العربية»؟ اضغطه: هل سكّر المشغّل وفتح الإعدادات › الميزات المتصلة والمفاتيح؟ وارجع للخلف: هل رجعت للمكان اللي كنت فيه قبل المشغّل؟ وهل لما تفتح الحلقة ثاني تكمل من نفس المكان؟
 
+حابب نشوفه، اقتراحات التنظيف، إحصائياتي والنسخ التلقائي. جرّبها بعد التحديث اللي فيه هذا:
+
+75. بعد التحديث: هل المكتبة والتقدّم والمفضلة والإعدادات والمفاتيح كلها زي ما هي؟ (في هذا التحديث قاعدة البيانات تنتقل للنسخة 6.)
+76. اضغط مطوّلًا على بطاقة فيلم ما شفتهوش › «إضافة إلى «حابب نشوفه»». هل ظهر في الرئيسية صف «حابب نشوفه» بعد «تابع المشاهدة» مباشرة، حتى لو فيه عنوان واحد بس؟ وهل المفضلة ما تغيّرتش؟
+77. في المكتبة، هل ظهرت شريحة «حابب نشوفه» وفيها العنوان؟ افتح صفحة مسلسل › زر النقاط الثلاث: هل فيه «إضافة إلى «حابب نشوفه»»، ولما تضغطه يتبدّل لـ«إزالة من «حابب نشوفه»»؟
+78. ابدأ الفيلم اللي في القائمة وطلع منه في النص. هل انتقل لـ«تابع المشاهدة» وما عادش في صف «حابب نشوفه» في الرئيسية؟ بعدها كمّله للآخر: هل طلع من القائمة وحده، والشريحة اختفت لو كان آخر عنوان؟
+79. اعمل نسخة احتياطية يدوية وفيها عنوان في «حابب نشوفه»، شيله من القائمة، ورجّع النسخة. هل رجع العنوان للقائمة؟
+80. الإعدادات › إدارة الوسائط › شريحة «اقتراحات». هل فوق مكتوب كم يمكن توفير؟ وتحته «نسخ زائدة» لو عندك نفس الحلقة أو الفيلم بجودتين، و«شاهدتها، الأكبر أولًا»؟ هل الأحجام صح، وتحت كل نسخة زائدة مكتوب أي نسخة تبقى، وهي الأعلى جودة؟
+81. هل عمره ظهر في الاقتراحات فيديو من المجلد الخاص، أو مقطع من الكاميرا أو واتساب؟
+82. اختار من الاقتراحات فيديو واحد ما تحتاجهوش واضغط «حذف». هل طلعت نفس ورقة التأكيد بالعدد والحجم، ومكتوب إنه يروح لسلة المهملات؟ أكّد: هل تقدر ترجّعه من سلة المعرض؟ (ما تجرّبش «تحديد الكل» وفيه حاجات تحتاجها.)
+83. المكتبة › زر النقاط الثلاث › «إحصائياتي». قبل ما تشوف أي شي بعد التحديث، هل الصفحة تقول «لا شيء بعد»؟ بعدها شوف حلقة حوالي 10 دقايق وارجع: هل «هذا الأسبوع» و«هذا الشهر» و«منذ البداية» حوالي 10 دقايق، وعمود اليوم في الرسم طلع؟
+84. وإنت تتفرج، قدّم 20 دقيقة لقدّام بالشريط. هل الإحصائيات ما زادتش 20 دقيقة؟
+85. هل المسلسل اللي شفته ظهر تحت «أكثر المسلسلات مشاهدة»؟ شوف دقايق من فيديو في المجلد الخاص: هل الساعات زادت واسمه ما ظهرش في أي مكان في الصفحة؟
+86. في الرسم، هل أسماء الأيام بالعربي، والأقدم على اليمين واليوم على اليسار؟ وهل «هذا الأسبوع» يبدأ من يوم السبت؟
+87. الإعدادات › النسخ الاحتياطي › «نسخ احتياطي تلقائي». اختار «كل يوم»: هل فتح لك اختيار المجلد؟ اعمل مجلد جديد (مثلًا Frame Glass داخل Documents) واختاره واسمح. هل اسمه ظهر في سطر «المجلد»؟
+88. اضغط «انسخ الآن». هل ظهر «آخر نسخة:» بالتاريخ والساعة، وفي المجلد ملف اسمه زي frame-glass-auto-2026-11-12-230509.zip؟
+89. حط في نفس المجلد نسخة يدوية، واضغط «انسخ الآن» 6 مرات. هل بقيت آخر 5 نسخ تلقائية بس، والنسخة اليدوية ما تمسّتش؟
+90. بكرة، بدون ما تضغط شي والبطارية مش ضعيفة: هل فيه نسخة جديدة في المجلد؟ لو ما فيش، افتح التطبيق واستنى دقيقة: هل تنعمل وحدها؟
+91. امسح المجلد من «ملفاتي»، وارجع اضغط «انسخ الآن». هل ظهر سطر فشل يقول إن المجلد غير موجود ولازم تختاره من جديد؟
+
 مفاتيح TMDB وIMDb. جرّبها بعد نفس التحديث:
 
 34. افتح الإعدادات › الميزات المتصلة والمفاتيح. هل فيه مفتاح تشغيل جنب TMDB وجنب «IMDb عبر OMDb»؟ طفّي واحد ورجّعه: هل المفتاح المحفوظ بقى، وما طلب منك تكتبه من جديد؟ وهل تحت كل واحد سطر يشرح شن يصير لما يطفى، بالعربي وبالإنجليزي؟
@@ -175,6 +197,16 @@ From this round's three requests, read in the code and never run:
 
 ## 4. Known limits in this build
 
+Watchlist, cleanup, stats and automatic backup (`pack-library`, not seen on a phone):
+
+- The watch log starts with this build. Time watched before it is not counted, and the first save after the app starts only sets a mark, so up to one save interval (about 5 s) of each session is not counted.
+- Time is counted in video time: at 2x speed, 5 minutes on the clock that play 10 minutes of the video count as 10 minutes. Faster than about 2x counts nothing.
+- Stats are not in the backup, so a restore on a new phone starts them again.
+- The week follows the phone's region. A phone set to Arabic with no region may start the week on a day other than Saturday.
+- A periodic WorkManager job may not run while One UI keeps the app asleep. The app then backs up on the next open, in the background, when one is due.
+- Automatic backup deletes only files named exactly like its own. If the file provider renames a new file, that file is never deleted, so it can pile up.
+- An extra version is judged by height, then size, as F-L9 picks the default. Two copies of equal height keep the bigger one.
+
 Shortcuts, widget, next episode, trailer and tonight's pick (this round, not seen on a phone):
 
 - Shortcuts and the widget refresh about 8 s after the last progress save, file change or title change, and only while the app's process is alive. Otherwise the widget asks on the system period of 30 minutes. Android may rate-limit `setDynamicShortcuts` for an app in the background, which would leave the old shortcuts until the next time the app is in front.
@@ -229,12 +261,13 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 
 ## 7. Build next, in order
 
-1. **Ship the shortcuts, widget, next episode, trailer, tonight's pick and the automatic subtitle.** Both branches are merged into `main`. Write `docs/RELEASE-NOTES.md` in Arabic, push `main`, run `.g.ps1 release`, and send the checklist of section 2, items 54 to 74, with items 20 to 53 if the owner has not answered them. This round has schema step 4 to 5: five nullable `Title` columns, replayed by `tools/check_update.py`, and never run on Android yet. Watch the first live automatic subtitle download: Gestdown and SubDL replies in the tests are fixtures.
-2. **Sites line opens the keys page** is built in the same round (`PlayerHost.subtitleKeysIntent()` through `AppLinks`), item 74.
-3. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
-4. **F-S4 local intro detection.** Phase 7b.
-5. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3 and 3 to 4, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
-6. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
+1. **Merge and ship `pack-library`.** Watchlist, cleanup suggestions, stats and automatic backup, with schema step 5 to 6 (one nullable `Title` column and the new `WatchLog` table), replayed by `tools/check_update.py` and never run on Android. Send items 75 to 91 of section 2. Then the steps below.
+2. **Ship the shortcuts, widget, next episode, trailer, tonight's pick and the automatic subtitle.** Both branches are merged into `main`. Write `docs/RELEASE-NOTES.md` in Arabic, push `main`, run `.g.ps1 release`, and send the checklist of section 2, items 54 to 74, with items 20 to 53 if the owner has not answered them. This round has schema step 4 to 5: five nullable `Title` columns, replayed by `tools/check_update.py`, and never run on Android yet. Watch the first live automatic subtitle download: Gestdown and SubDL replies in the tests are fixtures.
+3. **Sites line opens the keys page** is built in the same round (`PlayerHost.subtitleKeysIntent()` through `AppLinks`), item 74.
+4. **F-T2 chapters and F-T3 frame step.** No code exists. Phase 7.
+5. **F-S4 local intro detection.** Phase 7b.
+6. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3, 3 to 4, 4 to 5 and 5 to 6, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
+7. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
 
 ## 8. Missing project files
 

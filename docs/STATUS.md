@@ -1,6 +1,6 @@
 # Status
 
-Updated 2026-11-08, after launcher shortcuts, the Continue watching widget, the next episode date, the trailer button and tonight's pick were built on branch `pack-home`. R9 applies.
+Updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, the Continue watching widget, the next episode date, the trailer button and tonight's pick were built on branch `pack-home`. R9 applies.
 
 ## Read this first
 
@@ -9,6 +9,7 @@ Updated 2026-11-08, after launcher shortcuts, the Continue watching widget, the 
 - **The answer to those three requests is committed** (`319d718`, version 1.0.105 in `65b53b6`), and nobody has seen it on a phone. The section "Earlier round: the owner's three requests" lists each item.
 - **This round is built and unit tested on branch `pack-home`, and nobody has seen it on a phone:** launcher shortcuts, a Continue watching widget, the next episode date and a trailer on Details, and "What should I watch tonight?". It brings schema 5. The section "This round" lists each item.
 - **The merged branch `pack-subs` adds the automatic Arabic subtitle download and a sites line that opens the keys page.** Built and unit tested, never installed or seen on a phone. See "This round: automatic subtitles and the keys line".
+- **The library package is built and unit tested on branch `pack-library`, and nobody has seen it on a phone:** the watchlist «حابب نشوفه», cleanup suggestions in Media Manager, «إحصائياتي», and automatic backup. It brings schema 6. See "This round: watchlist, cleanup, stats and automatic backup".
 - **The improvement package has run on the phone,** and the update kept the library, progress, settings and keys. `NEXT.md` section 1 lists what was seen and what was not. Screenshots of those checks stay in `D:\FrameGlass\shots`, because some show the owner's real videos. The tables below still describe filed evidence only.
 - **The last filed phone evidence is the first app build,** 18:19 to 18:22. Later phone checks are recorded in `NEXT.md` section 1 and in `phase-0-results.md`.
 - **Delete has not run on the phone, and the private folder ran only on the test copy.** Test delete with a clip the owner does not need.
@@ -34,7 +35,9 @@ Phase 0 matrix, on the round 2 `qa` build (`evidence/phase-0/matrix.csv`): 50 of
 
 ## Build and tests
 
-This round, on this PC on 2026-11-08, with the build cache: `testDebugUnitTest`, `:parser:test`, `assembleRelease` and `:app:lintRelease` pass. Logs: `D:\FrameGlass\logs\build-quick-features.log` and `build-quick-features-lint.log`. Unit tests: 1,195 run, 1,194 passed, 0 failed, 1 skipped (the same `AnimeIndexTest`): parser 161, data 476, net 350, engine 67, player 41, app 67, glass 33. `:app` lint: 0 errors and the same 8 warnings as before. `tools/check_update.py`: pass, 4 steps (1 to 2 up to 4 to 5), 25 tables, 21 saved rows kept. The merged release manifest has the same permissions as before; the widget receiver needs none. Release APK 23,286,928 bytes. `fg.ps1 build`, `assembleQa` and lint of the other modules were not run in this round. Nothing was installed.
+This round (`pack-library`), on this PC on 2026-11-12: `testDebugUnitTest`, `:parser:test`, `assembleRelease`, `:app:lintRelease` and `:data:lintRelease` pass. Logs: `D:\FrameGlass\logs\build-pack-library.log`, `build-pack-library-parser.log` and `build-pack-library-lint.log`. Unit tests: 1,260 run, 1,259 passed, 0 failed, 1 skipped (the same `AnimeIndexTest`): parser 161, data 519, net 353, engine 69, player 54, app 71, glass 33. This round added 29 tests in `:data` (`LibraryPackTest`, two in `BackupFormatTest`, one in `MigrationSchemaTest`) and one in `:app` (`HeroArtTest`). Lint: `:data` 0 issues, `:app` 0 errors and 9 warnings, none in a file of this round. `tools/check_update.py`: pass, 5 steps (1 to 2 up to 5 to 6), 26 tables, 21 saved rows kept. Release APK 23,391,564 bytes. No manifest changed. `fg.ps1 build`, `assembleQa` and lint of the other modules were not run. Nothing was installed.
+
+The `pack-home` round, on this PC on 2026-11-08, with the build cache: `testDebugUnitTest`, `:parser:test`, `assembleRelease` and `:app:lintRelease` pass. Logs: `D:\FrameGlass\logs\build-quick-features.log` and `build-quick-features-lint.log`. Unit tests: 1,195 run, 1,194 passed, 0 failed, 1 skipped (the same `AnimeIndexTest`): parser 161, data 476, net 350, engine 67, player 41, app 67, glass 33. `:app` lint: 0 errors and the same 8 warnings as before. `tools/check_update.py`: pass, 4 steps (1 to 2 up to 4 to 5), 25 tables, 21 saved rows kept. The merged release manifest has the same permissions as before; the widget receiver needs none. Release APK 23,286,928 bytes. `fg.ps1 build`, `assembleQa` and lint of the other modules were not run in this round. Nothing was installed.
 
 The table below is from the earlier round.
 
@@ -110,7 +113,7 @@ Three gaps were found and fixed in the whole-phone search round, with tests:
 | F-L2 | Folders | BUILT | Part: one folder added (`07`, `09`) | Now only for extra places, per the waiver. Remove not seen. |
 | F-L3 | Unavailable | UNIT TESTED | Not seen | `TitleListsTest`, `FolderBuilderTest`. USB unplug not run. |
 | F-L4 | Automatic scan | BUILT | Part: one added folder (`08`, `09`) | Whole-phone search came after that run. Path rules are unit tested. `Scanner`, `MediaIndex` and `CatchUp` have never run. |
-| F-L5 | Backup and restore | UNIT TESTED | Not seen | `BackupFormatTest` covers the format, favourites, excluded folders and the service switches. A backup from before the switches keeps the phone's switches. Private items stay out by id. Dump, wipe and restore not run. |
+| F-L5 | Backup and restore | UNIT TESTED | Not seen | `BackupFormatTest` covers the format, favourites, excluded folders and the service switches. A backup from before the switches keeps the phone's switches. Private items stay out by id. The watchlist is in it (`pack-library`), the watch log is not. Automatic backup to a picked folder is built, see "This round: watchlist, cleanup, stats and automatic backup". Dump, wipe and restore not run. |
 | F-L6 | Migrations | UNIT TESTED | Part: 1 to 2 kept the library through the 1.0.103 update | Schema 3 adds the nullable `Title.metaLanguage`. Schema 4 adds the nullable `Episode.imdbRating` and `Title.omdbTriedAt`, two `ADD COLUMN` statements. `MigrationSchemaTest` and `tools/check_update.py` replay 1 to 2 to 3 to 4 on desktop SQLite. `MigrationTestHelper` not run. 2 to 3 and 3 to 4 have not run on Android. |
 | F-L7 | Instant add | BUILT | Part: cards with local frames (`09`) | Matching after the add not seen. |
 | F-L8 | Parser | UNIT TESTED | Not seen | All golden rows pass. The owner's 200 labelled names are not done, and `tools/name_report.py` does not exist. |
@@ -208,7 +211,7 @@ Glass over video is off: `VideoBlurHook.ENABLED` is false until step 0.7 is meas
 |---|---|---|---|---|
 | F-S1 | Next up | UNIT TESTED | Not seen | `HomeBuilderTest`. |
 | F-S2 | Countdown | BUILT | Not seen | `NextUpTest` picks the next item. The card and countdown have no test. |
-| F-S3 | Watched | UNIT TESTED | Not seen | `WatchRulesTest`. |
+| F-S3 | Watched | UNIT TESTED | Not seen | `WatchRulesTest`. A watched title also leaves the watchlist (`WatchlistTest`). |
 | F-S4 | Skip intro | UNIT TESTED | Not seen | `SkipSegmentsTest`, `SegmentRulesTest` for manual, AniSkip and TheIntroDB. The local path of Phase 7b is not started. |
 | F-S5 | Missing episodes | UNIT TESTED | Not seen | `EpisodeRowsTest`. |
 | F-S6 | Series memory | UNIT TESTED | Not seen | `TrackPickerTest`. |
@@ -313,6 +316,21 @@ Five faults from the review of the merge were fixed:
 | A player at the root of its task, opened from a shortcut or the widget, stayed open under the keys page. | The player calls `exit()` after starting the intent, which saves the position. `FrameRoot` uses `AppLinks.shouldOpen`, which skips the page when it is already on top (`AppLinksTest`). |
 | TMDB's air date is the network's local date, so in Libya an episode often lands that night or the next morning. | The episode stays announced until air date + 1 day (`Upcoming.of`, `AirDates.dayOf`), and that case reads «تنزل الليلة» and «حلقة جديدة الليلة»; tomorrow stays «تنزل غدًا». `UpcomingTest`, `AirDatesTest`. |
 
+## This round: watchlist, cleanup, stats and automatic backup
+
+Four owner requests, built on branch `pack-library` on 2026-11-12. Not installed, and not seen on a phone, in either theme or in Arabic. Nothing in this round goes online (R2). No permission and no dependency were added.
+
+| Request | Status | Notes |
+|---|---|---|
+| Watchlist «حابب نشوفه» | UNIT TESTED | `WatchlistTest` (`:data`: the chip holds only watchlist titles and is separate from Favourites; the Home row comes first in `HomeFeed.rows`, newest first, with one title enough, started titles left to Continue watching; `HomeRowKind.automatic` keeps it out of the F-U5 count; `WatchlistRules.done`), `BackupFormatTest` (round trip, and a backup written before it still restores with no watchlist), `RoutesTest`. Stored as `Title.watchlistAt`. Add and remove from the long-press card menu and from the Details ⋮ menu (R13: not a new button). The Library chip shows only while the list holds a title. A title leaves the list once all of it is watched (F-S3), checked after a save reaches 90%, after the end of a video, and after Mark watched; marking unwatched does not bring it back. A merge of two titles keeps it. `WatchlistKeeper` runs on Room and has no test of its own. |
+| Cleanup suggestions in Media Manager | UNIT TESTED | `CleanupRulesTest`: extra versions of one episode or film (F-L9) with the best one kept and named, watched files biggest first (capped at 30), each file listed once, total of all, clips never listed, gone files never listed, a hidden title still listed because it holds space, and each row a plain `file|rowId` entry that `planDelete` expands to that one file. A fifth chip «اقتراحات» shows the total, «تحديد الكل», and the two lists. Selecting goes to the existing selection bar and the existing confirmation sheet; nothing deletes without it, and the trash path is the one Media Manager already uses. Private-folder videos have no `MediaFile` row, so they cannot reach the list. The screen has no UI test. |
+| «إحصائياتي» | UNIT TESTED | `WatchTallyTest` (only forward playback between two saves counts, up to about twice the wall time, with the wall time capped at 60 s, so a seek, a jump after a long pause or a clock change counts nothing), `WatchStatsBuilderTest` (week from the region's first day, month, all time, seven days oldest first, top series without films or untitled time, a private title never named, films finished). Library ⋮ › «إحصائياتي»: three totals, films finished, a seven-bar chart in the accent colour with today full and the other days dimmer, and the five most watched series. `WatchLogger` adds time from `PlaybackRepositoryImpl.savePosition` and `markFinished`, so `:player` is untouched. Private-folder time is logged under no title, so it counts in the hours and is never named. The log is not in the backup and never leaves the phone. Time watched before this build is not in it; films finished counts every film marked watched. The week starts on the day `Locale.getDefault()` gives, Saturday for `ar-LY`; a phone set to plain Arabic with no region may start it on another day. The chart and the page have no UI test. |
+| Automatic backup | UNIT TESTED | `AutoBackupRulesTest`: the name `frame-glass-auto-yyyy-MM-dd-HHmmss.zip` with Latin digits under an Arabic locale, only that exact pattern is ever deleted (a manual backup, a renamed copy such as "(1)", or any other file stays), the newest 5 stay, and when a daily or weekly backup is due (2 h early at most). Settings › Backup › «نسخ احتياطي تلقائي»: Off, Weekly, Daily; picking a schedule with no folder opens `ACTION_OPEN_DOCUMENT_TREE` first and the persistable read and write permission is taken. A periodic WorkManager job with battery-not-low writes the same zip as a manual backup, so keys stay out (R4). Every app open also enqueues a one-time job when one is due, because One UI may never run the periodic one (section 4.7). The page shows the last backup time, a failure line (no folder, folder gone or no longer allowed, write failed) and «انسخ الآن». A half-written file is deleted. Its state lives in its own DataStore file, so a restore never changes the folder or the schedule. `AutoBackupManager` (SAF, WorkManager) has no test that runs it. |
+
+Schema 6: `Title` gains `watchlistAt INTEGER` (nullable), and a new table `WatchLog` (`day` TEXT, `titleId` INTEGER, `watchedMs` INTEGER, primary key `day` and `titleId`, `titleId` 0 for no title and for every private video), through `STATEMENTS_5_6` and `MIGRATION_5_6`, registered in `FrameDb.open`. Both statements only add, so no saved row is touched. `MigrationSchemaTest` holds them against the exported `6.json`, and `tools/check_update.py` passes: 5 steps, 26 tables, 21 saved rows kept. Not run on Android.
+
+`Api.kt` gained `LibraryFilter.WATCHLIST`, `HomeRowKind.WATCHLIST` and `HomeRowKind.automatic`, `TitleDetail.watchlist` and `LibraryRepository.setWatchlist`, all with defaults. `ApiLibraryPack.kt` holds the stats, cleanup and automatic backup types, reached through extensions (`watchStats`, `cleanupSuggestions`, `autoBackups`), so `FrameServices` and the test fakes did not change. The backup format stays version 2: `BackupTitle.watchlistAt` has a default.
+
 ## Earlier round: TMDB and IMDb switches
 
 From `OWNER-REQUESTS.md`, now removed there. Shipped in 1.0.104. No phone check of it is recorded, in either theme or in Arabic. No real TMDB or OMDb call has been made: the tests use a fake server.
@@ -359,6 +377,7 @@ From `WAIVERS.md`.
 | Private items in the player | BUILT | Code review only: FLAG_SECURE, recents, blank notification metadata, no screenshots, background audio or online search. |
 | Launcher shortcuts and the Continue watching widget | UNIT TESTED | Waiver of 2026-11-08. See "This round". Never run. |
 | Next episode date, trailer, tonight's pick | UNIT TESTED | See "This round". Never run. |
+| Watchlist, cleanup suggestions, stats, automatic backup | UNIT TESTED | Built on `pack-library`. See "This round: watchlist, cleanup, stats and automatic backup". Never run. |
 
 ## Gates
 

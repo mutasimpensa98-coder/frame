@@ -500,6 +500,13 @@ internal class TitleOps(
             )
         }
         if (loser.favorite) titles.setFavorite(survivorId, true)
+        if (loser.watchlistAt != null && survivor.watchlistAt == null) titles.setWatchlist(survivorId, loser.watchlistAt)
+        // The stats keep the loser's time under the title that stays.
+        for (row in watch.logOfTitle(loserId)) {
+            val kept = watch.logRow(row.day, survivorId)
+            watch.upsertLog(row.copy(titleId = survivorId, watchedMs = row.watchedMs + (kept?.watchedMs ?: 0)))
+        }
+        watch.deleteLogOfTitle(loserId)
         // Private files keep pointing at a title that exists, so moving them out finds it.
         val vault = db.vault()
         for (item in vault.ofTitle(loserId)) {
