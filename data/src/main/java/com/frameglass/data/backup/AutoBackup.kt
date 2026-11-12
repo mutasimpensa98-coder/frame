@@ -112,12 +112,11 @@ internal class AutoBackupManager(
         schedule(mode, ExistingPeriodicWorkPolicy.UPDATE)
     }
 
-    override suspend fun backUpNow(): Boolean = withContext(Dispatchers.IO) { run() }
+    override suspend fun backUpNow(): Boolean = withContext(Dispatchers.IO) { run(onlyIfDue = false) }
 
     /** The job's work: back up only when one is due, so the catch-up and the periodic job cannot both write. */
-    suspend fun runScheduled() = withContext(Dispatchers.IO) {
-        val p = store.data.first()
-        if (AutoBackupRules.due(modeOf(p), p[AutoPrefs.lastOk], clock.now())) run()
+    suspend fun runScheduled() {
+        withContext(Dispatchers.IO) { run(onlyIfDue = true) }
     }
 
     /** Called on every app open. Returns at once. */
@@ -150,8 +149,13 @@ internal class AutoBackupManager(
         manager.enqueueUniquePeriodicWork(PERIODIC, policy, request)
     }
 
-    private suspend fun run(): Boolean = running.withLock {
+    /** Due is checked under the lock, so two jobs that start together write one file. */
+    private suspend fun run(onlyIfDue: Boolean): Boolean = running.withLock {
         val now = clock.now()
+        if (onlyIfDue) {
+            val p = store.data.first()
+            if (!AutoBackupRules.due(modeOf(p), p[AutoPrefs.lastOk], now)) return@withLock false
+        }
         val outcome = runCatching { write(now) }
         val failure = (outcome.exceptionOrNull() as? AutoBackupFailed)?.reason
             ?: outcome.exceptionOrNull()?.let { AutoBackupFailure.WRITE_FAILED }

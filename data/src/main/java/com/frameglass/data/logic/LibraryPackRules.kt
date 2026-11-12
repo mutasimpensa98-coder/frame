@@ -19,27 +19,41 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
- * Which part of the time between two position saves counts as watched. Only forward playback counts: a seek, a jump
- * or a resume elsewhere moves the position faster than about twice the wall clock, and that whole step is left out.
- * The wall time is capped, so a long pause followed by a jump cannot pass as playback.
+ * Which part of the time between two position saves counts as watched, in video time. The player saves about every
+ * 5 s while playing and on every pause, at [speed]. A step the wall clock explains at that speed counts whole. A
+ * forward skip inside a short step counts only the playback around it, about the wall time at that speed, so a
+ * 10 s skip drops just the skip. A jump after a pause, a seek back or a clock change counts nothing.
  */
 internal object WatchTally {
-    const val MAX_RATE = 2.0
+    /** How far the position may run ahead of the wall clock at the playing speed before the step counts as a jump. */
+    const val TOLERANCE = 1.5
     const val SLACK_MS = 1_500L
     val MAX_GAP_MS: Long = TimeUnit.SECONDS.toMillis(60)
 
-    fun countedMs(previousPositionMs: Long, previousAt: Long, positionMs: Long, now: Long): Long {
+    /** A step longer than this held a pause, so a jump inside it cannot be told from playback and counts nothing. */
+    val PLAYING_STEP_MS: Long = TimeUnit.SECONDS.toMillis(15)
+    private const val MIN_SPEED = 0.25f
+
+    fun countedMs(previousPositionMs: Long, previousAt: Long, positionMs: Long, now: Long, speed: Float = 1f): Long {
         val wall = now - previousAt
         val moved = positionMs - previousPositionMs
         if (wall <= 0 || moved <= 0) return 0
-        val limit = MAX_RATE * minOf(wall, MAX_GAP_MS) + SLACK_MS
-        return if (moved > limit) 0 else moved
+        val rate = speed.coerceAtLeast(MIN_SPEED).toDouble()
+        val limit = TOLERANCE * rate * minOf(wall, MAX_GAP_MS) + SLACK_MS
+        if (moved <= limit) return moved
+        if (wall > PLAYING_STEP_MS) return 0
+        return minOf(moved, (wall * rate).toLong())
     }
 }
 
-/** A title leaves the watchlist once everything of it the owner has is watched (F-S3). */
+/**
+ * A title leaves the watchlist once every playable of it was finished after it joined the list (F-S3). Watched flags
+ * are sticky, so an episode seen before only counts when it is seen again: one rewatched episode does not end a
+ * series. [justMarked] are keys the owner marked watched by hand just now, which count as finished.
+ */
 internal object WatchlistRules {
-    fun done(playables: List<Playable>): Boolean = playables.isNotEmpty() && playables.all { it.watched }
+    fun done(playables: List<Playable>, since: Long, justMarked: Set<String> = emptySet()): Boolean =
+        playables.isNotEmpty() && playables.all { it.watched && (it.lastPlayedAt >= since || it.key in justMarked) }
 }
 
 /** The stats page from the watch log and the library. Private-folder time is in the totals and never under a name. */
@@ -104,9 +118,12 @@ internal object CleanupRules {
                 }
             }
         }
+        // A playable with an extra version listed keeps its best copy out of every list, so selecting all can never
+        // take each copy of one episode or film.
         val watched = infos.asSequence()
             .flatMap { info -> info.playables.asSequence().filter { it.watched } }
-            .flatMap { p -> p.files.asSequence().filter { it.available && it.rowId !in listed } }
+            .filter { p -> p.files.none { it.rowId in listed } }
+            .flatMap { p -> p.files.asSequence().filter { it.available } }
             .distinctBy { it.rowId }
             .map { CleanupItem(MediaViews.fileEntry(s, it), CleanupReason.WATCHED) }
             .sortedWith(BIGGEST)
@@ -123,7 +140,8 @@ internal object CleanupRules {
 internal object AutoBackupRules {
     private const val PREFIX = "frame-glass-auto-"
     private val STAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss", Locale.ROOT)
-    private val NAME = Regex("""frame-glass-auto-\d\d\d\d-\d\d-\d\d-\d\d\d\d\d\d\.zip""")
+    // [0-9] and not \d: ICU on Android matches Arabic-Indic digits with \d.
+    private val NAME = Regex("""frame-glass-auto-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]\.zip""")
 
     /** Due a little early, so a job that runs late each time does not drift a whole period. */
     val GRACE_MS: Long = TimeUnit.HOURS.toMillis(2)

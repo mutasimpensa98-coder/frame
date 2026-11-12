@@ -536,7 +536,7 @@ internal class PlayerSession(context: Context) {
         val position = player.currentPosition
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: item.durationMs
         lastSaveAt = SystemClock.elapsedRealtime()
-        writes.launch { runCatching { repository.savePosition(item, position, duration) } }
+        writes.launch { runCatching { repository.savePosition(item, position, duration, player.playbackParameters.speed) } }
     }
 
     private fun onEnded() {

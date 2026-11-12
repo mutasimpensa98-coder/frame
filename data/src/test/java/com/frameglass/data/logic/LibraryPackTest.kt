@@ -86,13 +86,24 @@ class WatchTallyTest {
     }
 
     @Test
-    fun doubleSpeedStillCounts() {
-        assertEquals(10_000, WatchTally.countedMs(0, 0, 10_000, 5_000))
+    fun theAllowedRateFollowsThePlayingSpeed() {
+        // Ten seconds of video in five on the clock is playback at 2x.
+        assertEquals(10_000, WatchTally.countedMs(0, 0, 10_000, 5_000, speed = 2f))
+        // At 1x the same step held a skip, so only the playback around it counts.
+        assertEquals(5_000, WatchTally.countedMs(0, 0, 10_000, 5_000, speed = 1f))
+        // At 0.5x a full five seconds of video in five seconds cannot be playback alone.
+        assertEquals(2_500, WatchTally.countedMs(0, 0, 9_000, 5_000, speed = 0.5f))
     }
 
     @Test
-    fun aSeekForwardCountsNothing() {
-        assertEquals(0, WatchTally.countedMs(0, 0, 600_000, 5_000))
+    fun aTenSecondSkipDropsOnlyTheSkip() {
+        // Five seconds played and a 10 s skip in the same step: 15 s moved, 5 s counted.
+        assertEquals(5_000, WatchTally.countedMs(0, 0, 15_000, 5_000))
+    }
+
+    @Test
+    fun aBigSeekForwardCountsOnlyThePlaybackOfThatStep() {
+        assertEquals(5_000, WatchTally.countedMs(0, 0, 600_000, 5_000))
     }
 
     @Test
@@ -108,6 +119,8 @@ class WatchTallyTest {
         assertEquals(0, WatchTally.countedMs(0, 0, TimeUnit.MINUTES.toMillis(30), twoHours))
         // Paused, then five seconds of real playback: those five seconds count.
         assertEquals(5_000, WatchTally.countedMs(0, 0, 5_000, twoHours))
+        // Paused for a minute, then a seek: the step held a pause, so the jump counts nothing.
+        assertEquals(0, WatchTally.countedMs(0, 0, 300_000, 60_000))
     }
 
     @Test
@@ -154,10 +167,28 @@ class WatchlistTest {
     }
 
     @Test
-    fun aTitleIsDoneOnlyWhenEverythingOfItIsWatched() {
-        assertFalse(WatchlistRules.done(emptyList()))
-        assertFalse(WatchlistRules.done(listOf(playable(1, watched = true), playable(2))))
-        assertTrue(WatchlistRules.done(listOf(playable(1, watched = true), playable(2, watched = true))))
+    fun aTitleIsDoneOnlyWhenEverythingOfItIsWatchedAfterItJoined() {
+        assertFalse(WatchlistRules.done(emptyList(), since = 0))
+        assertFalse(WatchlistRules.done(listOf(playable(1, watched = true, at = 5), playable(2)), since = 0))
+        assertTrue(WatchlistRules.done(listOf(playable(1, watched = true, at = 5), playable(2, watched = true, at = 6)), since = 5))
+    }
+
+    @Test
+    fun oneRewatchedEpisodeDoesNotEndASeriesSeenBefore() {
+        // Seen long ago, put on the list at 100 for a rewatch, then episode 1 finished again at 150.
+        val series = listOf(playable(1, watched = true, at = 150), playable(2, watched = true, at = 10), playable(3, watched = true, at = 20))
+        assertFalse(WatchlistRules.done(series, since = 100))
+        val all = listOf(playable(1, watched = true, at = 150), playable(2, watched = true, at = 160), playable(3, watched = true, at = 170))
+        assertTrue(WatchlistRules.done(all, since = 100))
+    }
+
+    @Test
+    fun markingWatchedByHandCounts() {
+        // A hand mark keeps lastPlayedAt as it was, so the keys just marked count as finished.
+        val series = listOf(playable(1, watched = true, at = 10), playable(2, watched = true, at = 20))
+        assertFalse(WatchlistRules.done(series, since = 100))
+        assertTrue(WatchlistRules.done(series, since = 100, justMarked = setOf("t:1:s1:e1", "t:1:s1:e2")))
+        assertFalse(WatchlistRules.done(series, since = 100, justMarked = setOf("t:1:s1:e1")))
     }
 }
 
@@ -190,7 +221,7 @@ class CleanupRulesTest {
     }
 
     @Test
-    fun aWatchedExtraVersionIsListedOnceAsAVersion() {
+    fun aWatchedTitleWithTwoCopiesListsOnlyTheExtraNeverTheKeptOne() {
         val s = snap(
             listOf(title(1, TitleKind.SERIES)),
             listOf(ep(1, 1, 1, size = 400, height = 720), ep(2, 1, 1, size = 900, height = 1080)),
@@ -198,9 +229,31 @@ class CleanupRulesTest {
         )
         val result = CleanupRules.build(s)
         assertEquals(listOf(1L), result.versions.map { it.entry.fileRowId })
-        assertEquals(listOf(2L), result.watched.map { it.entry.fileRowId })
-        assertEquals(1_300, result.totalBytes)
-        assertEquals(result.all.size, result.all.map { it.entry.fileRowId }.distinct().size)
+        assertTrue(result.watched.isEmpty())
+        assertEquals(400, result.totalBytes)
+    }
+
+    @Test
+    fun selectAllCanNeverTakeEveryCopyOfAPlayable() {
+        // Watched films and episodes with one, two and three copies, some of equal height.
+        val files = listOf(
+            movie(1, 1, size = 100), movie(2, 1, size = 200, height = 720), movie(3, 1, size = 300, height = 2160),
+            movie(4, 2, size = 500), movie(5, 2, size = 500),
+            movie(6, 3, size = 50),
+            ep(7, 4, 1, size = 10), ep(8, 4, 1, size = 20, height = 720), ep(9, 4, 2, size = 30),
+        )
+        val s = snap(
+            listOf(title(1), title(2), title(3), title(4, TitleKind.SERIES)),
+            files,
+            watch = listOf(done("t:1"), done("t:2"), done("t:3"), done("t:4:s1:e1"), done("t:4:s1:e2")),
+        )
+        val picked = CleanupRules.build(s).all.mapTo(HashSet()) { it.entry.fileRowId }
+        for (group in files.filter { it.available }.groupBy { it.playableKey }.values) {
+            if (group.size > 1) assertTrue("every copy of ${group.first().playableKey}", group.any { it.rowId !in picked })
+        }
+        // A single watched copy is the owner's to delete, and is still suggested.
+        assertTrue(6L in picked && 9L in picked)
+        assertEquals(setOf(1L, 2L, 5L, 6L, 8L, 9L), picked)
     }
 
     @Test
@@ -324,7 +377,9 @@ class AutoBackupRulesTest {
         assertFalse(AutoBackupRules.isOurs("frame-glass-auto-2026-11-12-230509 (1).zip"))
         assertFalse(AutoBackupRules.isOurs("frame-glass-auto-2026-11-12-230509.zip.txt"))
         assertFalse(AutoBackupRules.isOurs("my-frame-glass-auto-2026-11-12-230509.zip"))
+        // ICU on the phone matches Arabic-Indic digits with \d, so the pattern spells out [0-9].
         assertFalse(AutoBackupRules.isOurs("frame-glass-auto-٢٠٢٦-١١-١٢-٢٣٠٥٠٩.zip"))
+        assertFalse(AutoBackupRules.isOurs("frame-glass-auto-2026-11-12-23050٩.zip"))
     }
 
     @Test

@@ -342,7 +342,7 @@ internal class LibraryRepositoryImpl(
         db.titles().setFavorite(titleId, favorite)
     }
 
-    /** A title already watched stays for a rewatch, and leaves when it is finished again. */
+    /** A title already watched stays for a rewatch, and leaves when all of it is finished again or marked watched. */
     override suspend fun setWatchlist(titleId: Long, onWatchlist: Boolean) = withContext(Dispatchers.IO) {
         db.titles().setWatchlist(titleId, if (onWatchlist) clock.now() else null)
     }
@@ -409,7 +409,10 @@ internal class LibraryRepositoryImpl(
         db.withTransaction {
             keys.forEach { (key, titleId) -> watch.upsert(WatchRules.onManual(watch.get(key), key, titleId, watched)) }
         }
-        if (watched) keys.mapNotNull { it.second }.distinct().forEach { WatchlistKeeper.settle(db, it) }
+        if (watched) {
+            val marked = keys.mapTo(HashSet()) { it.first }
+            keys.mapNotNull { it.second }.distinct().forEach { WatchlistKeeper.settle(db, it, marked) }
+        }
     }
 
     private fun coveredKeys(file: MediaFile): List<Pair<String, Long?>> {

@@ -332,7 +332,8 @@ data class PlaybackItem(
 
 interface PlaybackRepository {
     suspend fun open(ref: PlayRef): PlaybackItem?
-    suspend fun savePosition(item: PlaybackItem, positionMs: Long, durationMs: Long)
+    /** [speed] is the playing speed, so the watch log can tell playback from a seek. */
+    suspend fun savePosition(item: PlaybackItem, positionMs: Long, durationMs: Long, speed: Float = 1f)
     suspend fun markFinished(item: PlaybackItem)
     suspend fun savePrefs(item: PlaybackItem, prefs: TrackPrefs)
     suspend fun saveManualIntro(item: PlaybackItem, startMs: Long, endMs: Long, wholeSeries: Boolean)

@@ -255,9 +255,9 @@ internal class PlaybackRepositoryImpl(
         }
     }.getOrNull()
 
-    override suspend fun savePosition(item: PlaybackItem, positionMs: Long, durationMs: Long) = withContext(Dispatchers.IO) {
+    override suspend fun savePosition(item: PlaybackItem, positionMs: Long, durationMs: Long, speed: Float) = withContext(Dispatchers.IO) {
         // Private time counts in the totals only, so the log never holds a private title.
-        logger.onPosition(item.playableKey, item.titleId.takeUnless { item.isPrivate }, positionMs)
+        logger.onPosition(item.playableKey, item.titleId.takeUnless { item.isPrivate }, positionMs, speed)
         if (item.isPrivate) return@withContext vault.value.savePosition(item, positionMs, durationMs)
         val now = clock.now()
         val reached = db.withTransaction {
@@ -273,7 +273,7 @@ internal class PlaybackRepositoryImpl(
     }
 
     override suspend fun markFinished(item: PlaybackItem) = withContext(Dispatchers.IO) {
-        logger.onFinished(item.playableKey, item.titleId.takeUnless { item.isPrivate }, item.durationMs)
+        logger.onFinished(item.playableKey)
         if (item.isPrivate) return@withContext vault.value.markFinished(item)
         val now = clock.now()
         val file = item.fileRowId?.let { scan.file(it) }

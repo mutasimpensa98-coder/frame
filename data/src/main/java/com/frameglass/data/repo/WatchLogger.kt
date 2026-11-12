@@ -21,17 +21,18 @@ internal class WatchLogger(private val db: FrameDb, private val clock: Clock) {
     private val marks = ConcurrentHashMap<String, Mark>()
 
     /** [titleId] is null for an item with no title, and must be null for a private-folder video. */
-    suspend fun onPosition(key: String, titleId: Long?, positionMs: Long) {
+    suspend fun onPosition(key: String, titleId: Long?, positionMs: Long, speed: Float = 1f) {
         val now = clock.now()
         val previous = marks.put(key, Mark(positionMs, now)) ?: return
-        add(titleId, WatchTally.countedMs(previous.positionMs, previous.at, positionMs, now), now)
+        add(titleId, WatchTally.countedMs(previous.positionMs, previous.at, positionMs, now, speed), now)
     }
 
-    /** The stretch from the last save to the end, when the item played through. */
-    suspend fun onFinished(key: String, titleId: Long?, durationMs: Long) {
-        val now = clock.now()
-        val previous = marks.remove(key) ?: return
-        if (durationMs > 0) add(titleId, WatchTally.countedMs(previous.positionMs, previous.at, durationMs, now), now)
+    /**
+     * The item ended or was marked finished at its credits, or the countdown moved on. Nothing is added: the credits
+     * and the rest of a file the countdown skipped were not watched, and the last save is at most one step behind.
+     */
+    fun onFinished(key: String) {
+        marks.remove(key)
     }
 
     private suspend fun add(titleId: Long?, ms: Long, now: Long) {
@@ -46,14 +47,19 @@ internal class WatchLogger(private val db: FrameDb, private val clock: Clock) {
     }
 }
 
-/** F-S3 for the watchlist: once a title is all watched, it leaves the list. Unwatching does not bring it back. */
+/** F-S3 for the watchlist, under [WatchlistRules]. Unwatching does not bring a title back. */
 internal object WatchlistKeeper {
     suspend fun settle(db: FrameDb, titleId: Long?) {
+        settle(db, titleId, emptySet())
+    }
+
+    /** [justMarked] are keys the owner just marked watched by hand. */
+    suspend fun settle(db: FrameDb, titleId: Long?, justMarked: Set<String>) {
         val id = titleId ?: return
         val titles = db.titles()
-        if (titles.title(id)?.watchlistAt == null) return
+        val since = titles.title(id)?.watchlistAt ?: return
         val states = db.watch().ofTitle(id).associateBy { it.playableKey }
         val playables = Assembler.playables(id, db.scan().filesOfTitle(id), titles.episodeRows(id)) { states[it] }
-        if (WatchlistRules.done(playables)) titles.setWatchlist(id, null)
+        if (WatchlistRules.done(playables, since, justMarked)) titles.setWatchlist(id, null)
     }
 }
