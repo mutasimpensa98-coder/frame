@@ -4,6 +4,7 @@ Updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automati
 
 ## Read this first
 
+- **1.0.111 (2026-11-12): blurred pictures of unseen episodes. The owner checked it on the phone and said it works.**
 - **1.0.108 is on the phone (2026-11-12), updated in place over 1.0.107, first install time kept, schema 6 opened with the library intact.** Seen opening with no crash: Library menu, My stats, tonight's pick, Media Manager Suggestions (one extra version listed with its kept copy named, nothing selected), the subtitle sheet and the Second subtitle sheet. Not tried: dual rendering, A-B loop, sleep end of episode, the credits card, watchlist, automatic backup.
 - **Branch `pack-player` (2026-11-12) adds dual subtitles, an A-B loop, «آخر الحلقة» for the sleep timer and the next-episode card at the credits.** Built and unit tested, never installed or seen on a phone. See "This round: dual subtitles, A-B loop, sleep at the end of the episode, next at the credits".
 - **1.0.107 is on the phone (2026-11-12), updated in place, first install time kept.** It fixes a crash: Android's ICU regex rejected the bare brace in `SubtitleCues.ASS_TAGS`, so 1.0.105 closed when subtitles loaded. Seen on the phone: the subtitle sheet opens, a Gestdown subtitle loads, the app stays up. `RegexBracesTest` now scans every pattern literal. Gestdown had no Arabic for a current series episode (English only), so Arabic needs a SubDL key.
