@@ -62,6 +62,7 @@ internal class PlaybackRepositoryImpl(
     private val sidecarLabels: SidecarLabels,
     private val vault: Lazy<VaultPlayback>,
     private val logger: WatchLogger,
+    private val deleted: DeletedLog,
 ) : PlaybackRepository, SegmentSource {
     private val scan get() = db.scan()
     private val watch get() = db.watch()
@@ -70,13 +71,16 @@ internal class PlaybackRepositoryImpl(
     private var prefetch: Job? = null
 
     override suspend fun open(ref: PlayRef): PlaybackItem? = withContext(Dispatchers.IO) {
-        when {
+        val item = when {
             ref.fileRowId != null -> scan.file(ref.fileRowId)?.takeIf { it.available && onDisk(it) }?.let { build(ref, it) }
             ref.playableKey != null && VaultRefs.isVault(ref.playableKey) -> vault.value.open(ref) { prefs(null, it) }
             ref.playableKey != null -> openPlayable(ref, ref.playableKey)
             ref.uri != null -> openUri(ref, ref.uri)
             else -> null
         }
+        // A deleted file that opens is back on storage, restored from the trash, and is saved for again.
+        item?.fileRowId?.let(deleted::forget)
+        item
     }
 
     /** A file can vanish between scans. The next scan marks it, and until then it must not reach the player. */
@@ -256,6 +260,8 @@ internal class PlaybackRepositoryImpl(
     }.getOrNull()
 
     override suspend fun savePosition(item: PlaybackItem, positionMs: Long, durationMs: Long, speed: Float) = withContext(Dispatchers.IO) {
+        // Deleted while it played: a save that was already on its way must not make it the last thing played.
+        if (deleted.holds(item.fileRowId)) return@withContext
         // Private time counts in the totals only, so the log never holds a private title.
         logger.onPosition(item.playableKey, item.titleId.takeUnless { item.isPrivate }, positionMs, speed)
         if (item.isPrivate) return@withContext vault.value.savePosition(item, positionMs, durationMs)

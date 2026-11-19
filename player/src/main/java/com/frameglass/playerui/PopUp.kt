@@ -68,6 +68,23 @@ internal class PopUpGate {
         entering = true
     }
 
+    /**
+     * The wait for the window ran out. True when the pop-up really did not come: the request is then over. False, with
+     * nothing changed, when no request is waiting any more or the window is a pop-up whose report is only late.
+     */
+    fun timedOut(inPopUp: Boolean): Boolean {
+        if (!entering || inPopUp) return false
+        clear()
+        return true
+    }
+
+    /** A normal open took the place of the request. True when there was one, at either stage. */
+    fun replaced(): Boolean {
+        val was = pending || entering
+        clear()
+        return was
+    }
+
     /** Entered, refused or no longer wanted. */
     fun clear() {
         pending = false

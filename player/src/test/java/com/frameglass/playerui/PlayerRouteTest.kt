@@ -61,10 +61,15 @@ class PlayerRouteTest {
         assertEquals(PlayRef(playableKey = "movie:5"), PlayerRoute.request(extras, viewUri = "content://downloads/3").ref)
     }
 
+    /** The player is exported, so another app can send the extra. Only this app knows its value. */
     @Test
-    fun aValueOfTheWrongTypeIsIgnored() {
-        val extras = PlayerRoute.extras(PlayRef(fileRowId = 7L), popUp = true)
-            .mapValues { (_, value) -> if (value is Boolean) "true" else value }
-        assertFalse(PlayerRoute.request(extras).popUp)
+    fun aPopUpExtraFromAnotherAppPlaysNormally() {
+        val own = PlayerRoute.extras(PlayRef(fileRowId = 7L), popUp = true)
+        val name = (own.keys - PlayerRoute.extras(PlayRef(fileRowId = 7L), popUp = false).keys).single()
+        for (foreign in listOf<Any>(true, "true", "", 1L)) {
+            val request = PlayerRoute.request(own + (name to foreign))
+            assertEquals(PlayRequest(PlayRef(fileRowId = 7L), popUp = false), request)
+        }
+        assertTrue(PlayerRoute.request(own).popUp)
     }
 }

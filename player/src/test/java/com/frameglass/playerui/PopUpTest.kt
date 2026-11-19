@@ -132,6 +132,44 @@ class PopUpTest {
     }
 
     @Test
+    fun theWaitForTheWindowEndsTheRequestOnlyWhenNoPopUpCame() {
+        val gate = PopUpGate()
+        gate.request(loading = false, pictureKnown = true)
+        gate.asked()
+        // The window is a pop-up already and only its report is late: nothing to give up.
+        assertFalse(gate.timedOut(inPopUp = true))
+        assertTrue(gate.entering)
+        assertTrue(gate.timedOut(inPopUp = false))
+        assertFalse(gate.entering)
+        assertFalse(gate.holdsOrientation)
+        // A second timer for the same request finds nothing left.
+        assertFalse(gate.timedOut(inPopUp = false))
+    }
+
+    @Test
+    fun aTimerOfAnOldRequestDoesNotEndTheWaitForAPicture() {
+        val gate = PopUpGate()
+        gate.request(loading = true, pictureKnown = false)
+        assertFalse(gate.timedOut(inPopUp = false))
+        assertTrue(gate.pending)
+    }
+
+    @Test
+    fun aNormalOpenTakesThePlaceOfARequestAtEitherStage() {
+        val gate = PopUpGate()
+        assertFalse(gate.replaced())
+        gate.request(loading = true, pictureKnown = false)
+        assertTrue(gate.replaced())
+        assertFalse(gate.pending)
+        gate.request(loading = false, pictureKnown = true)
+        gate.asked()
+        assertTrue(gate.replaced())
+        assertFalse(gate.entering)
+        // What the old request left behind cannot give up later.
+        assertFalse(gate.timedOut(inPopUp = false))
+    }
+
+    @Test
     fun clearForgetsWhatWasSeen() {
         val gate = PopUpGate()
         gate.request(loading = true, pictureKnown = false)

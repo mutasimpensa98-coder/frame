@@ -7,6 +7,8 @@ import com.frameglass.data.R
 import com.frameglass.data.api.CleanupSource
 import com.frameglass.data.api.CleanupSuggestions
 import com.frameglass.data.api.DeletePlan
+import com.frameglass.data.api.DeletedFiles
+import com.frameglass.data.api.DeletedFilesSource
 import com.frameglass.data.api.DeleteResult
 import com.frameglass.data.api.MediaEntry
 import com.frameglass.data.api.MediaGroup
@@ -53,8 +55,9 @@ internal class MediaManagerImpl(
     private val snapshots: SnapshotSource,
     private val volumes: Volumes,
     private val store: MediaStoreTrash,
+    private val deleted: DeletedLog,
     private val catchUp: () -> CatchUp,
-) : MediaManager, TrashConsentSource, CleanupSource {
+) : MediaManager, TrashConsentSource, CleanupSource, DeletedFilesSource {
     private val running = Mutex()
     private val consents = MutableSharedFlow<IntentSender>(extraBufferCapacity = 1)
     private val answers = Channel<Boolean>(Channel.CONFLATED)
@@ -113,6 +116,7 @@ internal class MediaManagerImpl(
         val waiting = ArrayList<Pair<DeleteTarget, File>>()
         val failed = ArrayList<String>()
         val gone = HashSet<Long>()
+        val gonePaths = HashSet<String>()
         var trashed = 0
         var deleted = 0
         var freed = 0L
@@ -147,7 +151,10 @@ internal class MediaManagerImpl(
                 deleted++
                 freed += target.sizeBytes
             }
-            target.rowId?.let(gone::add)
+            if (target.rowId != null) {
+                gone += target.rowId
+                gonePaths += target.path
+            }
         }
 
         fun settle(confirmed: Boolean) {
@@ -202,9 +209,24 @@ internal class MediaManagerImpl(
             }
 
             run.gone.toList().chunked(ROW_CHUNK).forEach { db.scan().markUnavailable(it) }
+            if (run.gone.isNotEmpty()) {
+                // First, so a position save still on its way is refused before the session row is cleared.
+                deleted.add(DeletedFiles(run.gone.toSet(), run.gonePaths.toSet()))
+                forgetSession(run.gone)
+            }
             if (targets.isNotEmpty()) catchUp().onFoldersChanged()
             DeleteResult(run.trashed, run.deleted, run.failed, run.freed)
         }
+    }
+
+    override val deletedFiles: Flow<DeletedFiles> get() = deleted.events
+
+    /** A deleted video is not the last thing played any more, as when one moves into the private folder. */
+    private suspend fun forgetSession(gone: Set<Long>) {
+        val watch = db.watch()
+        val session = watch.session() ?: return
+        val keys = gone.mapNotNullTo(HashSet()) { db.scan().file(it)?.playableKey }
+        if (session.fileRowId in gone || session.watchKey in keys) watch.clearSession()
     }
 
     override val trashConsents: Flow<IntentSender> get() = consents

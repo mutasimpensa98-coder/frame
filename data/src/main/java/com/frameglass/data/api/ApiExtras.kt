@@ -64,6 +64,28 @@ class VaultClosedException : IllegalStateException()
 /** Why a tapped subtitle search or download failed, for the message at that point. */
 class SubtitleFailure(val reason: NetResult.Reason) : Exception(reason.name)
 
+/**
+ * Videos a confirmed delete has just taken off storage, to the trash or for good, by file row and by path.
+ * A video can be deleted while it plays: from Home, under its own pop-up.
+ */
+data class DeletedFiles(val fileRowIds: Set<Long>, val paths: Set<String>) {
+    /**
+     * True when what is playing is one of them: [fileRowId] and [uri] are those of its PlaybackItem. The player then
+     * closes and saves nothing more for it. An "Open with" uri is neither a row nor a path, and never matches.
+     */
+    fun holds(fileRowId: Long?, uri: String?): Boolean =
+        (fileRowId != null && fileRowId in fileRowIds) || (uri != null && uri in paths)
+}
+
+/** Implemented by the object behind [MediaManager]. */
+interface DeletedFilesSource {
+    val deletedFiles: Flow<DeletedFiles>
+}
+
+/** One value per finished delete that removed at least one video. Nothing is replayed to a late collector. */
+val MediaManager.deletedFiles: Flow<DeletedFiles>
+    get() = (this as? DeletedFilesSource)?.deletedFiles ?: emptyFlow()
+
 /** Implemented by the object behind [MediaManager]. */
 interface TrashConsentSource {
     val trashConsents: Flow<IntentSender>

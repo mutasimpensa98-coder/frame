@@ -25,6 +25,7 @@ import com.frameglass.data.meta.SearchIndexer
 import com.frameglass.data.meta.TitleOps
 import com.frameglass.data.meta.TitleResolver
 import com.frameglass.data.repo.AutoTried
+import com.frameglass.data.repo.DeletedLog
 import com.frameglass.data.repo.LibraryRepositoryImpl
 import com.frameglass.data.repo.MediaManagerImpl
 import com.frameglass.data.repo.NetConfigImpl
@@ -142,14 +143,19 @@ internal class DataServices(context: Context, clock: Clock) : FrameServices {
         )
     }
 
+    /** Shared by the Media Manager, which fills it, and playback, which refuses saves for what it holds. */
+    private val deletedLog = DeletedLog()
+
     override val playback: PlaybackRepository by lazy {
-        PlaybackRepositoryImpl(context, db, volumes, labels, pipeline, images, scope, clock, sidecarLabels, privateFolder, watchLogger)
+        PlaybackRepositoryImpl(
+            context, db, volumes, labels, pipeline, images, scope, clock, sidecarLabels, privateFolder, watchLogger, deletedLog,
+        )
     }
 
     override val settings: SettingsRepository get() = settingsStore
 
     override val media: MediaManager by lazy {
-        MediaManagerImpl(context, db, snapshots, volumes, MediaStoreTrash(context)) { catchUp }
+        MediaManagerImpl(context, db, snapshots, volumes, MediaStoreTrash(context), deletedLog) { catchUp }
     }
 
     override val vault: PrivateVault get() = privateFolder.value

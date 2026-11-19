@@ -31,6 +31,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.AutoSubtitleOutcome
+import com.frameglass.data.api.DeletedFiles
 import com.frameglass.data.api.PlayRef
 import com.frameglass.data.api.PlaybackItem
 import com.frameglass.data.api.SegmentKind
@@ -40,6 +41,7 @@ import com.frameglass.data.api.SubtitleResult
 import com.frameglass.data.api.TrackPrefs
 import com.frameglass.data.api.WatchTarget
 import com.frameglass.data.api.autoFetch
+import com.frameglass.data.api.deletedFiles
 import com.frameglass.data.api.frameServices
 import com.frameglass.data.api.segmentsAfterFetch
 import com.frameglass.data.api.sites
@@ -266,6 +268,25 @@ internal class PlayerSession(context: Context) {
         main.launch { services.settings.settings.collect { applySettings(it) } }
         main.launch { services.subtitles.available.collect { state.onlineAvailable = it } }
         main.launch { services.subtitles.sites.collect { state.onlineSites = it } }
+        main.launch { services.media.deletedFiles.collect(::onFilesDeleted) }
+    }
+
+    /**
+     * A confirmed delete took the video that is playing, which Home allows under a pop-up. Playback ends, the window
+     * closes as it does at the end of a video, and nothing is saved for a file that is gone.
+     */
+    private fun onFilesDeleted(deleted: DeletedFiles) {
+        val item = state.item ?: return
+        if (!deleted.holds(item.fileRowId, item.uri)) return
+        // close() saves the position first, and this is what stops it.
+        positionKnown = false
+        if (window != null) {
+            close()
+            state.finished = true
+        } else {
+            close()
+            app.stopService(Intent(app, PlaybackService::class.java))
+        }
     }
 
     // ---- Window --------------------------------------------------------------------------------

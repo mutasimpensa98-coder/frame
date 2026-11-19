@@ -223,12 +223,14 @@ Android 11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص 
 148. اضغط على النافذة ثم زر التكبير. هل رجع المشغّل العادي بالعرض، وأزراره تطلع بلمسة؟ والرجوع منه: وين يودّيك؟
 149. جرّب «تشغيل في نافذة منبثقة» من ضغطة مطوّلة على حلقة في صفحة التفاصيل، ومن ملف في «مجلدات» في المكتبة. هل الاثنين يشتغلوا؟
 150. من إعدادات التلفون › التطبيقات › فريم › «صورة داخل صورة» اقفلها، وجرّب «تشغيل في نافذة منبثقة». هل الفيديو اشتغل بملء الشاشة وطلعت فوقه رسالة قصيرة تقول إنها موقوفة؟ بعدها رجّع الخاصية.
+151. والنافذة المنبثقة شغّالة فوق الرئيسية، اضغط مطوّل على بطاقة نفس الفيديو اللي يشتغل واحذفه (اختار فيديو ما يهمكش). هل النافذة سكّرت وحدها أول ما خلص الحذف، والصوت وقف؟ وهل ما بقاش للفيديو بطاقة في «تابع المشاهدة»، ولا اختصار له لما تضغط مطوّل على أيقونة التطبيق؟
 
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
 
 - **Play in pop-up, the moment it enters (`features`).** `PlayerActivity` asks for picture-in-picture on the first size or frame of the video, which can come while the player's opening fade still runs. If the system queues the request, the full black window shows for longer than a blink; item 145 asks. The landscape request is held until the window reports it is a pop-up (`PopUpGate.holdsOrientation`); a screen that still turns sideways first means that hold does not work on this phone.
+- **Deleting what the pop-up plays.** The player closes when the delete reports the file gone, which is after the trash took it; the picture may stand still for the moment between. A pop-up that stays open on a deleted video, or a Continue card for it that comes back, means the report did not reach `PlayerSession`; item 151 asks.
 - **Play in pop-up, a second one.** A pop-up on screen takes the new video in place through `PlaybackHost.popUp`, set in `onPictureInPictureModeChanged`. A full-screen flash on the second pop-up means that callback came late or the slot was cleared.
 - **Play in pop-up, after the zoom button.** The expanded player is the top of its own task, as with the old auto-enter path; where Back lands from there is item 148.
 - **Long press on the hero.** The same outside watcher as on the cards, now inside a pager under the pull to refresh. Watch for a menu opening during a slow swipe, or a swipe that no longer starts on the Play pill.
@@ -398,7 +400,7 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 6. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3, 3 to 4, 4 to 5 and 5 to 6, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
 7. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
 8. **Feature tour on branch `tour`.** Merge it after the Android 13 branch, which lowers minSdk to 33; the tour uses no API above 33. Ship it with the next version and send items 116 to 122 of section 2. To see the first run, install the `qa` build and remove it after.
-9. **Branch `features`: developer name, delete from Home, play in pop-up.** Merged into `android10` on 2026-11-19 (`0ac6957`), the branch that lowers `minSdk` to 30. Both touch `PlayerActivity.kt`: this branch adds the pop-up section, three listener callbacks, `onResume`, and changes the orientation line of `onCreate`, the ratio lines of `pictureInPictureParams()` and `PlayerRoute.refOf` (now `requestOf`). It adds no call above API 30. Write the three items into `docs/RELEASE-NOTES.md` in Arabic when the version is cut, and send items 140 to 150 of section 2.
+9. **Branch `features`: developer name, delete from Home, play in pop-up.** Merged into `android10` on 2026-11-19 (`0ac6957`), the branch that lowers `minSdk` to 30. Both touch `PlayerActivity.kt`: this branch adds the pop-up section, three listener callbacks, `onResume`, and changes the orientation line of `onCreate`, the ratio lines of `pictureInPictureParams()` and `PlayerRoute.refOf` (now `requestOf`). It adds no call above API 30. Write the three items into `docs/RELEASE-NOTES.md` in Arabic when the version is cut, and send items 140 to 151 of section 2.
 
 ## 8. Missing project files
 

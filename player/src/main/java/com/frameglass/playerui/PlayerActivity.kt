@@ -98,7 +98,10 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
 
     /** "Play in pop-up": the move into picture-in-picture waits here for the picture of the video asked for. */
     private val popUpGate = PopUpGate()
-    private var popUpAsks = 0
+
+    /** The two waits of a pop-up request. Kept as fields so a new request, a normal open and onDestroy can cancel them. */
+    private val popUpPictureWait = Runnable { dropPopUp() }
+    private val popUpWindowWait = Runnable { giveUpPopUp() }
     private var resumed = false
 
     /** Recreated after the app was killed. The pop-up was asked for once, so a restore opens the normal player. */
@@ -256,7 +259,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
             ref != null -> {
                 keepUriAccess(intent)
                 val loading = session.open(ref)
-                if (request.popUp && !restored) askPopUp(loading) else dropPopUp()
+                if (request.popUp && !restored) askPopUp(loading) else replacePopUp()
             }
             session.state.item == null -> session.openLastSession()
         }
@@ -532,14 +535,30 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
             popUpUnavailable(block)
             return
         }
+        cancelPopUpWaits()
         popUpGate.request(loading, pictureKnown = videoAspect > 0f)
         if (!loading && soundOnly()) popUpGate.onNoPicture()
         // The full window shows only until the picture is known, and its controls stay out of that moment.
         ui.controlsVisible = false
         enterPopUpSoon()
         // A video that never shows a picture must not keep the window waiting, with no orientation of its own.
-        val ask = ++popUpAsks
-        stage.postDelayed({ if (ask == popUpAsks) dropPopUp() }, POP_UP_PICTURE_WAIT_MS)
+        stage.postDelayed(popUpPictureWait, POP_UP_PICTURE_WAIT_MS)
+    }
+
+    private fun cancelPopUpWaits() {
+        stage.removeCallbacks(popUpPictureWait)
+        stage.removeCallbacks(popUpWindowWait)
+    }
+
+    /** A normal open took the place of a pop-up request, so nothing of that request may act later. */
+    private fun replacePopUp() {
+        cancelPopUpWaits()
+        if (!popUpGate.replaced()) return
+        applyOrientation()
+        if (!ui.inPip) {
+            ui.controlsVisible = true
+            ui.touch()
+        }
     }
 
     /** Ready with no video track: no frame and no size will come, so there is no picture to wait for. */
@@ -564,16 +583,20 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         if (asked) {
             // The landscape request waits for the window to report in: sent now, it could still turn the full window.
             popUpGate.asked()
-            stage.postDelayed(::giveUpPopUp, POP_UP_WAIT_MS)
+            stage.removeCallbacks(popUpWindowWait)
+            stage.postDelayed(popUpWindowWait, POP_UP_WAIT_MS)
         } else {
             popUpUnavailable(popUpBlock() ?: R.string.player_popup_unavailable)
         }
     }
 
-    /** The system said yes and no pop-up came. The video plays on in the full window. */
+    /**
+     * The system said yes and no pop-up came. The video plays on in the full window. A window that is a pop-up by now,
+     * with only its report late, is left alone: no message and no turn of the screen.
+     */
     private fun giveUpPopUp() {
-        if (!popUpGate.entering || isFinishing) return
-        popUpGate.clear()
+        if (isFinishing || isDestroyed) return
+        if (!popUpGate.timedOut(inPopUp = ui.inPip || isInPictureInPictureMode)) return
         applyOrientation()
         popUpUnavailable(R.string.player_popup_unavailable)
     }
@@ -588,7 +611,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
 
     /** Back to a normal player: its orientation, and in a full window its controls on screen. */
     private fun dropPopUp() {
-        if (!popUpGate.pending) return
+        if (!popUpGate.pending || isFinishing || isDestroyed) return
         popUpGate.clear()
         applyOrientation()
         if (!ui.inPip) {
@@ -685,6 +708,8 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     }
 
     override fun onDestroy() {
+        cancelPopUpWaits()
+        popUpGate.clear()
         releasePopUpSlot()
         unregisterReceiver(pipReceiver)
         val player = session.player
