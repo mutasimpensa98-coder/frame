@@ -144,7 +144,7 @@ switch ($Command) {
         $env:GIT_TERMINAL_PROMPT = '0'
         $env:GCM_INTERACTIVE = 'never'
         $v = ConvertFrom-StringData (Get-Content "$PSScriptRoot\version.properties" -Raw)
-        Native { & git commit -q -m "Version $($v.versionName).$($v.versionCode)" -m 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>' -- version.properties } 'git commit'
+        Native { & git commit -q -m "Version $($v.versionName).$($v.versionCode)" -m 'Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>' -- version.properties } 'git commit'
         Native { & git push -q origin main } 'git push'
         Publish-Apk $saved
     }
