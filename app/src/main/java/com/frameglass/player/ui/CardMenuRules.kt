@@ -40,7 +40,8 @@ internal object CardMenuRules {
         cardEpisode: CardEpisode? = null,
     ): TitleMenuRows {
         if (availableFiles <= 0) return TitleMenuRows(popUp = null, episode = null, delete = null)
-        val series = kind != TitleKind.MOVIE
+        // A lone video filed as a series, such as an unmatched clip, has nothing else to tell apart: one plain delete.
+        val series = kind != TitleKind.MOVIE && availableFiles > 1
         return TitleMenuRows(
             popUp = cardPlay ?: titlePlay,
             episode = cardEpisode.takeIf { series },

@@ -176,4 +176,13 @@ class CardMenuRulesTest {
         assertEquals(CardTarget.Title(7, "Night Harbour", first), hero(first).cardTarget())
         assertNull(hero(null).cardTarget().play)
     }
+
+    @Test
+    fun aLoneVideoFiledAsASeriesGetsOnePlainDelete() {
+        val play = PlayRef(playableKey = "t:9:s1:e1")
+        val rows = CardMenuRules.titleRows(TitleKind.ANIME, availableFiles = 1, titlePlay = play, cardPlay = play, cardEpisode = CardEpisode("t:9:s1:e1", "S1 E1"))
+        assertEquals(DeleteWording.PLAIN, rows.delete)
+        assertEquals(null, rows.episode)
+        assertEquals(play, rows.popUp)
+    }
 }
