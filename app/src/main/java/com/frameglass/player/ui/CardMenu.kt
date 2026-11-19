@@ -8,10 +8,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BookmarkAdd
 import androidx.compose.material.icons.rounded.BookmarkRemove
 import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.FolderOff
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.PictureInPictureAlt
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -36,10 +38,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.frameglass.data.api.FolderEntry
 import com.frameglass.data.api.MediaEntry
-import com.frameglass.data.api.MediaEntryKind
 import com.frameglass.data.api.MediaGroup
+import com.frameglass.data.api.PlayRef
 import com.frameglass.data.api.TitleDetail
 import com.frameglass.data.api.frameServices
+import com.frameglass.data.api.versions
 import com.frameglass.glass.FrameShapes
 import com.frameglass.glass.GlassRow
 import com.frameglass.glass.GlassSheet
@@ -58,7 +61,16 @@ private val SkeletonRowHeight = 48.dp
 internal sealed interface CardTarget {
     val name: String
 
-    data class Title(val titleId: Long, override val name: String) : CardTarget
+    /**
+     * [play] is what a tap on the card plays. A poster opens Details and leaves it null, and its pop-up row then
+     * plays what Details would. [episode] is the one episode a Continue watching card stands for.
+     */
+    data class Title(
+        val titleId: Long,
+        override val name: String,
+        val play: PlayRef? = null,
+        val episode: CardEpisode? = null,
+    ) : CardTarget
 
     data class Place(val entry: FolderEntry) : CardTarget {
         override val name: String get() = entry.name
@@ -140,37 +152,22 @@ internal fun Modifier.cardMenu(target: () -> CardTarget): Modifier {
     return longPress(stringResource(R.string.app_more)) { menu.open(target()) }
 }
 
-private fun titleEntry(titleId: Long, name: String) = MediaEntry(
-    id = "title|$titleId",
-    kind = MediaEntryKind.TITLE,
-    name = name,
-    detail = null,
-    sizeBytes = 0,
-    fileCount = 0,
-    durationMs = null,
-    width = null,
-    height = null,
-    coverPath = null,
-    titleId = titleId,
-    folderPath = null,
-    fileRowId = null,
-)
-
-private fun fileEntry(fileRowId: Long, name: String) = MediaEntry(
-    id = "file|$fileRowId",
-    kind = MediaEntryKind.FILE,
-    name = name,
-    detail = null,
-    sizeBytes = 0,
-    fileCount = 1,
-    durationMs = null,
-    width = null,
-    height = null,
-    coverPath = null,
-    titleId = null,
-    folderPath = null,
-    fileRowId = fileRowId,
-)
+/**
+ * The first row of every menu whose card can play: the same video a tap would play, started in a pop-up
+ * (picture-in-picture) so the library stays on screen behind it.
+ */
+@Composable
+internal fun PopUpRow(play: PlayRef, onPicked: () -> Unit) {
+    val navigator = LocalNavigator.current
+    GlassRow(
+        text = stringResource(R.string.app_menu_popup),
+        icon = Icons.Rounded.PictureInPictureAlt,
+        onClick = {
+            onPicked()
+            navigator.playInPopUp(play)
+        },
+    )
+}
 
 @Composable
 private fun TitleActions(target: CardTarget.Title, sheet: GlassSheetState) {
@@ -185,6 +182,8 @@ private fun TitleActions(target: CardTarget.Title, sheet: GlassSheetState) {
         return
     }
     val files = detail.files.filter { it.available }
+    val rows = CardMenuRules.titleRows(detail.kind, files.size, detail.play, target.play, target.episode)
+    rows.popUp?.let { PopUpRow(it, sheet::close) }
     GlassRow(
         text = stringResource(if (detail.watchlist) R.string.app_menu_watchlist_remove else R.string.app_menu_watchlist_add),
         icon = if (detail.watchlist) Icons.Rounded.BookmarkRemove else Icons.Rounded.BookmarkAdd,
@@ -213,24 +212,39 @@ private fun TitleActions(target: CardTarget.Title, sheet: GlassSheetState) {
     files.map { it.folder }.distinct().forEach { folder ->
         ExcludeRow(folder, sheet)
     }
-    if (files.isNotEmpty()) {
+    val delete = rows.delete ?: return
+    GlassRow(
+        text = stringResource(R.string.app_menu_private),
+        icon = Icons.Rounded.Lock,
+        onClick = {
+            sheet.close()
+            model.vault.moveIn(listOf(detail.id), emptyList()) { navigator.push(Route.PrivateFolder) }
+        },
+    )
+    // Both deletes only open the confirmation sheet, which names the files and asks before anything goes.
+    rows.episode?.let { episode ->
         GlassRow(
-            text = stringResource(R.string.app_menu_private),
-            icon = Icons.Rounded.Lock,
-            onClick = {
-                sheet.close()
-                model.vault.moveIn(listOf(detail.id), emptyList()) { navigator.push(Route.PrivateFolder) }
-            },
-        )
-        GlassRow(
-            text = stringResource(R.string.app_menu_delete),
+            text = stringResource(R.string.app_menu_delete_episode),
+            supporting = episode.label,
             icon = Icons.Rounded.DeleteOutline,
             onClick = {
                 sheet.close()
-                model.deletes.ask(listOf(titleEntry(detail.id, detail.name)))
+                model.launch {
+                    val versions = library.versions(episode.playableKey)
+                    model.deletes.ask(CardMenuRules.episodeEntries(versions, detail.name, episode.label))
+                }
             },
         )
     }
+    val wholeSeries = delete == DeleteWording.WHOLE_SERIES
+    GlassRow(
+        text = stringResource(if (wholeSeries) R.string.app_menu_delete_series else R.string.app_menu_delete),
+        icon = if (wholeSeries) Icons.Rounded.DeleteSweep else Icons.Rounded.DeleteOutline,
+        onClick = {
+            sheet.close()
+            model.deletes.ask(listOf(CardMenuRules.titleEntry(detail.id, detail.name)))
+        },
+    )
 }
 
 @Composable
@@ -257,11 +271,12 @@ private fun PlaceActions(entry: FolderEntry, sheet: GlassSheetState) {
     val fileRow = entry.play?.fileRowId
     val content by produceState<MediaEntry?>(null, entry.path) {
         value = when {
-            fileRow != null -> fileEntry(fileRow, entry.name)
+            fileRow != null -> CardMenuRules.fileEntry(fileRow, entry.name)
             entry.isDirectory -> media.entries(MediaGroup.FOLDERS).first().firstOrNull { it.folderPath == entry.path }
             else -> null
         }
     }
+    entry.play?.let { PopUpRow(it, sheet::close) }
     ExcludeRow(if (entry.isDirectory) entry.path else entry.path.substringBeforeLast('/'), sheet)
     val found = content
     if (found != null) {

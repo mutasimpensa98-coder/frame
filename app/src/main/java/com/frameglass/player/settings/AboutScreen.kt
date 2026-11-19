@@ -45,6 +45,9 @@ import kotlinx.coroutines.withContext
 
 private val AppMarkSize = 112.dp
 
+/** A person's name is not translated. It stays in Latin letters in both languages. */
+private const val DeveloperName = "Mutasim Suliman"
+
 // F-M12: well under the app mark and the 24 sp app name.
 private val TmdbLogoHeight = 14.dp
 
@@ -92,6 +95,12 @@ internal fun AboutScreen() {
                     text = bidiIsolate(stringResource(R.string.app_version, version)),
                     style = FrameType.Label,
                     color = FrameColors.SecondaryText,
+                )
+                // Isolated, so the Latin name keeps its own direction after the Arabic label and its colon.
+                Text(
+                    text = stringResource(R.string.app_about_developer, bidiIsolate(DeveloperName)),
+                    style = FrameType.Body,
+                    color = FrameColors.White,
                 )
                 AboutCard {
                     TmdbLogo(stringResource(R.string.app_tmdb_logo), TmdbLogoHeight)

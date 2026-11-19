@@ -135,3 +135,11 @@ The owner asked to make the GitHub repository public so a friend can open it and
 ## 2026-11-12: The name Frame everywhere
 
 The owner asked for the name Frame everywhere. The GitHub repository is now `mutasimpensa98-coder/frame` (GitHub redirects the old `frame-glass` links). New screenshots go to `Pictures/Frame`, the private folder's fallback is `Movies/Frame`, manual backups are named `frame-backup-…`, automatic ones `frame-auto-…` (old `frame-glass-auto-…` files still count for retention, sorted by their time stamp). Kept on purpose: the package and application ID `com.frameglass.player` (changing it would make the phone treat a new build as a different app), the backup format marker `frame-glass-backup` inside the file (so old backups restore), the media session id, the local folder `D:\FrameGlass`, and the historical brief and waivers. Old screenshots stay in `Pictures/Frame Glass`; nothing of the owner's is moved.
+
+## 2026-11-19: Developer name, delete from Home, play in pop-up
+
+The owner asked for three small things. None needs a permission, a dependency, a network host or a schema change.
+
+- F-M12: About gains one line under the app name and version, "Developed by Mutasim Suliman" («تطوير: Mutasim Suliman»). The TMDB logo, its notice and their order do not change.
+- Delete from Home uses the Media Manager waiver of 2026-11-07 as it stands: every delete opens the confirmation sheet first. A Continue watching card of a series offers «حذف هذه الحلقة» for that episode's files, and the delete of a whole series reads «حذف المسلسل كله». The hero has the same long-press menu as the cards.
+- F-P13: the long-press menus gain «تشغيل في نافذة منبثقة» as their first row, which starts playback and enters picture-in-picture by itself. It is behind a menu, as R13 asks, and adds nothing to Home, Library or the player's controls. Where picture-in-picture is missing or turned off for the app, the video plays in the full window and the player says so.

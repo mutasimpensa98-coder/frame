@@ -1,6 +1,6 @@
 # Next
 
-Updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else. Before that, the feature tour was built on branch `tour`; before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
+Updated 2026-11-19, after the developer name on About, the episode delete on Home and "Play in pop-up" were built on branch `features`. Before that, updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else. Before that, the feature tour was built on branch `tour`; before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
 The history must stay fit to publish. `.gitignore` and `tools/hooks/pre-commit`, set through `core.hooksPath`, keep out what the waiver bans. A new clone needs `git config core.hooksPath tools/hooks`.
 
@@ -17,6 +17,8 @@ The owner then asked for launcher shortcuts, a Continue watching widget, the nex
 The owner then asked for a watchlist «حابب نشوفه», cleanup suggestions in Media Manager, «إحصائياتي» and automatic backup. They are built and unit tested on branch `pack-library`, with schema 6, and not seen on any phone. `STATUS.md`, section "This round: watchlist, cleanup, stats and automatic backup", lists them. Owner checks are items 75 to 91 of section 2.
 
 The owner then asked for a feature tour and approved its storyboard. It is built and unit tested on branch `tour`, and not seen on any phone. `STATUS.md`, section "This round: feature tour", lists it. Owner checks are items 116 to 122 of section 2. The first-run path cannot be seen on the owner's phone, because it has finished onboarding and the app is never uninstalled or cleared; the `qa` build, a separate app, starts fresh and shows it.
+
+The owner then asked for the developer's name on About, a way to delete from the main screen, and playing in a pop-up window. They are built and unit tested on branch `features`, and not seen on any phone. `STATUS.md`, section "This round: developer name, delete from Home, play in pop-up", lists them. Owner checks are items 123 to 133 of section 2.
 
 The release build is on the phone, updated in place from the first install, with the library, progress, settings and keys intact. `firstInstallTime` did not change.
 
@@ -190,10 +192,29 @@ Android 13 وأحدث (فرع `android13`، تنازل 2026-11-12). هذه لل�
 121. لو الثيم عندك فاتح أو لونك مش أبيض: هل الجولة بقت داكنة وزرها أبيض، والساعة والبطارية فوق باينين؟
 122. كبّر الخط من إعدادات التلفون: هل العناوين والنصوص في الجولة كاملة وما انقصّش منها شي؟ وجرّبها بالإنجليزي كمان لو تحب.
 
+اسم المطوّر، والحذف من الرئيسية، والنافذة المنبثقة (فرع `features`). جرّب الحذف بحلقة أو مقطع ما يهمكش:
+
+123. افتح الإعدادات › «حول التطبيق». هل تحت اسم التطبيق ورقم الإصدار مكتوب «تطوير: ⁦Mutasim Suliman⁩»، والاسم بالحروف الإنجليزية ومقروء صح؟ وبالإنجليزي: ⁦Developed by Mutasim Suliman⁩؟
+124. في الرئيسية، اضغط مطوّل على الصورة الكبيرة اللي فوق. هل طلعت نفس قائمة البطاقات؟ وهل زر «تشغيل» فيها لسه يشتغل بضغطة عادية، والسحب بين الصور والسحب لتحت للتحديث ما تغيّروش؟
+125. اضغط مطوّل على بطاقة مسلسل في «تابع المشاهدة». هل في القائمة «حذف هذه الحلقة» وتحتها رقم الحلقة، و«حذف المسلسل كله» سطر لحاله؟ وبطاقة فيلم أو مقطع: هل فيها «حذف» وحدة بس؟
+126. اختر «حذف هذه الحلقة» لحلقة ما تبيهاش. هل طلعت ورقة التأكيد وفيها اسم ملف الحلقة هذي بس، وعدد الملفات 1 (أو 2 لو عندك نسختين منها)؟ اضغط «إلغاء» أول مرة: هل ما انحذف شي؟
+127. أكّد الحذف. هل بطاقة المسلسل في «تابع المشاهدة» انتقلت وحدها للحلقة اللي بعدها، بدون ما تسحب للتحديث؟ وهل باقي حلقات المسلسل في مكانها في صفحة التفاصيل؟
+128. اضغط مطوّل على أي بطاقة واختر «تشغيل في نافذة منبثقة»، أول سطر في القائمة. هل الفيديو اشتغل في نافذة صغيرة فوق المكتبة على طول، وشكلها على مقاس الفيديو؟ الشاشة الكاملة قبل ما تصغر: لمحة، أو ثانية وأكثر؟ وهل الشاشة لفّت بالعرض قبل ما تصغر؟
+129. هل الفيديو في النافذة بدا من وين وقفت آخر مرة؟ سكّر النافذة وافتح نفس الفيديو عادي: هل كمّل من مكان النافذة؟ وهل شريط التقدم على بطاقته تحدّث؟
+130. والنافذة شغّالة، اختر «تشغيل في نافذة منبثقة» لفيديو ثاني. هل نفس النافذة بدّلت للفيديو الجديد في مكانها، بدون ما تفتح شاشة كاملة؟
+131. اضغط على النافذة ثم زر التكبير. هل رجع المشغّل العادي بالعرض، وأزراره تطلع بلمسة؟ والرجوع منه: وين يودّيك؟
+132. جرّب «تشغيل في نافذة منبثقة» من ضغطة مطوّلة على حلقة في صفحة التفاصيل، ومن ملف في «مجلدات» في المكتبة. هل الاثنين يشتغلوا؟
+133. من إعدادات التلفون › التطبيقات › فريم › «صورة داخل صورة» اقفلها، وجرّب «تشغيل في نافذة منبثقة». هل الفيديو اشتغل بملء الشاشة وطلعت فوقه رسالة قصيرة تقول إنها موقوفة؟ بعدها رجّع الخاصية.
+
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
 
+- **Play in pop-up, the moment it enters (`features`).** `PlayerActivity` asks for picture-in-picture on the first size or frame of the video, which can come while the player's opening fade still runs. If the system queues the request, the full black window shows for longer than a blink; item 128 asks. The landscape request is held until the window reports it is a pop-up (`PopUpGate.holdsOrientation`); a screen that still turns sideways first means that hold does not work on this phone.
+- **Play in pop-up, a second one.** A pop-up on screen takes the new video in place through `PlaybackHost.popUp`, set in `onPictureInPictureModeChanged`. A full-screen flash on the second pop-up means that callback came late or the slot was cleared.
+- **Play in pop-up, after the zoom button.** The expanded player is the top of its own task, as with the old auto-enter path; where Back lands from there is item 131.
+- **Long press on the hero.** The same outside watcher as on the cards, now inside a pager under the pull to refresh. Watch for a menu opening during a slow swipe, or a swipe that no longer starts on the Play pill.
+- **«حذف هذه الحلقة» with two versions of the episode.** Both files are named in the sheet and both go; the sheet has no way to keep one.
 - **Android 13 to 15 (`android13`).** A crash at first open or on one screen with `NoSuchMethodError`, `NoSuchFieldError` or `NoClassDefFoundError` would mean a platform call above API 33 that lint and the class scan both missed. Item 115 asks for where it happened.
 - **AGSL on API 33.** `GlassAgsl` catches a shader that does not compile and drops only the finger highlight or the tilt sheen. Haze's own glass shaders are Haze's; if one fails on Android 13 the glass may look flat there.
 - **Time and heat of the first search.** Every new file is hashed, then probed with up to 3 at once. A phone with thousands of clips will run this for a while.
@@ -239,6 +260,15 @@ From this round's three requests, read in the code and never run:
 - **The sites line under subtitle results** is text only. Nothing in `:app` implements `PlayerHost.subtitleKeysIntent()`, so it cannot open the keys page.
 
 ## 4. Known limits in this build
+
+Developer name, delete from Home, play in pop-up (`features`, not seen on a phone):
+
+- «تشغيل في نافذة منبثقة» is not offered in the private folder, and «حذف هذه الحلقة» is only on a Continue watching card and on the hero that stands for one. An episode row on Details has the pop-up row but no delete of its own; Media Manager deletes single files as before.
+- A series with one file left shows both delete rows, and they do the same thing.
+- A video with sound only enters the pop-up in the default shape. A video that shows no picture within 8 s stays a normal full-window player, with no message.
+- A normal tap on a card while a pop-up plays goes through the same intent as before this round. Whether the system then brings the pop-up back to the full window with the new video has not been seen.
+- The message for a refused pop-up names the phone setting only when the app-op is off. Any other refusal gets the general line.
+- `pictureInPictureParams()` still calls `setAutoEnterEnabled` and `setSeamlessResizeEnabled` (API 31) with no guard, which is right for `minSdk` 33 here. The branch that lowers `minSdk` to 29 must guard them, and on API 29 and 30 the pop-up row then works through `enterPictureInPictureMode(params)` alone.
 
 Android 13 and newer (`android13`, not seen on any phone below Android 17):
 
@@ -336,6 +366,7 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 6. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3, 3 to 4, 4 to 5 and 5 to 6, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
 7. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
 8. **Feature tour on branch `tour`.** Merge it after the Android 13 branch, which lowers minSdk to 33; the tour uses no API above 33. Ship it with the next version and send items 116 to 122 of section 2. To see the first run, install the `qa` build and remove it after.
+9. **Branch `features`: developer name, delete from Home, play in pop-up.** Merge it with the branch that lowers `minSdk` to 29 (`android10`). Both touch `PlayerActivity.kt`: this branch adds the pop-up section, three listener callbacks, `onResume`, and changes the orientation line of `onCreate`, the ratio lines of `pictureInPictureParams()` and `PlayerRoute.refOf` (now `requestOf`). It adds no call above API 29. Write the three items into `docs/RELEASE-NOTES.md` in Arabic when the version is cut, and send items 123 to 133 of section 2.
 
 ## 8. Missing project files
 

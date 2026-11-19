@@ -75,12 +75,12 @@ import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Route
 import com.frameglass.player.quick.upcomingHint
 import com.frameglass.player.ui.ArtUnderStatusBar
-import com.frameglass.player.ui.CardTarget
 import com.frameglass.player.ui.CenteredMessage
 import com.frameglass.player.ui.RefreshBox
 import com.frameglass.player.ui.TitleFrame
 import com.frameglass.player.ui.TitlePoster
 import com.frameglass.player.ui.cardMenu
+import com.frameglass.player.ui.cardTarget
 import com.frameglass.player.ui.navigationInset
 import com.frameglass.player.ui.rememberUiModel
 import com.frameglass.player.ui.statusInset
@@ -341,7 +341,7 @@ private fun ContinueRow(items: List<ContinueItem>, cardWidth: Dp) {
                     onClick = { navigator.play(item.play) },
                     modifier = Modifier
                         .width(cardWidth)
-                        .cardMenu { CardTarget.Title(item.titleId, item.name) },
+                        .cardMenu { item.cardTarget() },
                     episodeLabel = item.episodeLabel,
                     // The newest episode the owner has can say when the next one comes instead.
                     subtitle = item.upcoming?.let { upcomingHint(it) } ?: item.episodeTitle,

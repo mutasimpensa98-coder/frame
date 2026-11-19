@@ -193,6 +193,8 @@
     <string name="player_error_damaged">يبدو أن هذا الملف تالف، لذلك توقف التشغيل هنا.</string>
     <string name="player_error_incomplete">توقف التشغيل هنا لأن الملف غير مكتمل. ربما لم ينتهِ تنزيله بعد.</string>
     <string name="player_no_seek">لا يمكن التقديم أو الترجيع في هذا الملف</string>
+    <string name="player_popup_unavailable">النافذة المنبثقة غير متاحة هنا، فالتشغيل بملء الشاشة</string>
+    <string name="player_popup_off">«صورة داخل صورة» موقوفة لفريم من إعدادات الهاتف، فالتشغيل بملء الشاشة</string>
     <string name="player_error_other">حدث ما أوقف التشغيل.</string>
     <string name="player_error_unsupported">لا يمكن تشغيل صيغة هذا الملف هنا.</string>
     <string name="player_error_codec">يستخدم هذا الملف %1$s، ولا يمكن تشغيله هنا.</string>
