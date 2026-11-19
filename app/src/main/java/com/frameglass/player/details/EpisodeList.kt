@@ -21,7 +21,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -41,7 +40,7 @@ import com.frameglass.glass.FrameType
 import com.frameglass.glass.PressableGlass
 import com.frameglass.glass.ProgressLine
 import com.frameglass.glass.RatingBadge
-import com.frameglass.glass.WideArt
+import com.frameglass.glass.SpoilerArt
 import com.frameglass.glass.bidiIsolate
 import com.frameglass.player.R
 import com.frameglass.player.nav.LocalNavigator
@@ -52,8 +51,6 @@ import com.frameglass.player.ui.toCard
 
 private val StillWidth = 148.dp
 private const val DimmedAlpha = 0.42f
-/** Strong enough that faces and places cannot be read in a 148 dp still, light enough that it still looks like a picture. */
-internal val SpoilerBlur = 14.dp
 
 /**
  * F-U9: a 16:9 still, label, title, duration and progress. The whole row plays. With no still, as for every
@@ -84,11 +81,7 @@ internal fun EpisodeListRow(row: EpisodeRow, poster: String?, onLongPress: () ->
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(Modifier.width(StillWidth).aspectRatio(FrameSizes.LandscapeRatio).clip(FrameShapes.Poster)) {
-                WideArt(
-                    row.imagePath,
-                    Modifier.matchParentSize().then(if (row.hideImage) Modifier.blur(SpoilerBlur) else Modifier),
-                    fallback = poster,
-                )
+                SpoilerArt(row.imagePath, row.hideImage, Modifier.matchParentSize(), fallback = poster)
                 row.progress?.let {
                     ProgressLine(
                         progress = it,

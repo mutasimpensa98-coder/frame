@@ -35,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -109,7 +108,7 @@ fun LiquidTabBar(
                 tabs.forEachIndexed { index, tab ->
                     TabItem(tab, index == selectedIndex, reduced) {
                         if (index != selected) {
-                            haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            haptics.performHapticFeedback(SegmentTickHaptic)
                             select(index)
                         }
                     }

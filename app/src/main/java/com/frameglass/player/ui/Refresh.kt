@@ -39,7 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -61,6 +60,7 @@ import com.frameglass.glass.FrameType
 import com.frameglass.glass.GlassKind
 import com.frameglass.glass.GlassSurface
 import com.frameglass.glass.ProgressLine
+import com.frameglass.glass.SegmentTickHaptic
 import com.frameglass.glass.rememberEffectsLevel
 import com.frameglass.player.R
 import com.frameglass.player.model.RefreshLine
@@ -119,7 +119,7 @@ internal fun RefreshBox(
         snapshotFlow { state.distanceFraction >= 1f }
             .distinctUntilChanged()
             .drop(1)
-            .collect { armed -> if (armed) haptics.performHapticFeedback(HapticFeedbackType.SegmentTick) }
+            .collect { armed -> if (armed) haptics.performHapticFeedback(SegmentTickHaptic) }
     }
 
     val pull by remember(state) { derivedStateOf { state.distanceFraction.coerceIn(0f, OverPull) } }

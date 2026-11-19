@@ -64,8 +64,20 @@ internal object SubtitleArchive {
         Failure(Reason.BAD_RESPONSE, "archive")
     }
 
+    /** Up to [limit] bytes from the start of [file]. InputStream.readNBytes would do this, but it needs API 33. */
+    private fun firstBytes(file: File, limit: Int): ByteArray = file.inputStream().use { input ->
+        val buffer = ByteArray(limit)
+        var filled = 0
+        while (filled < limit) {
+            val read = input.read(buffer, filled, limit - filled)
+            if (read < 0) break
+            filled += read
+        }
+        if (filled == limit) buffer else buffer.copyOf(filled)
+    }
+
     private fun isZip(file: File): Boolean {
-        val head = file.inputStream().use { it.readNBytes(Int.SIZE_BYTES) }
+        val head = firstBytes(file, Int.SIZE_BYTES)
         return head.size == Int.SIZE_BYTES && ByteBuffer.wrap(head).int in ZIP_SIGNATURES
     }
 
@@ -145,7 +157,7 @@ internal object SubtitleArchive {
 
     /** Stripping NUL lets one check read UTF-16 too. The markers are all ASCII. */
     private fun extensionOf(file: File): String? {
-        val bytes = file.inputStream().use { it.readNBytes(SNIFF_BYTES) }
+        val bytes = firstBytes(file, SNIFF_BYTES)
         val head = String(bytes, Charsets.ISO_8859_1).replace("\u0000", "")
         return when {
             "WEBVTT" in head.take(16) -> "vtt"

@@ -135,3 +135,44 @@ The owner asked to make the GitHub repository public so a friend can open it and
 ## 2026-11-12: The name Frame everywhere
 
 The owner asked for the name Frame everywhere. The GitHub repository is now `mutasimpensa98-coder/frame` (GitHub redirects the old `frame-glass` links). New screenshots go to `Pictures/Frame`, the private folder's fallback is `Movies/Frame`, manual backups are named `frame-backup-…`, automatic ones `frame-auto-…` (old `frame-glass-auto-…` files still count for retention, sorted by their time stamp). Kept on purpose: the package and application ID `com.frameglass.player` (changing it would make the phone treat a new build as a different app), the backup format marker `frame-glass-backup` inside the file (so old backups restore), the media session id, the local folder `D:\FrameGlass`, and the historical brief and waivers. Old screenshots stay in `Pictures/Frame Glass`; nothing of the owner's is moved.
+
+## 2026-11-19: Android 10 and newer
+
+The owner asked that the app install and run on Android 10 (API 29) and newer, and asked to be told every cost so it can be discussed. This changes R5 "One device" and the waiver "2026-11-12: Android 13 and newer" as follows:
+
+- `minSdk` is 29 (Android 10) in every module, instead of 33. `compileSdk` and `targetSdk` stay 37, `arm64-v8a` stays the only ABI, and the application ID and signing key do not change.
+- No dependency had to change. The highest `minSdk` any of them declares is 24 (WorkManager, DataStore, Navigation 3, Palette). Media3, NextLib, Compose, Haze, Coil, Room and core declare 23, and the prebuilt `ass-kt` native libraries 21. No core library desugaring was added: the two Java calls that needed API 33 were replaced with older ones.
+- Every platform call above API 29 in the project's own code is guarded with `Build.VERSION.SDK_INT` and has a fallback. Lint `NewApi` and `InlinedApi` are 0 in every module, and the compiled classes and the dex of the release APK were checked against the SDK's API table.
+- The S26 Ultra stays the phone the app is designed and tuned for, and it must behave as before: every guard takes the old path from the API level where that path exists. R11 "the phone reports API below 37" still applies to the owner's phone.
+- Nothing has run on an Android 10, 11 or 12 phone, and no emulator was used. Every behaviour there is untested. `NEXT.md` lists what to check.
+
+**Two permissions on Android 10 only (brief 4.6 and 4.10).** All Files access (`MANAGE_EXTERNAL_STORAGE`) does not exist before Android 11. On Android 10 the app asks for `READ_EXTERNAL_STORAGE` and `WRITE_EXTERNAL_STORAGE` instead, and the manifest sets `android:requestLegacyExternalStorage="true"` so they open the same direct paths. Both are declared with `android:maxSdkVersion="29"`, so Android 11 and newer never see them: the owner's phone gains no permission. They join the list of section 4.10 for Android 10 alone. Write is needed for a confirmed delete and for moving a video into the private folder. The first setup step, the empty Home and the folder browser show Android's own permission dialog there instead of opening the All Files page, and the search of the phone starts when the answer is yes.
+
+What a phone below Android 13 gets. Each line is a fallback, not a new feature.
+
+Android 10, 11 and 12 (API 29 to 32):
+
+- **Glass has no blur.** Haze's glass and the app's own AGSL need `RuntimeShader`, API 33. Below it no surface asks Haze for anything: bars, badges and controls keep the tint and rim of section 7.9, and sheets and menus are solid. No refraction, no tilt sheen. The light under the finger is a plain radial gradient. This is the look a surface already has on any phone when no blur slot is free.
+- **Language.** Android keeps a per-app language only from API 33. Below it the app keeps the choice itself (`AppLocale`, a small preferences file) and applies it to the application, each activity and the playback service; choosing a language recreates the screen. The phone's Settings has no per-app language page there. A player window that is in picture-in-picture while the language changes keeps its words until it is opened again.
+- **Notifications** need no permission there, so the last setup step asks for none.
+- **Back** works through the same callbacks. The manifest flag for the predictive gesture is ignored, so there is no preview of the screen behind.
+- **The three picture-in-picture buttons** are sent as broadcasts. The flag that keeps other apps from sending them arrives in API 33. Below it each button carries a random value only this run of the app knows, and the player ignores a broadcast without it. The androidx fallback was not used, because it needs a permission the manifest removes on purpose.
+- The themed (monochrome) icon is ignored. Below Android 14 the light tick of sliders and tabs is the text handle tick. Below Android 12 a background job that Android stops is logged with no reason.
+
+Android 10 and 11 (API 29 and 30) also:
+
+- **Unseen episode pictures (waiver of 2026-11-12).** `Modifier.blur` does nothing below API 31, which would show the picture whole. There the still is decoded 12 px wide and stretched over the card: the colours of the picture with nothing in it to read. The full picture is never drawn while hidden. The tour's drawn stills get a flat cover that fades as the blur would. One helper (`Spoiler.kt` in `:glass`) decides this for the episode list, the Home card and the tour.
+- **Picture-in-picture** has no auto-enter. Home or Recents while a video plays enters it from `onUserLeaveHint`, so the change of window is a plain cut with no smooth shrink. A screen the player opened itself, such as the subtitle file picker, does not trigger it.
+- **No splash screen icon.** The launch window is the plain canvas colour.
+- **Widget:** the covers have square corners, and the widget list of the phone shows the app icon instead of a preview.
+
+Android 10 only (API 29):
+
+- **Delete has no trash** (waiver of 2026-11-07, Media Manager). `MediaStore.createTrashRequest` and the trash itself arrive in API 30. After the same confirmation sheet the file is deleted directly and its MediaStore row removed. The sheet says so in red, with the wording it already uses for a file that has no trash, and never mentions the trash there.
+- **Cards and drives.** The storage permissions of Android 10 can read a memory card but cannot write to it: a video on a card can be played and listed, but not deleted from the app and not moved into the private folder; both report the failure and leave the file. A USB drive that Android 10 does not show to apps is not listed at all. The phone's own storage has none of these limits.
+- **Changes on storage** are noticed through the system's mount broadcasts and a count of MediaStore's videos, because the volume callback and MediaStore generations arrive in API 30. A change MediaStore has not indexed yet is found by the next full walk, as on every phone.
+- **HDR label.** File details name Dolby Vision but not HDR10 or HLG, because the colour transfer key arrives in API 30. Playback is not affected.
+- **Cover frames** taken from a video come back in 16-bit colour there, because the call that asks for full colour arrives in API 30. A soft gradient in such a frame may show bands.
+- In the player, video extends under a camera cutout on the short edges of the screen only.
+
+If Android 10 is not needed, `minSdk` 30 (Android 11) removes the whole "Android 10 only" list and both storage permissions; `minSdk` 31 (Android 12) also removes the "Android 10 and 11" list. The glass and language items need Android 13.

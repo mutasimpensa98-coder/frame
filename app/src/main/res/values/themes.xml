@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- The splash screen items live in values-v31, where Android first knows them. Below it the launch window is
+         the plain canvas colour. -->
     <style name="Theme.Frame" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/app_canvas</item>
         <item name="android:colorBackground">@color/app_canvas</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowSplashScreenBackground">@color/app_canvas</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/app_icon_foreground</item>
     </style>
 </resources>

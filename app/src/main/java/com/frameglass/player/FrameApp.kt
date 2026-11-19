@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.content.res.Resources
 import android.os.Bundle
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -12,6 +13,7 @@ import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.serviceLoaderEnabled
 import com.frameglass.data.FrameData
+import com.frameglass.data.api.AppLocale
 import com.frameglass.data.api.FrameServices
 import com.frameglass.data.api.FrameServicesOwner
 import com.frameglass.net.Net
@@ -34,8 +36,16 @@ class FrameApp : Application(), FrameServicesOwner, SingletonImageLoader.Factory
         UiModel(services, CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate), artDecodes = { decodesArt(it) })
     }
 
+    /**
+     * Android 10 to 12 only: the language picked for the app, for everything that reads strings through the
+     * application, such as launcher shortcuts and the data layer. It follows a new choice at once, with no restart.
+     * From Android 13 the system does this and AppLocale hands back what it was given.
+     */
+    override fun getResources(): Resources = AppLocale.resources(this, super.getResources())
+
     override fun onCreate() {
         super.onCreate()
+        AppLocale.applyDefaults(this)
         services = FrameData.create(this)
         registerActivityLifecycleCallbacks(CatchUpOnOpen { services.library.startCatchUp() })
         // Launcher shortcuts and the widget follow progress and the library, after each quiet moment.

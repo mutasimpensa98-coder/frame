@@ -1,10 +1,10 @@
 package com.frameglass.data.meta
 
-import android.app.LocaleManager
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.room.withTransaction
+import com.frameglass.data.api.AppLocale
 import com.frameglass.data.api.MatchChoice
 import com.frameglass.data.api.MatchState
 import com.frameglass.data.api.RatingSource
@@ -94,17 +94,12 @@ internal class NetworkCheck(context: Context) {
 }
 
 /**
- * The language the app shows. A language picked for the app lives in LocaleManager, which answers for any context,
- * while the application context may still carry the phone's language in a process with no activity.
+ * The language the app shows. A language picked for the app lives in LocaleManager from Android 13 and in the app's
+ * own file below it (AppLocale); either answers for any context, while the application context may still carry the
+ * phone's language in a process with no activity.
  */
-internal class AppLanguage(context: Context) {
-    private val locales = context.getSystemService(LocaleManager::class.java)
-
-    fun current(): String {
-        val chosen = locales.applicationLocales
-        val list = if (chosen.isEmpty) locales.systemLocales else chosen
-        return MetaLanguage.of(list[0]?.toLanguageTag())
-    }
+internal class AppLanguage(private val context: Context) {
+    fun current(): String = MetaLanguage.of(AppLocale.current(context)?.toLanguageTag())
 }
 
 /** One episode to ask for skip times. */

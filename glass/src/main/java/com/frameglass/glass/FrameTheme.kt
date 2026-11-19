@@ -174,7 +174,8 @@ fun FrameTheme(
     val palette = FramePalettes.of(light, accent)
     TrackThemeWindow(palette)
     val effects = observeEffectsLevel()
-    val glass = remember { GlassState() }
+    // Null below API 33: with no state no surface blurs, and Haze is never touched (GlassSupport).
+    val glass = remember { if (GlassSupport.liquid) GlassState() else null }
     val overlays = remember { GlassOverlayHost() }
     val tilt = rememberGlassTilt()
     CompositionLocalProvider(
@@ -195,7 +196,7 @@ fun FrameTheme(
                     LocalContentColor provides palette.content,
                     LocalTextStyle provides FrameType.Body,
                 ) {
-                    GlassSampling(glass)
+                    if (glass != null) GlassSampling(glass)
                     FrameSystemBars()
                     Box(propagateMinConstraints = true) {
                         content()

@@ -19,6 +19,15 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <!-- Android 10 has no All Files access. There these two do its job, together with requestLegacyExternalStorage
+         below. maxSdkVersion keeps both off Android 11 and newer, so no phone that has All Files access gains a
+         permission (waiver of 2026-11-19). -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING" />
@@ -27,7 +36,10 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <!-- enableOnBackInvokedCallback: target 37 turns predictive back on by itself on Android 16 and newer;
-         Android 13 to 15 need the flag for the same back handling (brief 4.8, waiver of 2026-11-12). -->
+         Android 13 to 15 need the flag for the same back handling (brief 4.8, waiver of 2026-11-12). Android 10 to 12
+         ignore it, and localeConfig too.
+         requestLegacyExternalStorage: read by Android 10 only, where it gives the storage permissions direct paths.
+         Android 11 and newer ignore it for an app with this target. -->
     <application
         android:name=".FrameApp"
         android:allowBackup="false"
@@ -36,6 +48,7 @@
         android:icon="@mipmap/app_icon"
         android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"
+        android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
         android:theme="@style/Theme.Frame"
         android:usesCleartextTraffic="false">

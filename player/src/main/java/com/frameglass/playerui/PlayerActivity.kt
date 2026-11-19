@@ -18,12 +18,12 @@ import android.graphics.drawable.Icon
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import android.provider.DocumentsContract
 import android.provider.Settings
 import android.text.SpannableStringBuilder
 import android.util.Rational
 import android.util.TypedValue
-import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
@@ -47,6 +47,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.SubtitleView
+import com.frameglass.data.api.AppLocale
 import com.frameglass.data.api.AppSettings
 import com.frameglass.engine.CueBidi
 import com.frameglass.engine.FrameGrabber
@@ -78,6 +79,9 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     private val ui = PlayerUiState()
 
     private var controller: ListenableFuture<MediaController>? = null
+
+    /** When this activity last started another one, read by onUserLeaveHint. */
+    private var ownScreenOpenedAt = -OWN_SCREEN_WINDOW_MS
     private var rotated = false
     private var videoAspect = 0f
     private var volumeLevel = NO_LEVEL
@@ -107,6 +111,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
 
     private val pipReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            if (!PlayerCompat.isOwn(intent)) return
             when (intent.action) {
                 ACTION_PIP_BACK -> session.seekBy(-SEEK_STEP_MS)
                 ACTION_PIP_FORWARD -> session.seekBy(SEEK_STEP_MS)
@@ -126,14 +131,14 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         session.attachWindow(this)
         buildStack()
         connectService()
-        registerReceiver(
+        PlayerCompat.registerOwnReceiver(
+            this,
             pipReceiver,
             IntentFilter().apply {
                 addAction(ACTION_PIP_BACK)
                 addAction(ACTION_PIP_FORWARD)
                 addAction(ACTION_PIP_TOGGLE)
             },
-            Context.RECEIVER_NOT_EXPORTED,
         )
         onBackPressedDispatcher.addCallback(this) {
             if (ui.locked) ui.unlockVisible = true else exit()
@@ -145,7 +150,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     private fun enterImmersive() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.attributes = window.attributes.apply {
-            layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+            layoutInDisplayCutoutMode = PlayerCompat.cutoutMode
         }
         hideSystemBars()
     }
@@ -178,7 +183,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         stage.setLayers(controls, listOf(assView, cueView, secondView), sheets)
         stage.topBarPx = (TOP_BAR_DP * resources.displayMetrics.density).roundToInt()
         stage.onBoxChanged = {
-            val cutout = stage.rootWindowInsets?.getInsets(WindowInsets.Type.displayCutout())?.top ?: 0
+            val cutout = PlayerCompat.cutoutTop(stage)
             stage.topBarPx = (TOP_BAR_DP * resources.displayMetrics.density).roundToInt() + cutout
             updateCueSize()
             updatePictureInPicture()
@@ -411,9 +416,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
 
     private fun pictureInPictureParams(): PictureInPictureParams {
         val playing = session.player.playWhenReady
-        val builder = PictureInPictureParams.Builder()
-            .setAutoEnterEnabled(session.player.isPlaying)
-            .setSeamlessResizeEnabled(false)
+        val builder = PlayerCompat.autoEnter(PictureInPictureParams.Builder(), session.player.isPlaying)
             .setActions(
                 listOf(
                     pipAction(R.drawable.player_ic_rewind, R.string.player_back_10, ACTION_PIP_BACK, REQUEST_PIP_BACK),
@@ -439,7 +442,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         val intent = PendingIntent.getBroadcast(
             this,
             request,
-            Intent(action).setPackage(packageName),
+            PlayerCompat.sign(Intent(action).setPackage(packageName)),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         return RemoteAction(Icon.createWithResource(this, icon), label, label, intent)
@@ -455,6 +458,30 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         }
         // Leaving picture-in-picture while stopped means it was dismissed, not expanded.
         if (!isInPictureInPictureMode && !lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) exit()
+    }
+
+    /**
+     * Android 10 and 11 have no auto-enter, so Home while playing enters picture-in-picture from here. A screen this
+     * activity opened itself a moment ago, such as the subtitle file picker, also counts as leaving and must not do it.
+     */
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        val forOwnScreen = SystemClock.elapsedRealtime() - ownScreenOpenedAt < OWN_SCREEN_WINDOW_MS
+        if (PlayerCompat.autoEntersPip || forOwnScreen || !::session.isInitialized) return
+        if (session.player.isPlaying && !isInPictureInPictureMode) {
+            runCatching { enterPictureInPictureMode(pictureInPictureParams()) }
+        }
+    }
+
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
+    override fun startActivityForResult(intent: Intent, requestCode: Int, options: Bundle?) {
+        ownScreenOpenedAt = SystemClock.elapsedRealtime()
+        super.startActivityForResult(intent, requestCode, options)
+    }
+
+    /** Android 10 to 12 have no per-app language, so the app applies its own choice here. A no-op from Android 13. */
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLocale.wrap(newBase))
     }
 
     // ---- Lifecycle ------------------------------------------------------------------------------
@@ -626,6 +653,9 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     private companion object {
         const val SEEK_STEP_MS = 10_000L
         const val NO_LEVEL = -1f
+
+        /** onUserLeaveHint within this long of opening a screen of its own is about that screen, not Home. */
+        const val OWN_SCREEN_WINDOW_MS = 2_000L
         const val MIN_BRIGHTNESS = 0.01f
         const val SYSTEM_BRIGHTNESS_MAX = 255
         const val MIN_ASPECT = 0.01f

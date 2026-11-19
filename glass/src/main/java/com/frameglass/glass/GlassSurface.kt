@@ -328,6 +328,7 @@ private fun CacheDrawScope.rimDrawer(
 /** Applies Haze's reduced-transparency path and lowest quality while degraded (brief 7.9). */
 @Composable
 internal fun ProvideGlassEffects(level: EffectsLevel, canvas: Color, content: @Composable () -> Unit) {
+    if (!GlassSupport.liquid) return content()
     val degraded = level == EffectsLevel.Degraded
     val settings = remember(degraded, canvas) {
         GlassAccessibilitySettings(

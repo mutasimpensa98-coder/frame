@@ -3,9 +3,15 @@ package com.frameglass.player.folders
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
+import android.os.SystemClock
 import android.os.storage.StorageManager
 import android.provider.Settings
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +24,7 @@ import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -30,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.frameglass.data.api.StorageAccess
 import com.frameglass.data.api.frameServices
 import com.frameglass.glass.FrameColors
 import com.frameglass.glass.FrameSpacing
@@ -53,12 +61,16 @@ import java.util.Locale
 
 private data class StorageRoot(val path: String, val label: String)
 
+/** A permission answer sooner than a person can tap means Android answered by itself. */
+private const val UnshownDialogMillis = 400L
+
 private data class Directory(val path: String, val name: String)
 
 private fun storageRoots(context: Context): List<StorageRoot> =
     context.getSystemService(StorageManager::class.java).storageVolumes.mapNotNull { volume ->
         val mounted = volume.state == Environment.MEDIA_MOUNTED || volume.state == Environment.MEDIA_MOUNTED_READ_ONLY
-        volume.directory?.takeIf { mounted }?.let { StorageRoot(it.absolutePath, volume.getDescription(context)) }
+        StorageAccess.directoryOf(context, volume)?.takeIf { mounted }
+            ?.let { StorageRoot(it.absolutePath, volume.getDescription(context)) }
     }
 
 // Direct paths per section 4.6. Hidden folders stay out of the list, as the scanner skips them by default.
@@ -125,6 +137,7 @@ internal fun FolderBrowser(
     onPick: (String) -> Unit,
 ) {
     val context = LocalContext.current
+    val askForFiles = rememberFilesAccessRequest()
     if (!rememberAllFilesAccess()) {
         Text(
             text = stringResource(R.string.app_files_needed),
@@ -134,7 +147,7 @@ internal fun FolderBrowser(
         )
         WhitePill(
             text = stringResource(R.string.app_files_allow),
-            onClick = { context.openAllFilesAccess() },
+            onClick = askForFiles,
             modifier = Modifier.fillMaxWidth(),
         )
         return
@@ -206,19 +219,59 @@ internal fun FolderBrowser(
     }
 }
 
-/** Whether All Files access is on, checked again each time the owner comes back from Settings. */
+/**
+ * Whether All Files access is on, or on Android 10 its two storage permissions. Checked again each time the owner
+ * comes back from Settings or from the permission dialog, which both resume the activity.
+ */
 @Composable
 internal fun rememberAllFilesAccess(): Boolean {
-    var granted by remember { mutableStateOf(Environment.isExternalStorageManager()) }
+    val context = LocalContext.current
+    var granted by remember { mutableStateOf(StorageAccess.isGranted(context)) }
     LifecycleResumeEffect(Unit) {
-        granted = Environment.isExternalStorageManager()
+        granted = StorageAccess.isGranted(context)
         onPauseOrDispose { }
     }
     return granted
 }
 
-internal fun Context.openAllFilesAccess() {
+/**
+ * What an "Allow access" pill does. From Android 11 it opens the phone's All Files page for this app. Android 10 has
+ * no such page: it shows the system's storage permission dialog, and starts the search of the phone when the answer
+ * is yes, because no return from Settings does it there. Once Android has stopped asking, the dialog answers no at
+ * once without showing, and the pill then opens the app's page in Settings, where the permission can still be given.
+ */
+@Composable
+internal fun rememberFilesAccessRequest(): () -> Unit {
+    val context = LocalContext.current
+    // The Android version never changes under a running app, so this branch is the same on every recomposition.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) return { context.openAllFilesAccess() }
+
+    val activity = LocalActivity.current
+    val model = rememberUiModel()
+    var askedAt by remember { mutableLongStateOf(0L) }
+    val dialog = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        val unshown = SystemClock.elapsedRealtime() - askedAt < UnshownDialogMillis
+        val neverAgain = activity != null && StorageAccess.legacyPermissions.none(activity::shouldShowRequestPermissionRationale)
+        when {
+            StorageAccess.isGranted(context) -> model.scanNow()
+            unshown && neverAgain -> context.openAppSettings()
+        }
+    }
+    return {
+        askedAt = SystemClock.elapsedRealtime()
+        dialog.launch(StorageAccess.legacyPermissions)
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.R)
+private fun Context.openAllFilesAccess() {
     startActivity(
         Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.fromParts("package", packageName, null)),
     )
+}
+
+private fun Context.openAppSettings() {
+    runCatching {
+        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
+    }
 }

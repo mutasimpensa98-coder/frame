@@ -1,6 +1,6 @@
 # Next
 
-Updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else. Before that, the feature tour was built on branch `tour`; before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
+Updated 2026-11-19, after branch `android10` lowered `minSdk` to 29 so the app installs on Android 10 and newer (waiver of 2026-11-19). Before that, updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else. Before that, the feature tour was built on branch `tour`; before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
 The history must stay fit to publish. `.gitignore` and `tools/hooks/pre-commit`, set through `core.hooksPath`, keep out what the waiver bans. A new clone needs `git config core.hooksPath tools/hooks`.
 
@@ -190,6 +190,26 @@ Android 13 وأحدث (فرع `android13`، تنازل 2026-11-12). هذه لل�
 121. لو الثيم عندك فاتح أو لونك مش أبيض: هل الجولة بقت داكنة وزرها أبيض، والساعة والبطارية فوق باينين؟
 122. كبّر الخط من إعدادات التلفون: هل العناوين والنصوص في الجولة كاملة وما انقصّش منها شي؟ وجرّبها بالإنجليزي كمان لو تحب.
 
+Android 10 و11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص اللي تلفونه فيه Android 10 أو 11 أو 12، يجربها على تلفونه هو. التطبيق ما تجرّبش على أي تلفون فيه Android أقدم من 13، فكل سؤال هنا جديد. والأسئلة من 103 إلى 115 فوق تنطبق عليه كمان، إلا اللي متغيّر هنا:
+
+123. افتح الإعدادات › حول الهاتف › معلومات البرنامج. شنو إصدار Android، وشنو نوع التلفون؟ لازم يكون Android 10 أو أحدث، والمعالج 64 بت (arm64). ثبّت ملف APK: هل تثبّت عادي، بدون رسالة «التطبيق غير متوافق»؟
+124. Android 10 بس: في أول خطوة اضغط «السماح بالوصول». هل طلعت نافذة النظام الصغيرة اللي تسأل عن الوصول للصور والوسائط والملفات، مش صفحة في الإعدادات؟ بعد ما تضغط «سماح»، هل بدأ يبحث عن الفيديوهات وحده وظهرت في الرئيسية؟
+125. Android 10 بس: لو رفضت واخترت إن التلفون ما يسألكش مرة ثانية، النافذة ما عادتش تطلع. هل الزر صار يفتح صفحة التطبيق في إعدادات التلفون؟ وبعد ما تعطي إذن التخزين من هناك وترجع، هل اشتغل البحث؟
+126. Android 11 و12: هل فتح صفحة «الوصول إلى كل الملفات» زي العادة؟ وطبيعي إنه ما يطلبش إذن الإشعارات في هذي الإصدارات.
+127. الزجاج: الشريط اللي تحت واللي فوق والشارات لازم يكونوا لون شفاف وحافة رفيعة بدون تمويه، والقوائم والأوراق اللي تطلع من تحت لون سادة. هل النص فوقهم واضح، حتى فوق غلاف فاتح؟ وهل فيه مكان فيه مربع أسود أو شي مش مرسوم؟
+128. Android 10 و11: افتح مسلسل فيه حلقات ما شفتهاش. هل صورة الحلقة ألوان ممسوحة ما يتعرفش منها وجه ولا مكان؟ ونفس الشي في بطاقة «تابع المشاهدة» لحلقة ما بدتش. ولما تبدأ الحلقة وترجع، هل صورتها وضحت؟ في Android 12 المتوقع تمويه عادي.
+129. اللغة: الإعدادات › اللغة. اختار English، وبعدين العربية، وبعدين «حسب الهاتف». هل الواجهة كلها تتغير على طول وترجع لنفس الصفحة، والاتجاه من اليمين لليسار في العربي؟ اقفل التطبيق من التطبيقات الأخيرة وافتحه: هل اللغة اللي اخترتها بقت؟ وشغّل فيديو: هل المشغّل والإشعار بنفس اللغة؟
+130. شغّل فيديو واضغط زر الرئيسية. هل دخل النافذة العائمة وفيها أزرار الرجوع 10 ثواني والإيقاف والتقديم؟ في Android 10 و11 الدخول يكون قطع مباشر بدون تصغير ناعم، وهذا طبيعي. وجرّب من المشغّل تضيف ملف ترجمة من التلفون: هل فتح مختار الملفات عادي، بدون ما الفيديو يدخل النافذة العائمة؟
+131. Android 10 بس: احذف من «إدارة الوسائط» فيديو ما تحتاجهوش من ذاكرة التلفون. هل ورقة التأكيد تقول بالأحمر إن الحذف نهائي، وما فيهاش كلمة «سلة المهملات»؟ وبعد الحذف، هل الفيديو اختفى من «ملفاتي» ومن المعرض كمان؟
+132. Android 10 مع كرت ذاكرة: هل فيديوهات الكرت ظهرت في المكتبة وتشتغل؟ جرّب تحذف واحد منها ما تحتاجهوش: المتوقع إن التطبيق يقول إنه ما قدرش والملف يبقى في مكانه. لو صار غير هكي اكتبه.
+133. Android 10 بس: المجلد الخاص. انقل له فيديو من ذاكرة التلفون. هل اختفى من المكتبة ومن المعرض، وظهر في المجلد الخاص ويشتغل؟ ورجّعه برّا: هل رجع لمجلده الأول؟
+134. الكتابة: افتح البحث واكتب، وافتح المجلد الخاص واكتب كلمة السر. هل الكيبورد ما يغطيش خانة الكتابة ولا الزر اللي تحتها؟
+135. المشغّل: هل الفيديو مالي الشاشة حتى جنب ثقب الكاميرا، وأزرار النظام مخفية وتطلع بسحبة وتختفي وحدها؟ وهل الصورة والصوت والترجمة العربية سليمين؟
+136. طفّي الشاشة والفيديو شغال. هل الصوت يكمل، وفيه إشعار فيه أزرار التحكم؟
+137. الويدجت والاختصارات: ضيف ويدجت «تابع المشاهدة»، واضغط مطوّل على أيقونة التطبيق. هل الاثنين يشتغلوا؟ في Android 10 و11 زوايا الأغلفة في الويدجت مربعة، وقائمة الويدجت تعرض أيقونة التطبيق بدل صورة له، وهذا طبيعي.
+138. أول ما تفتح التطبيق في Android 10 و11 تطلع شاشة بلون الخلفية بدون أيقونة، وهذا طبيعي. هل بعدها فتح على طول بدون وميض أبيض؟
+139. لو التطبيق قفل فجأة في أي مكان، اكتب وين كنت، وشنو ضغطت قبلها، ورقم إصدار Android ونوع التلفون.
+
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
@@ -239,6 +259,21 @@ From this round's three requests, read in the code and never run:
 - **The sites line under subtitle results** is text only. Nothing in `:app` implements `PlayerHost.subtitleKeysIntent()`, so it cannot open the keys page.
 
 ## 4. Known limits in this build
+
+Android 10 to 12 (`android10`, not seen on any phone below Android 17). `WAIVERS.md`, "2026-11-19: Android 10 and newer", lists what each version gets instead of the full app. These are the parts nobody could check without such a phone:
+
+- Nothing has run on Android 10, 11 or 12, and no emulator was used. Lint and the two scans show only that this project's own code makes no unguarded platform call above API 29; libraries guard their own.
+- Android 10 storage rests on `requestLegacyExternalStorage`, which Android 10 is documented to honour whatever the target. If a phone ignored it, the app would list nothing and Home would keep showing «السماح بالوصول».
+- On Android 10 a card can be read but not written, so delete and the private folder refuse its files. Whether a given phone shows a USB drive to apps at all is up to that phone.
+- The app-kept language of Android 10 to 12 is applied through `createConfigurationContext` in each activity and the playback service, and through the application's `getResources`. The fixed words of the widget are drawn by the launcher and follow the phone. A player left in picture-in-picture during a change keeps its words until it is reopened.
+- Glass with no blur is the look a surface already has when no blur slot is free. A whole screen of it has never been looked at. Each surface takes the tint its contrast rule gives for the worst case behind it, so text should stay readable, but nobody has judged the look.
+- The 12 px smear over unseen episode pictures on Android 10 and 11 rests on Coil decoding at the exact size asked for, under a cache key of its own. Item 128 checks that no picture can be read.
+- Picture-in-picture on Android 10 and 11 enters from `onUserLeaveHint`. A phone that does not send that hint for its Home gesture would leave the player without the small window, and playback then follows the rules for a hidden player.
+- The keyboard over text fields, the system bars around the player and the cutout on Android 10 go through androidx bridges that this project has only ever run on Android 17.
+- Fingerprint for the private folder on Android 10 depends on what androidx.biometric accepts as a strong biometric there.
+- Memory budgets were set for the S26 Ultra (brief 4.8: 256 MB of covers, 128 MB for libass). Coil gives its cache back when Android asks, but a phone with 3 or 4 GB may still close the app in the background sooner.
+- Decoders on phones of 2019 to 2021 are weaker: HEVC 10-bit, 4K and AV1 may fall to software or not play. The engine's fallbacks are unchanged and were tuned only on the S26 Ultra.
+- The other person installs fresh, as in the Android 13 note below.
 
 Android 13 and newer (`android13`, not seen on any phone below Android 17):
 

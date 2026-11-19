@@ -1,6 +1,7 @@
 package com.frameglass.playerui
 
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.LocaleList
@@ -11,6 +12,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import com.frameglass.data.api.AppLocale
 
 /** Its own class, so the manifest entry cannot collide with a FileProvider from a library. */
 class PlayerFileProvider : FileProvider()
@@ -24,6 +26,11 @@ class PlaybackService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
     private var session: PlayerSession? = null
     private var buttonLocales: LocaleList? = null
+
+    /** Android 10 to 12: the notification buttons speak the language picked for the app. A no-op from Android 13. */
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLocale.wrap(newBase))
+    }
 
     override fun onCreate() {
         super.onCreate()

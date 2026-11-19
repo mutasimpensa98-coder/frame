@@ -76,8 +76,10 @@ import com.frameglass.glass.FrameType
 import com.frameglass.glass.ProgressLine
 import com.frameglass.glass.RatingBadge
 import com.frameglass.glass.RatingBrand
+import com.frameglass.glass.Spoiler
 import com.frameglass.glass.TileHue
 import com.frameglass.glass.bidiIsolate
+import com.frameglass.glass.spoilerCover
 import com.frameglass.player.R
 import com.frameglass.player.ui.toCard
 import kotlinx.coroutines.delay
@@ -391,13 +393,14 @@ private fun EpisodeRow(
                 Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        // RenderEffect needs API 31; the app's floor is 33.
+                        // RenderEffect needs API 31. Android 10 and 11 get the flat cover of spoilerCover instead.
                         val blur = (1f - (clear?.value ?: 0f)).coerceIn(0f, 1f) * ThumbBlur * density
-                        renderEffect = if (blur > 0.5f) BlurEffect(blur, blur, TileMode.Clamp) else null
+                        renderEffect = if (Spoiler.blurs && blur > 0.5f) BlurEffect(blur, blur, TileMode.Clamp) else null
                         scaleX = ThumbZoom
                         scaleY = ThumbZoom
                     }
-                    .drawBehind { with(TourArt) { episodeStill(second) } },
+                    .drawBehind { with(TourArt) { episodeStill(second) } }
+                    .spoilerCover(colors.elevated) { 1f - (clear?.value ?: 0f) },
             )
             Icon(
                 imageVector = Icons.Rounded.VisibilityOff,

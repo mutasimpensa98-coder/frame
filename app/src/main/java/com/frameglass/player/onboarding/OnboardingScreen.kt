@@ -2,6 +2,7 @@ package com.frameglass.player.onboarding
 
 import android.Manifest
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -49,8 +50,8 @@ import com.frameglass.glass.FrameType
 import com.frameglass.glass.OutlinePill
 import com.frameglass.glass.WhitePill
 import com.frameglass.player.R
-import com.frameglass.player.folders.openAllFilesAccess
 import com.frameglass.player.folders.rememberAllFilesAccess
+import com.frameglass.player.folders.rememberFilesAccessRequest
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.ui.FrameTextField
 import kotlinx.coroutines.launch
@@ -94,7 +95,10 @@ internal fun OnboardingScreen() {
                 KeyStep -> KeyStep(onNext = { step = SleepStep })
                 else -> SleepStep(
                     onDone = {
-                        notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        // Asked for from Android 13. Older phones have no such permission and show notifications without it.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
                         scope.launch {
                             store.update { it.copy(onboardingDone = true, neverSleepingHintDone = true) }
                             navigator.finishOnboarding()
@@ -149,7 +153,7 @@ private fun StepLayout(
 
 @Composable
 private fun FilesStep(onNext: () -> Unit) {
-    val context = LocalContext.current
+    val askForFiles = rememberFilesAccessRequest()
     val granted = rememberAllFilesAccess()
     LaunchedEffect(granted) {
         if (granted) onNext()
@@ -160,7 +164,7 @@ private fun FilesStep(onNext: () -> Unit) {
         actions = {
             WhitePill(
                 text = stringResource(R.string.app_files_allow),
-                onClick = { context.openAllFilesAccess() },
+                onClick = askForFiles,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinePill(

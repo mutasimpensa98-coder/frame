@@ -1,6 +1,5 @@
 package com.frameglass.data.scan
 
-import android.os.Environment
 import androidx.room.withTransaction
 import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.ScanState
@@ -127,7 +126,7 @@ internal class Scanner(
     suspend fun scan(tally: ScanTally? = null) = withContext(Dispatchers.IO) {
         lock.withLock {
             // Without All Files access every list call fails, and that must not look like deleted files.
-            if (!Environment.isExternalStorageManager()) return@withLock
+            if (!volumes.readable()) return@withLock
             this@Scanner.tally = tally
             progress.begin()
             try {

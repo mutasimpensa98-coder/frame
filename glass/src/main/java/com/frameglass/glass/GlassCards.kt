@@ -314,6 +314,7 @@ fun LandscapeCard(
     rating: CardRating? = null,
     watched: Boolean = false,
     unavailable: Boolean = false,
+    hideImage: Boolean = false,
 ) {
     val detail = if (unavailable) stringResource(R.string.glass_unavailable) else subtitle
     val colors = FrameTheme.colors
@@ -330,7 +331,7 @@ fun LandscapeCard(
                 .then(if (unavailable) Modifier.alpha(UnavailableAlpha) else Modifier)
                 .clip(FrameShapes.Poster),
         ) {
-            WideArt(imagePath, imageModifier.matchParentSize())
+            SpoilerArt(imagePath, hideImage, imageModifier.matchParentSize())
             Box(Modifier.matchParentSize().background(CardTextScrim))
             if (rating != null) {
                 RatingBadge(rating, Modifier.align(Alignment.TopStart).padding(FrameSpacing.S8))

@@ -8,7 +8,7 @@
 
 A video library and player for Android, with a glass interface and full Arabic support.
 
-![Android 13+](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)
+![Android 10+](https://img.shields.io/badge/Android-10%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.4-7F52FF?logo=kotlin&logoColor=white)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
 ![arm64-v8a](https://img.shields.io/badge/ABI-arm64--v8a-555555)
@@ -67,7 +67,9 @@ A video library and player for Android, with a glass interface and full Arabic s
 
 للأغلفة والتقييمات أضف مفتاح TMDB من الإعدادات. بدونه يعمل التطبيق مشغلاً محلياً كاملاً.
 
-يحتاج التطبيق Android 13 أو أحدث، على هاتف بمعالج arm64 (ARM بنظام 64 بت). صُمّم وجُرّب على Galaxy S26 Ultra بنظام Android 17، ولم يُجرَّب بعد على أي هاتف بنظام Android 13 أو 14 أو 15.
+يحتاج التطبيق Android 10 أو أحدث، على هاتف بمعالج arm64 (ARM بنظام 64 بت). صُمّم وجُرّب على Galaxy S26 Ultra بنظام Android 17، ولم يُجرَّب بعد على أي هاتف بنظام أقدم من ذلك.
+
+الشكل الكامل يحتاج Android 13 أو أحدث. على Android 10 و11 و12 يعمل التطبيق بكل مميزاته لكن الزجاج بلا تمويه (لون شفاف وحافة فقط)، وعلى Android 10 و11 تُخفى صور الحلقات التي لم تُشاهد بتمويه أبسط. على Android 10 وحده يطلب التطبيق إذن التخزين العادي بدل «الوصول إلى كل الملفات»، والحذف فيه نهائي لأن سلة المهملات غير موجودة في ذلك الإصدار. التفاصيل في `docs/WAIVERS.md`.
 
 </div>
 
@@ -143,7 +145,9 @@ Add a TMDB key in Settings for covers and ratings. Without one, Frame is a compl
 
 Requires JDK 21 and Android SDK 37. The signing key is not in this repository, so a build needs your own key through `FG_SECRETS`. See `tools/env.ps1` and `fg.ps1`.
 
-Requires Android 13 or newer on an arm64 (64-bit ARM) phone. Built and tuned for the Galaxy S26 Ultra on Android 17; it has not been tried on any phone running Android 13, 14 or 15, and other arm64 phones on Android 16 or newer are untested too.
+Requires Android 10 or newer on an arm64 (64-bit ARM) phone. Built and tuned for the Galaxy S26 Ultra on Android 17; it has not been tried on any phone running an older Android, and other arm64 phones on Android 16 or newer are untested too.
+
+The full look needs Android 13 or newer. On Android 10, 11 and 12 every feature works, but glass has no blur (tint and rim only), and on Android 10 and 11 the pictures of unseen episodes are hidden with a simpler smear instead of a blur. Android 10 alone asks for the ordinary storage permission instead of All Files access, and a delete there is permanent, because that version has no trash. `docs/WAIVERS.md` lists every difference.
 
 ## Credits
 

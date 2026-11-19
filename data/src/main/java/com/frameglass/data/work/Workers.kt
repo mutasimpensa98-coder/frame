@@ -1,7 +1,9 @@
 package com.frameglass.data.work
 
 import android.content.Context
+import android.os.Build
 import androidx.work.CoroutineWorker
+import androidx.work.WorkInfo
 import androidx.work.WorkerParameters
 import com.frameglass.data.DataServices
 import kotlinx.coroutines.CancellationException
@@ -9,6 +11,10 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.TimeUnit
 
 private val BUDGET_MS = TimeUnit.MINUTES.toMillis(8)
+
+/** Android reports why it stopped a job from API 31. Older phones log the stop with no reason. */
+private fun CoroutineWorker.stopReasonOrUnknown(): Int =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) stopReason else WorkInfo.STOP_REASON_UNKNOWN
 
 /**
  * The 12 h periodic scan, which is only a bonus per section 4.7: One UI may never run it. Everything it does is
@@ -21,7 +27,7 @@ class ScanWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             withTimeoutOrNull(BUDGET_MS) { services.catchUp.background() }
             Result.success()
         } catch (e: CancellationException) {
-            services.scanner.noteStop("scan-worker", stopReason)
+            services.scanner.noteStop("scan-worker", stopReasonOrUnknown())
             throw e
         }
     }
@@ -34,7 +40,7 @@ class MetadataWorker(context: Context, params: WorkerParameters) : CoroutineWork
         return try {
             if (services.pipeline.drain(BUDGET_MS) != null) Result.retry() else Result.success()
         } catch (e: CancellationException) {
-            services.scanner.noteStop("metadata-worker", stopReason)
+            services.scanner.noteStop("metadata-worker", stopReasonOrUnknown())
             throw e
         }
     }

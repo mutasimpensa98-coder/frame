@@ -1,5 +1,6 @@
 package com.frameglass.player
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -14,6 +15,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.frameglass.data.api.AppLocale
 import com.frameglass.data.api.AppSettings
 import com.frameglass.glass.FrameTheme
 import com.frameglass.player.nav.AppLinks
@@ -25,6 +27,11 @@ import com.frameglass.player.ui.toFrame
 class MainActivity : FragmentActivity() {
     /** A page asked for by an intent, such as the subtitle keys from the player. Cleared once FrameRoot opened it. */
     private var link by mutableStateOf<Route?>(null)
+
+    /** Android 10 to 12 have no per-app language, so the app applies its own choice here. A no-op from Android 13. */
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLocale.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(

@@ -55,7 +55,8 @@ internal class OpenSubtitlesApi(private val http: Http, private val config: NetC
     private fun searchUrl(params: Map<String, String>): HttpUrl {
         val builder = "$ROOT/subtitles".toHttpUrl().newBuilder()
         for ((name, value) in params) {
-            builder.addEncodedQueryParameter(name, URLEncoder.encode(value, Charsets.UTF_8))
+            // The overload that takes a Charset needs API 33.
+            builder.addEncodedQueryParameter(name, URLEncoder.encode(value, Charsets.UTF_8.name()))
         }
         return builder.build()
     }

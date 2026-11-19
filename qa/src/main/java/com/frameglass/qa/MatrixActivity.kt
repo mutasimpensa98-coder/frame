@@ -453,15 +453,17 @@ class MatrixActivity : ComponentActivity() {
 
     // ---- census -------------------------------------------------------------
 
-    // SDK_INT_FULL needs API 36 and getHdrSdrRatio API 34; older phones record null for them.
+    // SDK_INT_FULL needs API 36, getHdrSdrRatio API 34 and the alternative refresh rates API 31; older phones record
+    // null or nothing for them. Context.getDisplay needs API 30.
     private fun census() {
         val j = JSONObject()
-        val d = display ?: windowManager.defaultDisplay
+        @Suppress("DEPRECATION")
+        val d = (if (android.os.Build.VERSION.SDK_INT >= 30) display else null) ?: windowManager.defaultDisplay
         j.put("model", android.os.Build.MODEL).put("sdkInt", android.os.Build.VERSION.SDK_INT)
             .put("sdkIntFull", if (android.os.Build.VERSION.SDK_INT >= 36) android.os.Build.VERSION.SDK_INT_FULL else JSONObject.NULL).put("incremental", android.os.Build.VERSION.INCREMENTAL)
             .put("security", android.os.Build.VERSION.SECURITY_PATCH).put("fingerprint", android.os.Build.FINGERPRINT)
         val modes = JSONArray()
-        for (m in d.supportedModes) modes.put(JSONObject().put("w", m.physicalWidth).put("h", m.physicalHeight).put("hz", m.refreshRate.toDouble()).put("alt", m.alternativeRefreshRates.joinToString()))
+        for (m in d.supportedModes) modes.put(JSONObject().put("w", m.physicalWidth).put("h", m.physicalHeight).put("hz", m.refreshRate.toDouble()).put("alt", if (android.os.Build.VERSION.SDK_INT >= 31) m.alternativeRefreshRates.joinToString() else ""))
         j.put("modes", modes).put("currentHz", d.refreshRate.toDouble())
         val hdr = d.hdrCapabilities
         j.put("hdrTypes", JSONArray(hdr?.supportedHdrTypes?.toList() ?: emptyList<Int>()))

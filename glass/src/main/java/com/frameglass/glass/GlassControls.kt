@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -179,7 +178,7 @@ fun FilterChips(
         itemsIndexed(labels) { index, label ->
             FilterChip(label, index == selectedIndex) {
                 if (index != selectedIndex) {
-                    haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                    haptics.performHapticFeedback(SegmentTickHaptic)
                     onSelect(index)
                 }
             }
@@ -287,7 +286,7 @@ fun SortDropdown(
                     onClick = {
                         open = false
                         if (index != selectedIndex) {
-                            haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            haptics.performHapticFeedback(SegmentTickHaptic)
                             onSelect(index)
                         }
                     },

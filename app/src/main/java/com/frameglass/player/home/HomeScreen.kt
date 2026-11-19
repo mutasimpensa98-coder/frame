@@ -34,9 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -66,11 +64,10 @@ import com.frameglass.glass.WhitePill
 import com.frameglass.glass.glassSheetOrigin
 import com.frameglass.glass.rememberGlassSheetState
 import com.frameglass.player.R
-import com.frameglass.player.details.SpoilerBlur
 import com.frameglass.player.folders.AddFolderButton
 import com.frameglass.player.folders.AddFolderSheet
-import com.frameglass.player.folders.openAllFilesAccess
 import com.frameglass.player.folders.rememberAllFilesAccess
+import com.frameglass.player.folders.rememberFilesAccessRequest
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Route
 import com.frameglass.player.quick.upcomingHint
@@ -179,8 +176,8 @@ private fun ScanChip(found: Int) {
 @Composable
 private fun HomeEmpty(scan: ScanState, wholePhone: Boolean) {
     val model = rememberUiModel()
-    val context = LocalContext.current
     val access = rememberAllFilesAccess()
+    val askForFiles = rememberFilesAccessRequest()
     val sheet = rememberGlassSheetState()
     // A source of its own, so a sheet opened from here has something to blur.
     GlassSource(Modifier.fillMaxSize()) {
@@ -190,7 +187,7 @@ private fun HomeEmpty(scan: ScanState, wholePhone: Boolean) {
                 action = {
                     WhitePill(
                         text = stringResource(R.string.app_files_allow),
-                        onClick = { context.openAllFilesAccess() },
+                        onClick = askForFiles,
                     )
                 },
             )
@@ -348,7 +345,7 @@ private fun ContinueRow(items: List<ContinueItem>, cardWidth: Dp) {
                     progress = item.progress.takeIf { it > 0f },
                     timeLeftMs = item.timeLeftMs.takeIf { item.progress > 0f },
                     newEpisode = item.newEpisode,
-                    imageModifier = if (item.hideImage) Modifier.blur(SpoilerBlur) else Modifier,
+                    hideImage = item.hideImage,
                 )
             }
         }

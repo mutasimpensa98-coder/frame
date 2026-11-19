@@ -1,5 +1,6 @@
 package com.frameglass.playerui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.media.AudioDeviceCallback
@@ -1712,6 +1713,8 @@ internal class PlayerSession(context: Context) {
         const val MAX_SUBTITLE_DELAY_MS = SyncAligner.MAX_OFFSET_MS
         const val MAX_AUDIO_DELAY_MS = 2_000L
 
+        // The two BLE types arrive in API 31. They are plain numbers here, which an older phone never reports.
+        @SuppressLint("InlinedApi")
         val BLUETOOTH_OUTPUTS = setOf(
             AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
             AudioDeviceInfo.TYPE_BLE_HEADSET,
