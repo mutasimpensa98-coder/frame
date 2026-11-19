@@ -107,6 +107,15 @@ internal class Navigator(
         val fade = ActivityOptions.makeCustomAnimation(context, android.R.anim.fade_in, android.R.anim.fade_out)
         context.startActivity(PlayerRoute.intent(context, ref), fade.toBundle())
     }
+
+    /**
+     * "Play in pop-up" of the long-press menus: the same player and the same resume rules, and it goes straight to
+     * picture-in-picture. A pop-up already on screen takes [ref] where it stands.
+     */
+    fun playInPopUp(ref: PlayRef) {
+        val fade = ActivityOptions.makeCustomAnimation(context, android.R.anim.fade_in, android.R.anim.fade_out)
+        PlayerRoute.playInPopUp(context, ref, fade.toBundle())
+    }
 }
 
 internal val LocalNavigator = staticCompositionLocalOf<Navigator> { error("Navigator is provided by FrameRoot") }

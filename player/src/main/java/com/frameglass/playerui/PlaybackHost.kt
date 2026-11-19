@@ -1,6 +1,7 @@
 package com.frameglass.playerui
 
 import android.content.Context
+import com.frameglass.data.api.PlayRef
 
 /**
  * Holds the one [PlayerSession] of the process. The activity and the service both hold it, and it is
@@ -10,6 +11,12 @@ internal object PlaybackHost {
     private var session: PlayerSession? = null
     private var activities = 0
     private var serviceRunning = false
+
+    /**
+     * Set by the player window while it is a pop-up (in picture-in-picture). A second "Play in pop-up" hands its
+     * video to this, so the pop-up plays it where it stands and no new window opens over the library.
+     */
+    var popUp: ((PlayRef) -> Unit)? = null
 
     private fun session(context: Context): PlayerSession =
         session ?: PlayerSession(context).also { session = it }

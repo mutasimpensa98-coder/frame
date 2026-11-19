@@ -1,6 +1,7 @@
 package com.frameglass.playerui
 
 import android.app.ActivityManager
+import android.app.AppOpsManager
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
@@ -10,6 +11,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.RectF
@@ -18,6 +20,7 @@ import android.graphics.drawable.Icon
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Process
 import android.os.SystemClock
 import android.provider.DocumentsContract
 import android.provider.Settings
@@ -30,6 +33,7 @@ import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
+import androidx.annotation.StringRes
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.FileProvider
@@ -38,6 +42,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.text.Cue
@@ -49,6 +55,7 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.SubtitleView
 import com.frameglass.data.api.AppLocale
 import com.frameglass.data.api.AppSettings
+import com.frameglass.data.api.PlayRef
 import com.frameglass.engine.CueBidi
 import com.frameglass.engine.FrameGrabber
 import com.frameglass.engine.FramePlayer
@@ -88,6 +95,20 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     private var cueSizePx = 0f
     private var defaultTypeface: Typeface? = null
 
+    /** "Play in pop-up": the move into picture-in-picture waits here for the picture of the video asked for. */
+    private val popUpGate = PopUpGate()
+    private var popUpAsks = 0
+    private var resumed = false
+
+    /** Recreated after the app was killed. The pop-up was asked for once, so a restore opens the normal player. */
+    private var restored = false
+
+    /** While this window is the pop-up, a second "Play in pop-up" plays here and opens no other window. */
+    private val playInPopUp: (PlayRef) -> Unit = { ref ->
+        popUpGate.clear()
+        session.open(ref)
+    }
+
     private val subtitlePicker = registerForActivityResult(OpenAtFolder()) { uri ->
         if (uri != null) session.addSubtitle(uri) { ui.show(getString(R.string.player_subtitle_rejected)) }
     }
@@ -102,6 +123,22 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         }
 
         override fun onVideoSizeChanged(videoSize: VideoSize) = applyVideoSize(videoSize)
+
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            if (mediaItem != null) popUpGate.onLoaded()
+        }
+
+        override fun onRenderedFirstFrame() {
+            popUpGate.onPicture()
+            enterPopUpSoon()
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            if (popUpGate.pending && soundOnly()) {
+                popUpGate.onNoPicture()
+                enterPopUpSoon()
+            }
+        }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             stage.keepScreenOn = isPlaying
@@ -122,9 +159,15 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        restored = savedInstanceState != null
         enterImmersive()
         volumeControlStream = AudioManager.STREAM_MUSIC
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        // A pop-up is a full window only for a moment, so it must not turn the screen on its side first.
+        requestedOrientation = if (opensAsPopUp(intent)) {
+            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        }
         audioManager = getSystemService(AudioManager::class.java)
 
         session = PlaybackHost.attachActivity(this)
@@ -206,11 +249,13 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     }
 
     private fun open(intent: Intent) {
-        val ref = PlayerRoute.refOf(intent)
+        val request = PlayerRoute.requestOf(intent)
+        val ref = request.ref
         when {
             ref != null -> {
                 keepUriAccess(intent)
-                session.open(ref)
+                val loading = session.open(ref)
+                if (request.popUp && !restored) askPopUp(loading) else dropPopUp()
             }
             session.state.item == null -> session.openLastSession()
         }
@@ -234,6 +279,10 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         }
         lifecycleScope.launch {
             snapshotFlow { state.finished }.collect { if (it) finish() }
+        }
+        // A video that cannot play has its reason to show, so a pop-up asked for it stays a full window.
+        lifecycleScope.launch {
+            snapshotFlow { state.failure }.collect { if (it != null) dropPopUp() }
         }
         lifecycleScope.launch {
             snapshotFlow { state.refusedSeeks }.drop(1).collect { ui.show(getString(R.string.player_no_seek)) }
@@ -297,9 +346,13 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         stage.setVideoAspect(videoAspect)
         applyOrientation()
         updatePictureInPicture()
+        popUpGate.onPicture()
+        enterPopUpSoon()
     }
 
+    /** Waits while a pop-up is on its way, and is called again once it has entered or was refused. */
     private fun applyOrientation() {
+        if (popUpGate.holdsOrientation) return
         val portraitVideo = videoAspect in MIN_ASPECT..<1f
         requestedOrientation = if (portraitVideo != rotated) {
             ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
@@ -428,9 +481,9 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
                     pipAction(R.drawable.player_ic_forward, R.string.player_forward_10, ACTION_PIP_FORWARD, REQUEST_PIP_FORWARD),
                 ),
             )
-        if (videoAspect > 0f) {
-            val clamped = videoAspect.coerceIn(MIN_PIP_ASPECT, MAX_PIP_ASPECT)
-            builder.setAspectRatio(Rational((clamped * PIP_RATIO_BASE).roundToInt(), PIP_RATIO_BASE))
+        val shapeWidth = PopUpShape.width(videoAspect)
+        if (shapeWidth != null) {
+            builder.setAspectRatio(Rational(shapeWidth, PopUpShape.BASE))
             val hint = stage.visibleVideoRect()
             if (!hint.isEmpty) builder.setSourceRectHint(hint)
         }
@@ -448,9 +501,117 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         return RemoteAction(Icon.createWithResource(this, icon), label, label, intent)
     }
 
+    // ---- Play in pop-up -------------------------------------------------------------------------
+
+    private fun opensAsPopUp(intent: Intent): Boolean =
+        !restored && PlayerRoute.requestOf(intent).popUp && popUpBlock() == null
+
+    /**
+     * Null when a pop-up can be tried. Otherwise the message that says why not: the phone has no picture-in-picture,
+     * or it was turned off for this app in the phone settings.
+     */
+    @StringRes
+    private fun popUpBlock(): Int? {
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            return R.string.player_popup_unavailable
+        }
+        val mode = runCatching {
+            getSystemService(AppOpsManager::class.java)
+                .checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), packageName)
+        }.getOrDefault(AppOpsManager.MODE_ALLOWED)
+        return if (mode == AppOpsManager.MODE_ALLOWED) null else R.string.player_popup_off
+    }
+
+    /** [loading] is false when the video asked for was open already and simply plays on. */
+    private fun askPopUp(loading: Boolean) {
+        // Already the pop-up: it now plays what was asked for.
+        if (ui.inPip || isInPictureInPictureMode) return
+        val block = popUpBlock()
+        if (block != null) {
+            popUpUnavailable(block)
+            return
+        }
+        popUpGate.request(loading, pictureKnown = videoAspect > 0f)
+        if (!loading && soundOnly()) popUpGate.onNoPicture()
+        // The full window shows only until the picture is known, and its controls stay out of that moment.
+        ui.controlsVisible = false
+        enterPopUpSoon()
+        // A video that never shows a picture must not keep the window waiting, with no orientation of its own.
+        val ask = ++popUpAsks
+        stage.postDelayed({ if (ask == popUpAsks) dropPopUp() }, POP_UP_PICTURE_WAIT_MS)
+    }
+
+    /** Ready with no video track: no frame and no size will come, so there is no picture to wait for. */
+    private fun soundOnly(): Boolean {
+        val player = session.player
+        return player.playbackState == Player.STATE_READY && !player.currentTracks.isTypeSelected(C.TRACK_TYPE_VIDEO)
+    }
+
+    /** Posted, so it runs after the layout pass that follows a new size and the source rect hint is the real one. */
+    private fun enterPopUpSoon() {
+        if (popUpGate.ready && resumed) stage.post(::enterPopUp)
+    }
+
+    private fun enterPopUp() {
+        if (!popUpGate.ready || !resumed || isFinishing) return
+        if (session.state.failure != null || ui.inPip) {
+            dropPopUp()
+            return
+        }
+        // False, or an exception from a window that cannot enter now, both mean the video plays on as it is.
+        val asked = runCatching { enterPictureInPictureMode(pictureInPictureParams()) }.getOrDefault(false)
+        if (asked) {
+            // The landscape request waits for the window to report in: sent now, it could still turn the full window.
+            popUpGate.asked()
+            stage.postDelayed(::giveUpPopUp, POP_UP_WAIT_MS)
+        } else {
+            popUpUnavailable(popUpBlock() ?: R.string.player_popup_unavailable)
+        }
+    }
+
+    /** The system said yes and no pop-up came. The video plays on in the full window. */
+    private fun giveUpPopUp() {
+        if (!popUpGate.entering || isFinishing) return
+        popUpGate.clear()
+        applyOrientation()
+        popUpUnavailable(R.string.player_popup_unavailable)
+    }
+
+    /** Plays on in the full window, as a normal tap would, and says why in the short message of the player. */
+    private fun popUpUnavailable(@StringRes message: Int) {
+        dropPopUp()
+        ui.controlsVisible = true
+        ui.touch()
+        ui.show(getString(message), longer = true)
+    }
+
+    /** Back to a normal player: its orientation, and in a full window its controls on screen. */
+    private fun dropPopUp() {
+        if (!popUpGate.pending) return
+        popUpGate.clear()
+        applyOrientation()
+        if (!ui.inPip) {
+            ui.controlsVisible = true
+            ui.touch()
+        }
+    }
+
+    private fun releasePopUpSlot() {
+        if (PlaybackHost.popUp === playInPopUp) PlaybackHost.popUp = null
+    }
+
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         ui.inPip = isInPictureInPictureMode
+        if (isInPictureInPictureMode) {
+            PlaybackHost.popUp = playInPopUp
+            // Reached by the pop-up row, or by leaving the app while it waited: either way the wait is over.
+            popUpGate.clear()
+            applyOrientation()
+            ui.feedback = null
+        } else {
+            releasePopUpSlot()
+        }
         if (isInPictureInPictureMode) {
             ui.sheet = null
             ui.controlsVisible = false
@@ -489,6 +650,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        restored = false
         open(intent)
     }
 
@@ -502,7 +664,14 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         session.onShown()
     }
 
+    override fun onResume() {
+        super.onResume()
+        resumed = true
+        enterPopUpSoon()
+    }
+
     override fun onPause() {
+        resumed = false
         super.onPause()
         session.savePosition()
     }
@@ -515,6 +684,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     }
 
     override fun onDestroy() {
+        releasePopUpSlot()
         unregisterReceiver(pipReceiver)
         val player = session.player
         player.removeListener(playerListener)
@@ -672,9 +842,11 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         const val BLUR_CORNER_DP = 24f
         const val BLUR_RADIUS_DP = 48f
 
-        const val MIN_PIP_ASPECT = 0.42f
-        const val MAX_PIP_ASPECT = 2.38f
-        const val PIP_RATIO_BASE = 1000
+        /** How long a pop-up the system agreed to may take to show before the full window carries on. */
+        const val POP_UP_WAIT_MS = 2_000L
+
+        /** How long "Play in pop-up" waits for the first picture before it stays a normal full window. */
+        const val POP_UP_PICTURE_WAIT_MS = 8_000L
 
         const val ACTION_PIP_BACK = "com.frameglass.playerui.PIP_BACK"
         const val ACTION_PIP_FORWARD = "com.frameglass.playerui.PIP_FORWARD"

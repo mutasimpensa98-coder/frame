@@ -176,3 +176,11 @@ Android 10 only (API 29):
 - In the player, video extends under a camera cutout on the short edges of the screen only.
 
 If Android 10 is not needed, `minSdk` 30 (Android 11) removes the whole "Android 10 only" list and both storage permissions; `minSdk` 31 (Android 12) also removes the "Android 10 and 11" list. The glass and language items need Android 13.
+
+## 2026-11-19: Developer name, delete from Home, play in pop-up
+
+The owner asked for three small things. None needs a permission, a dependency, a network host or a schema change.
+
+- F-M12: About gains one line under the app name and version, "Developed by Mutasim Suliman" («تطوير: Mutasim Suliman»). The TMDB logo, its notice and their order do not change.
+- Delete from Home uses the Media Manager waiver of 2026-11-07 as it stands: every delete opens the confirmation sheet first. A Continue watching card of a series offers «حذف هذه الحلقة» for that episode's files, and the delete of a whole series reads «حذف المسلسل كله». The hero has the same long-press menu as the cards.
+- F-P13: the long-press menus gain «تشغيل في نافذة منبثقة» as their first row, which starts playback and enters picture-in-picture by itself. It is behind a menu, as R13 asks, and adds nothing to Home, Library or the player's controls. Where picture-in-picture is missing or turned off for the app, the video plays in the full window and the player says so.

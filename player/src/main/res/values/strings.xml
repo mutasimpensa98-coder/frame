@@ -181,6 +181,8 @@
     <string name="player_error_damaged">This file seems to be damaged, so playback stopped here.</string>
     <string name="player_error_incomplete">Playback stopped here because this file isn\'t complete. It may still be downloading.</string>
     <string name="player_no_seek">You can\'t skip around in this file</string>
+    <string name="player_popup_unavailable">Pop-up isn\'t available here, so it plays full screen</string>
+    <string name="player_popup_off">Picture-in-picture is turned off for Frame in the phone settings, so it plays full screen</string>
     <string name="player_error_other">Something stopped playback.</string>
     <string name="player_error_unsupported">This file\'s format can\'t be played here.</string>
     <string name="player_error_codec">This file uses %1$s, which can\'t be played here.</string>

@@ -72,6 +72,8 @@ import com.frameglass.player.nav.ArtRef
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.sharedArt
 import com.frameglass.player.ui.TitleMark
+import com.frameglass.player.ui.cardMenu
+import com.frameglass.player.ui.cardTarget
 import com.frameglass.player.ui.kindLabel
 import com.frameglass.player.ui.localNumber
 import com.frameglass.player.ui.metaLine
@@ -212,6 +214,8 @@ private fun HeroPage(hero: HeroItem) {
     Box(
         Modifier
             .fillMaxSize()
+            // The same long-press menu as every card on Home, the hero's own Play pill included.
+            .cardMenu { hero.cardTarget() }
             .clickable(
                 interactionSource = null,
                 indication = null,

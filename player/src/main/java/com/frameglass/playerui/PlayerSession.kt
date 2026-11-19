@@ -290,11 +290,12 @@ internal class PlayerSession(context: Context) {
 
     // ---- Opening -------------------------------------------------------------------------------
 
-    fun open(ref: PlayRef) {
+    /** False when [ref] is what is open already, which then just plays on with no new load. */
+    fun open(ref: PlayRef): Boolean {
         val alreadyOpen = state.item?.ref == ref && state.failure == null && player.currentMediaItem != null
         if (alreadyOpen && player.playbackState != Player.STATE_ENDED) {
             player.play()
-            return
+            return false
         }
         savePosition()
         openJob?.cancel()
@@ -313,6 +314,7 @@ internal class PlayerSession(context: Context) {
                 start(item)
             }
         }
+        return true
     }
 
     /** F-P15: nothing named in the intent, so this picks up what was playing when the app was killed. */

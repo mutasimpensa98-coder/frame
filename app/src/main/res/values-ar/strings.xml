@@ -186,6 +186,7 @@
     <string name="app_about_hint">إشعار ⁦TMDB⁩ والتراخيص</string>
     <string name="app_about_title">حول التطبيق</string>
     <string name="app_version">الإصدار %1$s</string>
+    <string name="app_about_developer">تطوير: %1$s</string>
     <string name="app_tmdb_notice_translation">يستخدم هذا التطبيق خدمة TMDB وواجهاتها البرمجية، لكن TMDB لا تؤيده ولا تعتمده ولا توافق عليه بأي شكل.</string>
     <string name="app_tmdb_logo">شعار ⁦TMDB⁩</string>
     <string name="app_imdb_statement">هذا التطبيق غير مرتبط بـ ⁦IMDb⁩.</string>
@@ -258,6 +259,9 @@
     <string name="app_menu_exclude">استبعاد هذا المجلد</string>
     <string name="app_menu_private">نقل إلى المجلد الخاص</string>
     <string name="app_menu_delete">حذف</string>
+    <string name="app_menu_delete_episode">حذف هذه الحلقة</string>
+    <string name="app_menu_delete_series">حذف المسلسل كله</string>
+    <string name="app_menu_popup">تشغيل في نافذة منبثقة</string>
 
     <string name="app_filter_favorites">المفضلة</string>
     <string name="app_favorites_empty">لم تحفظ شيئًا بعد. اضغط «حفظ» في صفحة العنوان، أو اضغط مطوّلًا على بطاقته.</string>

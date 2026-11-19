@@ -151,6 +151,14 @@ The full look needs Android 13 or newer. On Android 10, 11 and 12 every feature 
 
 ## Credits
 
+Developed by Mutasim Suliman.
+
+<div dir="rtl">
+
+تطوير: Mutasim Suliman.
+
+</div>
+
 This product uses the TMDB API but is not endorsed or certified by TMDB. IMDb ratings come through OMDb. Each open-source licence ships inside the app, under Settings, About.
 
 ## License
