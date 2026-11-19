@@ -46,7 +46,7 @@ private fun languageName(language: String?): String = stringResource(
 internal fun rememberLanguageLabel(): String = languageName(rememberChosenLanguage())
 
 /**
- * From Android 13 the system keeps the choice and recreates the activity. Android 10 to 12 have no per-app language,
+ * From Android 13 the system keeps the choice and recreates the activity. Android 11 and 12 have no per-app language,
  * so AppLocale keeps it there and this screen recreates its own activity, which comes back on this page in the new
  * language (waiver of 2026-11-19).
  */

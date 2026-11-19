@@ -23,7 +23,6 @@ import com.frameglass.data.logic.SidecarMatcher
 import com.frameglass.data.logic.Snapshot
 import com.frameglass.data.scan.CatchUp
 import com.frameglass.data.scan.DeviceStorage
-import com.frameglass.data.scan.MediaRows
 import com.frameglass.data.scan.MediaStoreTrash
 import com.frameglass.data.scan.SidecarDisk
 import com.frameglass.data.scan.Volumes
@@ -128,9 +127,7 @@ internal class MediaManagerImpl(
             val uri = uriOf(target)
             if (uri != null && store.trash(uri) && !file.exists()) return Outcome.TRASHED
             if (target.recoverable) return if (uri != null) Outcome.NEEDS_CONSENT else Outcome.FAILED
-            if (!SafeFiles.remove(file)) return Outcome.FAILED
-            MediaRows.forget(context, file.path)
-            return Outcome.DELETED
+            return if (SafeFiles.remove(file)) Outcome.DELETED else Outcome.FAILED
         }
 
         fun run(target: DeleteTarget, file: File?) {

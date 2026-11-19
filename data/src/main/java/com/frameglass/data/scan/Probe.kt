@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
-import android.os.Build
 import androidx.palette.graphics.Palette
 import com.frameglass.data.logic.AudioSummary
 import com.frameglass.data.logic.AudioTrackInfo
@@ -48,12 +47,7 @@ internal object Prober {
             val rawHeight = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
             val sideways = rotation == 90 || rotation == 270
             val mime = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
-            // The colour transfer key arrives in API 30. Android 10 names Dolby Vision only, from the MIME type.
-            val transfer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COLOR_TRANSFER)?.toIntOrNull()
-            } else {
-                null
-            }
+            val transfer = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COLOR_TRANSFER)?.toIntOrNull()
             Basics(
                 durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0,
                 width = if (sideways) rawHeight else rawWidth,
@@ -161,25 +155,16 @@ internal object FrameGrabber {
         try {
             retriever.setDataSource(path)
             val params = MediaMetadataRetriever.BitmapParams().apply { preferredConfig = Bitmap.Config.ARGB_8888 }
-            times.mapNotNull { ms -> runCatching { frameAt(retriever, ms * 1000, params) }.getOrNull() }
+            times.mapNotNull { ms ->
+                runCatching {
+                    retriever.getScaledFrameAtTime(ms * 1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, BOX, BOX, params)
+                }.getOrNull()
+            }
         } finally {
             retriever.release()
         }
     } catch (_: Exception) {
         emptyList()
-    }
-
-    /**
-     * A frame by time with BitmapParams needs API 30. Android 10 has the same call without them, which scales the same
-     * way and returns the frame in the retriever's own 16-bit config there.
-     */
-    private fun frameAt(retriever: MediaMetadataRetriever, timeUs: Long, params: MediaMetadataRetriever.BitmapParams): Bitmap? {
-        val nearest = MediaMetadataRetriever.OPTION_CLOSEST_SYNC
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            retriever.getScaledFrameAtTime(timeUs, nearest, BOX, BOX, params)
-        } else {
-            retriever.getScaledFrameAtTime(timeUs, nearest, BOX, BOX)
-        }
     }
 
     /** Software decode, for containers the platform retriever refuses, such as WMV and RealVideo. */

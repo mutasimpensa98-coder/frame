@@ -13,7 +13,7 @@ import java.util.Locale
 
 /**
  * The language picked for this app alone. From Android 13 the system keeps that choice (LocaleManager), applies it to
- * every context and recreates the activity. Android 10 to 12 have no such service, so there the app keeps the choice
+ * every context and recreates the activity. Android 11 and 12 have no such service, so there the app keeps the choice
  * in a small preferences file and applies it itself: [wrap] in attachBaseContext of each activity and service,
  * [resources] behind the application's getResources, and [applyDefaults] for the process (waiver of 2026-11-19).
  */

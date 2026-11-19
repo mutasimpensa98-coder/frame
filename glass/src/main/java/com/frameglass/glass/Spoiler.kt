@@ -25,10 +25,10 @@ import java.io.File
 /**
  * The one place that decides how an unseen episode's picture is hidden (waiver of 2026-11-12). Modifier.blur and
  * BlurEffect draw with RenderEffect, which arrives in API 31: below it they do nothing, and the picture would show
- * whole. So Android 10 and 11 hide it another way, chosen here for the episode list, the Home card and the tour.
+ * whole. So Android 11 hides it another way, chosen here for the episode list, the Home card and the tour.
  */
 object Spoiler {
-    /** False on Android 10 and 11. */
+    /** False on Android 11. */
     @get:ChecksSdkIntAtLeast(api = Build.VERSION_CODES.S)
     val blurs: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
@@ -47,7 +47,7 @@ object Spoiler {
 }
 
 /**
- * [WideArt] for an episode's own picture. While [hidden] it is blurred, or on Android 10 and 11 decoded
+ * [WideArt] for an episode's own picture. While [hidden] it is blurred, or on Android 11 decoded
  * [Spoiler.SmearWidthPx] px wide and stretched, so the full picture is never drawn there. A [fallback] poster standing
  * in for a missing picture is the series' own and is never hidden.
  */

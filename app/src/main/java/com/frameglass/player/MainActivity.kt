@@ -28,7 +28,7 @@ class MainActivity : FragmentActivity() {
     /** A page asked for by an intent, such as the subtitle keys from the player. Cleared once FrameRoot opened it. */
     private var link by mutableStateOf<Route?>(null)
 
-    /** Android 10 to 12 have no per-app language, so the app applies its own choice here. A no-op from Android 13. */
+    /** Android 11 and 12 have no per-app language, so the app applies its own choice here. A no-op from Android 13. */
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(AppLocale.wrap(newBase))
     }

@@ -45,7 +45,6 @@ import com.frameglass.data.logic.VaultRefs
 import com.frameglass.data.logic.WatchRules
 import com.frameglass.data.meta.TitleResolver
 import com.frameglass.data.scan.DeviceStorage
-import com.frameglass.data.scan.MediaRows
 import com.frameglass.data.scan.MountedVolume
 import com.frameglass.data.scan.Scanner
 import com.frameglass.data.scan.SidecarDisk
@@ -366,7 +365,6 @@ internal class PrivateVaultImpl(
             copies.takeBack()
             throw IOException("could not remove the original")
         }
-        MediaRows.forget(context, source.path)
         sidecars.filter { (claim, _) -> !claim.shared }.forEach { (claim, stored) ->
             val original = File(claim.hit.file.folder, claim.hit.file.name)
             if (unchanged(original, stored)) SafeFiles.remove(original)
@@ -589,7 +587,7 @@ internal class PrivateVaultImpl(
         val originalWhole = SafeFiles.isPlain(source, File(base)) && VaultFiles.matches(source, item.sha256)
         when (VaultRecovery.moveIn(copyWhole, originalWhole)) {
             MoveInRecovery.UNDO -> return undoMoveIn(item)
-            MoveInRecovery.REMOVE_ORIGINAL -> if (SafeFiles.remove(source)) MediaRows.forget(context, source.path) else return
+            MoveInRecovery.REMOVE_ORIGINAL -> if (!SafeFiles.remove(source)) return
             MoveInRecovery.KEEP_BOTH -> Unit
         }
         val videoFolder = source.parentFile

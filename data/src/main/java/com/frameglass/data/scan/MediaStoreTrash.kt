@@ -4,26 +4,20 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.IntentSender
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import android.provider.MediaStore
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.frameglass.data.logic.TrashIndex
 import java.io.File
 
-/**
- * Decides what the system trash can take, and sends it there. The trash arrives in API 30: on Android 10 nothing is
- * recoverable, so every confirmed delete is a direct one and the sheet says so (waiver of 2026-11-19).
- */
+/** Decides what the system trash can take, and sends it there. */
 internal class MediaStoreTrash(private val context: Context) {
     private val resolver get() = context.contentResolver
 
-    /** A file not here has no trash. Always empty on Android 10. */
+    /** A file not here has no trash. */
     @Suppress("DEPRECATION")
     fun lookup(paths: Collection<String>): Map<String, Uri> {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return emptyMap()
         val found = ArrayList<Pair<String, Uri>>()
         for (chunk in paths.distinct().chunked(CHUNK)) {
             val marks = chunk.joinToString(",") { "?" }
@@ -49,7 +43,6 @@ internal class MediaStoreTrash(private val context: Context) {
     }
 
     /** createTrashRequest accepts video URIs and refuses a video through the Files table. */
-    @RequiresApi(Build.VERSION_CODES.R)
     private fun uriOf(volume: String, id: Long, type: Int): Uri =
         if (type == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO) {
             MediaStore.Video.Media.getContentUri(volume, id)
@@ -58,7 +51,7 @@ internal class MediaStoreTrash(private val context: Context) {
         }
 
     /** All Files access allows this write. False sends the file to the system's own confirmation. */
-    fun trash(uri: Uri): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && try {
+    fun trash(uri: Uri): Boolean = try {
         val values = ContentValues(1).apply { put(MediaStore.MediaColumns.IS_TRASHED, 1) }
         resolver.update(uri, values, null, null) == 1
     } catch (e: SecurityException) {
@@ -71,7 +64,7 @@ internal class MediaStoreTrash(private val context: Context) {
 
     /** Null when Android will not even offer a confirmation for these items. */
     fun consentRequest(uris: List<Uri>): IntentSender? = try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) MediaStore.createTrashRequest(resolver, uris, true).intentSender else null
+        MediaStore.createTrashRequest(resolver, uris, true).intentSender
     } catch (e: RuntimeException) {
         Log.w(TAG, "trash request refused: ${e.javaClass.simpleName}")
         null
@@ -90,23 +83,6 @@ internal class MediaStoreTrash(private val context: Context) {
         const val VOLUME = 1
         const val TYPE = 2
         const val PATH = 3
-    }
-}
-
-/**
- * Android 10 only, after the app removed a file by path. Its MediaStore does not watch the disk, so the row would
- * stay, and with it the entry other apps show, until the phone's next media scan. Newer phones drop it by themselves.
- */
-internal object MediaRows {
-    @Suppress("DEPRECATION")
-    fun forget(context: Context, path: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) return
-        try {
-            val files = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
-            context.contentResolver.delete(files, "${MediaStore.MediaColumns.DATA} = ?", arrayOf(path))
-        } catch (e: RuntimeException) {
-            Log.w("FrameData", "MediaStore row stays: ${e.javaClass.simpleName}")
-        }
     }
 }
 

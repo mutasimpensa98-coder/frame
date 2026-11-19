@@ -27,6 +27,7 @@ import android.provider.Settings
 import android.text.SpannableStringBuilder
 import android.util.Rational
 import android.util.TypedValue
+import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
@@ -193,7 +194,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     private fun enterImmersive() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.attributes = window.attributes.apply {
-            layoutInDisplayCutoutMode = PlayerCompat.cutoutMode
+            layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
         }
         hideSystemBars()
     }
@@ -226,7 +227,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         stage.setLayers(controls, listOf(assView, cueView, secondView), sheets)
         stage.topBarPx = (TOP_BAR_DP * resources.displayMetrics.density).roundToInt()
         stage.onBoxChanged = {
-            val cutout = PlayerCompat.cutoutTop(stage)
+            val cutout = stage.rootWindowInsets?.getInsets(WindowInsets.Type.displayCutout())?.top ?: 0
             stage.topBarPx = (TOP_BAR_DP * resources.displayMetrics.density).roundToInt() + cutout
             updateCueSize()
             updatePictureInPicture()
@@ -622,7 +623,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
     }
 
     /**
-     * Android 10 and 11 have no auto-enter, so Home while playing enters picture-in-picture from here. A screen this
+     * Android 11 has no auto-enter, so Home while playing enters picture-in-picture from here. A screen this
      * activity opened itself a moment ago, such as the subtitle file picker, also counts as leaving and must not do it.
      */
     override fun onUserLeaveHint() {
@@ -640,7 +641,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions, PlayerWindow {
         super.startActivityForResult(intent, requestCode, options)
     }
 
-    /** Android 10 to 12 have no per-app language, so the app applies its own choice here. A no-op from Android 13. */
+    /** Android 11 and 12 have no per-app language, so the app applies its own choice here. A no-op from Android 13. */
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(AppLocale.wrap(newBase))
     }

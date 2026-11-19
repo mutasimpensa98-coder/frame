@@ -50,8 +50,8 @@ import com.frameglass.glass.FrameType
 import com.frameglass.glass.OutlinePill
 import com.frameglass.glass.WhitePill
 import com.frameglass.player.R
+import com.frameglass.player.folders.openAllFilesAccess
 import com.frameglass.player.folders.rememberAllFilesAccess
-import com.frameglass.player.folders.rememberFilesAccessRequest
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.ui.FrameTextField
 import kotlinx.coroutines.launch
@@ -153,7 +153,7 @@ private fun StepLayout(
 
 @Composable
 private fun FilesStep(onNext: () -> Unit) {
-    val askForFiles = rememberFilesAccessRequest()
+    val context = LocalContext.current
     val granted = rememberAllFilesAccess()
     LaunchedEffect(granted) {
         if (granted) onNext()
@@ -164,7 +164,7 @@ private fun FilesStep(onNext: () -> Unit) {
         actions = {
             WhitePill(
                 text = stringResource(R.string.app_files_allow),
-                onClick = askForFiles,
+                onClick = { context.openAllFilesAccess() },
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinePill(

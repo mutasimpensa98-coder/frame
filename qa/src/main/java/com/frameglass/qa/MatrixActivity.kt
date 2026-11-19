@@ -454,11 +454,10 @@ class MatrixActivity : ComponentActivity() {
     // ---- census -------------------------------------------------------------
 
     // SDK_INT_FULL needs API 36, getHdrSdrRatio API 34 and the alternative refresh rates API 31; older phones record
-    // null or nothing for them. Context.getDisplay needs API 30.
+    // null or nothing for them.
     private fun census() {
         val j = JSONObject()
-        @Suppress("DEPRECATION")
-        val d = (if (android.os.Build.VERSION.SDK_INT >= 30) display else null) ?: windowManager.defaultDisplay
+        val d = display ?: windowManager.defaultDisplay
         j.put("model", android.os.Build.MODEL).put("sdkInt", android.os.Build.VERSION.SDK_INT)
             .put("sdkIntFull", if (android.os.Build.VERSION.SDK_INT >= 36) android.os.Build.VERSION.SDK_INT_FULL else JSONObject.NULL).put("incremental", android.os.Build.VERSION.INCREMENTAL)
             .put("security", android.os.Build.VERSION.SECURITY_PATCH).put("fingerprint", android.os.Build.FINGERPRINT)

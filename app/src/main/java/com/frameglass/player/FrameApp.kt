@@ -37,7 +37,7 @@ class FrameApp : Application(), FrameServicesOwner, SingletonImageLoader.Factory
     }
 
     /**
-     * Android 10 to 12 only: the language picked for the app, for everything that reads strings through the
+     * Android 11 and 12 only: the language picked for the app, for everything that reads strings through the
      * application, such as launcher shortcuts and the data layer. It follows a new choice at once, with no restart.
      * From Android 13 the system does this and AppLocale hands back what it was given.
      */

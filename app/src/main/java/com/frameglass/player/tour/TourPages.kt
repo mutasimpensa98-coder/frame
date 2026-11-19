@@ -393,7 +393,7 @@ private fun EpisodeRow(
                 Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        // RenderEffect needs API 31. Android 10 and 11 get the flat cover of spoilerCover instead.
+                        // RenderEffect needs API 31. Android 11 gets the flat cover of spoilerCover instead.
                         val blur = (1f - (clear?.value ?: 0f)).coerceIn(0f, 1f) * ThumbBlur * density
                         renderEffect = if (Spoiler.blurs && blur > 0.5f) BlurEffect(blur, blur, TileMode.Clamp) else null
                         scaleX = ThumbZoom

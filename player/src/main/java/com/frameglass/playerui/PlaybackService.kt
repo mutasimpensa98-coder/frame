@@ -27,7 +27,7 @@ class PlaybackService : MediaSessionService() {
     private var session: PlayerSession? = null
     private var buttonLocales: LocaleList? = null
 
-    /** Android 10 to 12: the notification buttons speak the language picked for the app. A no-op from Android 13. */
+    /** Android 11 and 12: the notification buttons speak the language picked for the app. A no-op from Android 13. */
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(AppLocale.wrap(newBase))
     }

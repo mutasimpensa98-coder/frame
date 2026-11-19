@@ -7,14 +7,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
-import android.view.View
-import android.view.WindowManager
 import androidx.annotation.ChecksSdkIntAtLeast
-import androidx.core.view.WindowInsetsCompat
 import java.util.UUID
 
 /**
- * What the player window asks of Android that Android 10 to 12 answer differently (waiver of 2026-11-19). Kept out of
+ * What the player window asks of Android that Android 11 and 12 answer differently (waiver of 2026-11-19). Kept out of
  * PlayerActivity so that file holds one-line calls only.
  */
 internal object PlayerCompat {
@@ -48,21 +45,7 @@ internal object PlayerCompat {
 
     private const val EXTRA_OWN_TOKEN = "com.frameglass.playerui.OWN"
 
-    /** Video under the camera cutout on every edge needs API 30. Android 10 covers the short edges, where it is in landscape. */
-    val cutoutMode: Int
-        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-        } else {
-            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
-
-    /** The cutout's height at the top of the window. WindowInsets.Type needs API 30, so this goes through androidx. */
-    fun cutoutTop(view: View): Int {
-        val insets = view.rootWindowInsets ?: return 0
-        return WindowInsetsCompat.toWindowInsetsCompat(insets, view).getInsets(WindowInsetsCompat.Type.displayCutout()).top
-    }
-
-    /** Both calls arrive in API 31. Android 10 and 11 enter from onUserLeaveHint instead. */
+    /** Both calls arrive in API 31. Android 11 enters from onUserLeaveHint instead. */
     fun autoEnter(builder: PictureInPictureParams.Builder, playing: Boolean): PictureInPictureParams.Builder {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             builder.setAutoEnterEnabled(playing).setSeamlessResizeEnabled(false)

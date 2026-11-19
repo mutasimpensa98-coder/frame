@@ -1,6 +1,6 @@
 # Next
 
-Updated 2026-11-19, after branch `android10` lowered `minSdk` to 29 so the app installs on Android 10 and newer (waiver of 2026-11-19). Before that, updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else. Before that, the feature tour was built on branch `tour`; before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
+Updated 2026-11-19, after branch `android10` lowered `minSdk` to 30 so the app installs on Android 11 and newer (waiver of 2026-11-19; Android 10 was built first and dropped the same day). Before that, updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else. Before that, the feature tour was built on branch `tour`; before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 Updated 2026-11-19, after the developer name on About, the episode delete on Home and "Play in pop-up" were built on branch `features`. Before that, updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else. Before that, the feature tour was built on branch `tour`; before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
 The history must stay fit to publish. `.gitignore` and `tools/hooks/pre-commit`, set through `core.hooksPath`, keep out what the waiver bans. A new clone needs `git config core.hooksPath tools/hooks`.
@@ -193,25 +193,23 @@ Android 13 وأحدث (فرع `android13`، تنازل 2026-11-12). هذه لل�
 121. لو الثيم عندك فاتح أو لونك مش أبيض: هل الجولة بقت داكنة وزرها أبيض، والساعة والبطارية فوق باينين؟
 122. كبّر الخط من إعدادات التلفون: هل العناوين والنصوص في الجولة كاملة وما انقصّش منها شي؟ وجرّبها بالإنجليزي كمان لو تحب.
 
-Android 10 و11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص اللي تلفونه فيه Android 10 أو 11 أو 12، يجربها على تلفونه هو. التطبيق ما تجرّبش على أي تلفون فيه Android أقدم من 13، فكل سؤال هنا جديد. والأسئلة من 103 إلى 115 فوق تنطبق عليه كمان، إلا اللي متغيّر هنا:
+Android 11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص اللي تلفونه فيه Android 11 أو 12، يجربها على تلفونه هو. التطبيق ما تجرّبش على أي تلفون فيه Android أقدم من 13، فكل سؤال هنا جديد. والأسئلة من 103 إلى 115 فوق تنطبق عليه كمان، إلا اللي متغيّر هنا:
 
-123. افتح الإعدادات › حول الهاتف › معلومات البرنامج. شنو إصدار Android، وشنو نوع التلفون؟ لازم يكون Android 10 أو أحدث، والمعالج 64 بت (arm64). ثبّت ملف APK: هل تثبّت عادي، بدون رسالة «التطبيق غير متوافق»؟
-124. Android 10 بس: في أول خطوة اضغط «السماح بالوصول». هل طلعت نافذة النظام الصغيرة اللي تسأل عن الوصول للصور والوسائط والملفات، مش صفحة في الإعدادات؟ بعد ما تضغط «سماح»، هل بدأ يبحث عن الفيديوهات وحده وظهرت في الرئيسية؟
-125. Android 10 بس: لو رفضت واخترت إن التلفون ما يسألكش مرة ثانية، النافذة ما عادتش تطلع. هل الزر صار يفتح صفحة التطبيق في إعدادات التلفون؟ وبعد ما تعطي إذن التخزين من هناك وترجع، هل اشتغل البحث؟
-126. Android 11 و12: هل فتح صفحة «الوصول إلى كل الملفات» زي العادة؟ وطبيعي إنه ما يطلبش إذن الإشعارات في هذي الإصدارات.
-127. الزجاج: الشريط اللي تحت واللي فوق والشارات لازم يكونوا لون شفاف وحافة رفيعة بدون تمويه، والقوائم والأوراق اللي تطلع من تحت لون سادة. هل النص فوقهم واضح، حتى فوق غلاف فاتح؟ وهل فيه مكان فيه مربع أسود أو شي مش مرسوم؟
-128. Android 10 و11: افتح مسلسل فيه حلقات ما شفتهاش. هل صورة الحلقة ألوان ممسوحة ما يتعرفش منها وجه ولا مكان؟ ونفس الشي في بطاقة «تابع المشاهدة» لحلقة ما بدتش. ولما تبدأ الحلقة وترجع، هل صورتها وضحت؟ في Android 12 المتوقع تمويه عادي.
-129. اللغة: الإعدادات › اللغة. اختار English، وبعدين العربية، وبعدين «حسب الهاتف». هل الواجهة كلها تتغير على طول وترجع لنفس الصفحة، والاتجاه من اليمين لليسار في العربي؟ اقفل التطبيق من التطبيقات الأخيرة وافتحه: هل اللغة اللي اخترتها بقت؟ وشغّل فيديو: هل المشغّل والإشعار بنفس اللغة؟
-130. شغّل فيديو واضغط زر الرئيسية. هل دخل النافذة العائمة وفيها أزرار الرجوع 10 ثواني والإيقاف والتقديم؟ في Android 10 و11 الدخول يكون قطع مباشر بدون تصغير ناعم، وهذا طبيعي. وجرّب من المشغّل تضيف ملف ترجمة من التلفون: هل فتح مختار الملفات عادي، بدون ما الفيديو يدخل النافذة العائمة؟
-131. Android 10 بس: احذف من «إدارة الوسائط» فيديو ما تحتاجهوش من ذاكرة التلفون. هل ورقة التأكيد تقول بالأحمر إن الحذف نهائي، وما فيهاش كلمة «سلة المهملات»؟ وبعد الحذف، هل الفيديو اختفى من «ملفاتي» ومن المعرض كمان؟
-132. Android 10 مع كرت ذاكرة: هل فيديوهات الكرت ظهرت في المكتبة وتشتغل؟ جرّب تحذف واحد منها ما تحتاجهوش: المتوقع إن التطبيق يقول إنه ما قدرش والملف يبقى في مكانه. لو صار غير هكي اكتبه.
-133. Android 10 بس: المجلد الخاص. انقل له فيديو من ذاكرة التلفون. هل اختفى من المكتبة ومن المعرض، وظهر في المجلد الخاص ويشتغل؟ ورجّعه برّا: هل رجع لمجلده الأول؟
-134. الكتابة: افتح البحث واكتب، وافتح المجلد الخاص واكتب كلمة السر. هل الكيبورد ما يغطيش خانة الكتابة ولا الزر اللي تحتها؟
-135. المشغّل: هل الفيديو مالي الشاشة حتى جنب ثقب الكاميرا، وأزرار النظام مخفية وتطلع بسحبة وتختفي وحدها؟ وهل الصورة والصوت والترجمة العربية سليمين؟
-136. طفّي الشاشة والفيديو شغال. هل الصوت يكمل، وفيه إشعار فيه أزرار التحكم؟
-137. الويدجت والاختصارات: ضيف ويدجت «تابع المشاهدة»، واضغط مطوّل على أيقونة التطبيق. هل الاثنين يشتغلوا؟ في Android 10 و11 زوايا الأغلفة في الويدجت مربعة، وقائمة الويدجت تعرض أيقونة التطبيق بدل صورة له، وهذا طبيعي.
-138. أول ما تفتح التطبيق في Android 10 و11 تطلع شاشة بلون الخلفية بدون أيقونة، وهذا طبيعي. هل بعدها فتح على طول بدون وميض أبيض؟
-139. لو التطبيق قفل فجأة في أي مكان، اكتب وين كنت، وشنو ضغطت قبلها، ورقم إصدار Android ونوع التلفون.
+123. افتح الإعدادات › حول الهاتف › معلومات البرنامج. شنو إصدار Android، وشنو نوع التلفون؟ لازم يكون Android 11 أو أحدث، والمعالج 64 بت (arm64). ثبّت ملف APK: هل تثبّت عادي، بدون رسالة «التطبيق غير متوافق»؟
+124. أول فتح: هل فتح صفحة «الوصول إلى كل الملفات» زي العادة، وبعد ما تسمح وترجع بدأ يبحث عن الفيديوهات وحده؟ وطبيعي إنه ما يطلبش إذن الإشعارات في Android 11 و12.
+125. الزجاج: الشريط اللي تحت واللي فوق والشارات لازم يكونوا لون شفاف وحافة رفيعة بدون تمويه، والقوائم والأوراق اللي تطلع من تحت لون سادة. هل النص فوقهم واضح، حتى فوق غلاف فاتح؟ وهل فيه مكان فيه مربع أسود أو شي مش مرسوم؟
+126. Android 11: افتح مسلسل فيه حلقات ما شفتهاش. هل صورة الحلقة ألوان ممسوحة ما يتعرفش منها وجه ولا مكان؟ ونفس الشي في بطاقة «تابع المشاهدة» لحلقة ما بدتش. ولما تبدأ الحلقة وترجع، هل صورتها وضحت؟ في Android 12 المتوقع تمويه عادي.
+127. اللغة: الإعدادات › اللغة. اختار English، وبعدين العربية، وبعدين «حسب الهاتف». هل الواجهة كلها تتغير على طول وترجع لنفس الصفحة، والاتجاه من اليمين لليسار في العربي؟ اقفل التطبيق من التطبيقات الأخيرة وافتحه: هل اللغة اللي اخترتها بقت؟ وشغّل فيديو: هل المشغّل والإشعار بنفس اللغة؟
+128. شغّل فيديو واضغط زر الرئيسية. هل دخل النافذة العائمة وفيها أزرار الرجوع 10 ثواني والإيقاف والتقديم؟ في Android 11 الدخول يكون قطع مباشر بدون تصغير ناعم، وهذا طبيعي. وجرّب من المشغّل تضيف ملف ترجمة من التلفون: هل فتح مختار الملفات عادي، بدون ما الفيديو يدخل النافذة العائمة؟
+129. الكتابة: افتح البحث واكتب، وافتح المجلد الخاص واكتب كلمة السر. هل الكيبورد ما يغطيش خانة الكتابة ولا الزر اللي تحتها؟
+130. المشغّل: هل الفيديو مالي الشاشة حتى جنب ثقب الكاميرا، وأزرار النظام مخفية وتطلع بسحبة وتختفي وحدها؟ وهل الصورة والصوت والترجمة العربية سليمين؟
+131. طفّي الشاشة والفيديو شغال. هل الصوت يكمل، وفيه إشعار فيه أزرار التحكم؟
+132. الويدجت والاختصارات: ضيف ويدجت «تابع المشاهدة»، واضغط مطوّل على أيقونة التطبيق. هل الاثنين يشتغلوا؟ في Android 11 زوايا الأغلفة في الويدجت مربعة، وقائمة الويدجت تعرض أيقونة التطبيق بدل صورة له، وهذا طبيعي.
+133. أول ما تفتح التطبيق في Android 11 تطلع شاشة بلون الخلفية بدون أيقونة، وهذا طبيعي. هل بعدها فتح على طول بدون وميض أبيض؟
+134. لو التطبيق قفل فجأة في أي مكان، اكتب وين كنت، وشنو ضغطت قبلها، ورقم إصدار Android ونوع التلفون.
+
+الأرقام من 135 إلى 139 مش مستعملة: كانت أسئلة Android 10، وانشالت معاه يوم 2026-11-19.
+
 اسم المطوّر، والحذف من الرئيسية، والنافذة المنبثقة (فرع `features`). جرّب الحذف بحلقة أو مقطع ما يهمكش:
 
 140. افتح الإعدادات › «حول التطبيق». هل تحت اسم التطبيق ورقم الإصدار مكتوب «تطوير: ⁦Mutasim Suliman⁩»، والاسم بالحروف الإنجليزية ومقروء صح؟ وبالإنجليزي: ⁦Developed by Mutasim Suliman⁩؟
@@ -230,9 +228,9 @@ Android 10 و11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للش
 
 These come from reading the code. None has been seen.
 
-- **Play in pop-up, the moment it enters (`features`).** `PlayerActivity` asks for picture-in-picture on the first size or frame of the video, which can come while the player's opening fade still runs. If the system queues the request, the full black window shows for longer than a blink; item 128 asks. The landscape request is held until the window reports it is a pop-up (`PopUpGate.holdsOrientation`); a screen that still turns sideways first means that hold does not work on this phone.
+- **Play in pop-up, the moment it enters (`features`).** `PlayerActivity` asks for picture-in-picture on the first size or frame of the video, which can come while the player's opening fade still runs. If the system queues the request, the full black window shows for longer than a blink; item 145 asks. The landscape request is held until the window reports it is a pop-up (`PopUpGate.holdsOrientation`); a screen that still turns sideways first means that hold does not work on this phone.
 - **Play in pop-up, a second one.** A pop-up on screen takes the new video in place through `PlaybackHost.popUp`, set in `onPictureInPictureModeChanged`. A full-screen flash on the second pop-up means that callback came late or the slot was cleared.
-- **Play in pop-up, after the zoom button.** The expanded player is the top of its own task, as with the old auto-enter path; where Back lands from there is item 131.
+- **Play in pop-up, after the zoom button.** The expanded player is the top of its own task, as with the old auto-enter path; where Back lands from there is item 148.
 - **Long press on the hero.** The same outside watcher as on the cards, now inside a pager under the pull to refresh. Watch for a menu opening during a slow swipe, or a swipe that no longer starts on the Play pill.
 - **«حذف هذه الحلقة» with two versions of the episode.** Both files are named in the sheet and both go; the sheet has no way to keep one.
 - **Android 13 to 15 (`android13`).** A crash at first open or on one screen with `NoSuchMethodError`, `NoSuchFieldError` or `NoClassDefFoundError` would mean a platform call above API 33 that lint and the class scan both missed. Item 115 asks for where it happened.
@@ -281,20 +279,20 @@ From this round's three requests, read in the code and never run:
 
 ## 4. Known limits in this build
 
-Android 10 to 12 (`android10`, not seen on any phone below Android 17). `WAIVERS.md`, "2026-11-19: Android 10 and newer", lists what each version gets instead of the full app. These are the parts nobody could check without such a phone:
+Android 11 and 12 (`android10`, not seen on any phone below Android 17). `WAIVERS.md`, "2026-11-19: Android 11 and newer", lists what each version gets instead of the full app. These are the parts nobody could check without such a phone:
 
-- Nothing has run on Android 10, 11 or 12, and no emulator was used. Lint and the two scans show only that this project's own code makes no unguarded platform call above API 29; libraries guard their own.
-- Android 10 storage rests on `requestLegacyExternalStorage`, which Android 10 is documented to honour whatever the target. If a phone ignored it, the app would list nothing and Home would keep showing «السماح بالوصول».
-- On Android 10 a card can be read but not written, so delete and the private folder refuse its files. Whether a given phone shows a USB drive to apps at all is up to that phone.
-- The app-kept language of Android 10 to 12 is applied through `createConfigurationContext` in each activity and the playback service, and through the application's `getResources`. The fixed words of the widget are drawn by the launcher and follow the phone. A player left in picture-in-picture during a change keeps its words until it is reopened.
+- Nothing has run on Android 11 or 12, and no emulator was used. Lint and the two scans show only that this project's own code makes no unguarded platform call above API 30; libraries guard their own.
+- Storage, the trash, volumes and the cutout use the calls the app has always used, which all exist from API 30. All Files access on Android 11 is the first release of that permission, and the app has only ever used it on Android 17.
+- The app-kept language of Android 11 and 12 is applied through `createConfigurationContext` in each activity and the playback service, and through the application's `getResources`. The fixed words of the widget are drawn by the launcher and follow the phone. A player left in picture-in-picture during a change keeps its words until it is reopened.
 - Glass with no blur is the look a surface already has when no blur slot is free. A whole screen of it has never been looked at. Each surface takes the tint its contrast rule gives for the worst case behind it, so text should stay readable, but nobody has judged the look.
-- The 12 px smear over unseen episode pictures on Android 10 and 11 rests on Coil decoding at the exact size asked for, under a cache key of its own. Item 128 checks that no picture can be read.
-- Picture-in-picture on Android 10 and 11 enters from `onUserLeaveHint`. A phone that does not send that hint for its Home gesture would leave the player without the small window, and playback then follows the rules for a hidden player.
-- The keyboard over text fields, the system bars around the player and the cutout on Android 10 go through androidx bridges that this project has only ever run on Android 17.
-- Fingerprint for the private folder on Android 10 depends on what androidx.biometric accepts as a strong biometric there.
+- The 12 px smear over unseen episode pictures on Android 11 rests on Coil decoding at the exact size asked for, under a cache key of its own. Item 126 checks that no picture can be read.
+- Picture-in-picture on Android 11 enters from `onUserLeaveHint`. A phone that does not send that hint for its Home gesture would leave the player without the small window, and playback then follows the rules for a hidden player.
+- The keyboard over text fields and the system bars around the player go through androidx bridges that this project has only ever run on Android 17.
+- Fingerprint for the private folder on Android 11 depends on what that phone reports as a strong biometric.
 - Memory budgets were set for the S26 Ultra (brief 4.8: 256 MB of covers, 128 MB for libass). Coil gives its cache back when Android asks, but a phone with 3 or 4 GB may still close the app in the background sooner.
-- Decoders on phones of 2019 to 2021 are weaker: HEVC 10-bit, 4K and AV1 may fall to software or not play. The engine's fallbacks are unchanged and were tuned only on the S26 Ultra.
+- Decoders on phones of 2020 to 2022 are weaker: HEVC 10-bit, 4K and AV1 may fall to software or not play. The engine's fallbacks are unchanged and were tuned only on the S26 Ultra.
 - The other person installs fresh, as in the Android 13 note below.
+
 Developer name, delete from Home, play in pop-up (`features`, not seen on a phone):
 
 - «تشغيل في نافذة منبثقة» is not offered in the private folder, and «حذف هذه الحلقة» is only on a Continue watching card and on the hero that stands for one. An episode row on Details has the pop-up row but no delete of its own; Media Manager deletes single files as before.
@@ -302,7 +300,7 @@ Developer name, delete from Home, play in pop-up (`features`, not seen on a phon
 - A video with sound only enters the pop-up in the default shape. A video that shows no picture within 8 s stays a normal full-window player, with no message.
 - A normal tap on a card while a pop-up plays goes through the same intent as before this round. Whether the system then brings the pop-up back to the full window with the new video has not been seen.
 - The message for a refused pop-up names the phone setting only when the app-op is off. Any other refusal gets the general line.
-- `pictureInPictureParams()` still calls `setAutoEnterEnabled` and `setSeamlessResizeEnabled` (API 31) with no guard, which is right for `minSdk` 33 here. The branch that lowers `minSdk` to 29 must guard them, and on API 29 and 30 the pop-up row then works through `enterPictureInPictureMode(params)` alone.
+- `setAutoEnterEnabled` and `setSeamlessResizeEnabled` (API 31) are guarded since the merge with `android10` (`PlayerCompat.autoEnter`). On API 30 the pop-up row works through `enterPictureInPictureMode(params)` alone.
 
 Android 13 and newer (`android13`, not seen on any phone below Android 17):
 
@@ -400,7 +398,7 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 6. **Tests that need the phone or a device runner:** `Scanner`, `CatchUp`, `ClipPass`, `MigrationTestHelper` for 1 to 2, 2 to 3, 3 to 4, 4 to 5 and 5 to 6, the metadata queue under the switches against a fake server, a move in and out with the app killed at each step, the trash flow, the Gate 2 forced decoder failure, and the Gate 5 clipped text walk.
 7. **`:benchmark` module and Baseline Profile.** Neither exists, and Phase 4 and DoD-04 need them.
 8. **Feature tour on branch `tour`.** Merge it after the Android 13 branch, which lowers minSdk to 33; the tour uses no API above 33. Ship it with the next version and send items 116 to 122 of section 2. To see the first run, install the `qa` build and remove it after.
-9. **Branch `features`: developer name, delete from Home, play in pop-up.** Merge it with the branch that lowers `minSdk` to 29 (`android10`). Both touch `PlayerActivity.kt`: this branch adds the pop-up section, three listener callbacks, `onResume`, and changes the orientation line of `onCreate`, the ratio lines of `pictureInPictureParams()` and `PlayerRoute.refOf` (now `requestOf`). It adds no call above API 29. Write the three items into `docs/RELEASE-NOTES.md` in Arabic when the version is cut, and send items 123 to 133 of section 2.
+9. **Branch `features`: developer name, delete from Home, play in pop-up.** Merged into `android10` on 2026-11-19 (`0ac6957`), the branch that lowers `minSdk` to 30. Both touch `PlayerActivity.kt`: this branch adds the pop-up section, three listener callbacks, `onResume`, and changes the orientation line of `onCreate`, the ratio lines of `pictureInPictureParams()` and `PlayerRoute.refOf` (now `requestOf`). It adds no call above API 30. Write the three items into `docs/RELEASE-NOTES.md` in Arabic when the version is cut, and send items 140 to 150 of section 2.
 
 ## 8. Missing project files
 
