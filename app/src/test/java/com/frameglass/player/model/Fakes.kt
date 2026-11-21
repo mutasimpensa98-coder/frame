@@ -90,8 +90,12 @@ internal class FakeMedia : MediaManager {
 internal class FakeVault : PrivateVault {
     val current = MutableStateFlow(VaultState(false, false, false, 0, 0))
     val moved = ArrayList<Pair<List<Long>, List<Long>>>()
+    val movedOut = ArrayList<Long>()
     var locks = 0
     var moveResult: Result<Int> = Result.success(1)
+
+    /** Titles whose move out fails, whatever [moveResult] says. */
+    var stuck: Set<Long> = emptySet()
 
     override val state: Flow<VaultState> = current
     override val progress: Flow<VaultProgress?> = emptyFlow()
@@ -118,5 +122,8 @@ internal class FakeVault : PrivateVault {
         return moveResult
     }
 
-    override suspend fun moveOut(titleId: Long): Result<Int> = moveResult
+    override suspend fun moveOut(titleId: Long): Result<Int> {
+        movedOut += titleId
+        return if (titleId in stuck) Result.failure(VaultClosedException()) else moveResult
+    }
 }

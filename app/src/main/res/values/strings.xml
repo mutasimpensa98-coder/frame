@@ -309,6 +309,16 @@
     <string name="app_media_empty">Nothing here</string>
     <string name="app_media_select">Select</string>
     <string name="app_media_select_done">Cancel selection</string>
+    <!-- Multi-select: the top bar chips, and the short labels under the icons of the action bar. -->
+    <string name="app_select_all">Select all</string>
+    <string name="app_select_none">Clear all</string>
+    <string name="app_select_more">More</string>
+    <string name="app_select_watchlist">Watchlist</string>
+    <string name="app_select_favorite">Favourite</string>
+    <string name="app_select_remove">Remove</string>
+    <string name="app_select_watched">Watched</string>
+    <string name="app_select_unwatched">Unwatched</string>
+    <string name="app_select_private">Private</string>
     <string name="app_media_open_title">Open title</string>
     <string name="app_media_open_folder">Open folder</string>
 

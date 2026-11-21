@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BookmarkAdd
 import androidx.compose.material.icons.rounded.BookmarkRemove
+import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Favorite
@@ -52,6 +53,9 @@ import com.frameglass.glass.rememberGlassSheetState
 import com.frameglass.player.R
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Route
+import com.frameglass.player.select.LocalSelection
+import com.frameglass.player.select.SelectItem
+import com.frameglass.player.select.selectionStarter
 import kotlinx.coroutines.flow.first
 
 private const val SkeletonRows = 4
@@ -83,8 +87,14 @@ internal class CardMenu(private val sheet: GlassSheetState) {
     var target by mutableStateOf<CardTarget?>(null)
         private set
 
-    fun open(target: CardTarget) {
+    /** Starts selection mode on the screen of the card with that card picked, or null where nothing can be picked. */
+    var onSelect by mutableStateOf<(() -> Unit)?>(null)
+        private set
+
+    /** [onSelect] is what the "Select" row runs. */
+    fun open(target: CardTarget, onSelect: (() -> Unit)? = null) {
         this.target = target
+        this.onSelect = onSelect
         sheet.open()
     }
 }
@@ -99,8 +109,8 @@ internal fun CardMenuHost(content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalCardMenu provides menu, content = content)
     GlassSheet(sheet, title = menu.target?.name) {
         when (val target = menu.target) {
-            is CardTarget.Title -> TitleActions(target, sheet)
-            is CardTarget.Place -> PlaceActions(target.entry, sheet)
+            is CardTarget.Title -> TitleActions(target, sheet, menu.onSelect)
+            is CardTarget.Place -> PlaceActions(target.entry, sheet, menu.onSelect)
             null -> Unit
         }
     }
@@ -145,11 +155,42 @@ internal fun Modifier.longPress(label: String, onLongPress: () -> Unit): Modifie
     }
 }
 
-/** Gives a card the long press menu. [target] is read when the press fires. */
+/**
+ * Gives a card the long press menu. [target] is read when the press fires. With [select], and on a screen that can
+ * select, the menu offers "Select" for that item. While the screen is selecting there is no menu at all.
+ */
 @Composable
-internal fun Modifier.cardMenu(target: () -> CardTarget): Modifier {
+internal fun Modifier.cardMenu(select: SelectItem? = null, target: () -> CardTarget): Modifier {
     val menu = LocalCardMenu.current ?: return this
-    return longPress(stringResource(R.string.app_more)) { menu.open(target()) }
+    if (LocalSelection.current?.active == true) return this
+    val start = selectionStarter(select)
+    return longPress(stringResource(R.string.app_more)) { menu.open(target(), start) }
+}
+
+/** The same menu for a row that takes its long press itself. Null where there is no menu, and while selecting. */
+@Composable
+internal fun cardMenuPress(select: SelectItem? = null, target: () -> CardTarget): (() -> Unit)? {
+    val menu = LocalCardMenu.current ?: return null
+    if (LocalSelection.current?.active == true) return null
+    val start = selectionStarter(select)
+    return { menu.open(target(), start) }
+}
+
+/**
+ * The row right under "Play in pop-up" (owner request of 2026-11-21): it closes the menu and starts selection mode
+ * on the screen behind it, with this card already picked. Absent where nothing can be picked, as on Home.
+ */
+@Composable
+internal fun SelectRow(onSelect: (() -> Unit)?, onPicked: () -> Unit) {
+    if (onSelect == null) return
+    GlassRow(
+        text = stringResource(R.string.app_media_select),
+        icon = Icons.Rounded.CheckCircleOutline,
+        onClick = {
+            onPicked()
+            onSelect()
+        },
+    )
 }
 
 /**
@@ -170,7 +211,7 @@ internal fun PopUpRow(play: PlayRef, onPicked: () -> Unit) {
 }
 
 @Composable
-private fun TitleActions(target: CardTarget.Title, sheet: GlassSheetState) {
+private fun TitleActions(target: CardTarget.Title, sheet: GlassSheetState, onSelect: (() -> Unit)?) {
     val model = rememberUiModel()
     val library = LocalContext.current.frameServices.library
     val navigator = LocalNavigator.current
@@ -184,6 +225,7 @@ private fun TitleActions(target: CardTarget.Title, sheet: GlassSheetState) {
     val files = detail.files.filter { it.available }
     val rows = CardMenuRules.titleRows(detail.kind, files.size, detail.play, target.play, target.episode)
     rows.popUp?.let { PopUpRow(it, sheet::close) }
+    SelectRow(onSelect, sheet::close)
     GlassRow(
         text = stringResource(if (detail.watchlist) R.string.app_menu_watchlist_remove else R.string.app_menu_watchlist_add),
         icon = if (detail.watchlist) Icons.Rounded.BookmarkRemove else Icons.Rounded.BookmarkAdd,
@@ -264,7 +306,7 @@ private fun ExcludeRow(folder: String, sheet: GlassSheetState) {
 
 /** A row in Folders: what can be done to a place on disk, with no title behind it. */
 @Composable
-private fun PlaceActions(entry: FolderEntry, sheet: GlassSheetState) {
+private fun PlaceActions(entry: FolderEntry, sheet: GlassSheetState, onSelect: (() -> Unit)?) {
     val model = rememberUiModel()
     val media = LocalContext.current.frameServices.media
     val navigator = LocalNavigator.current
@@ -277,6 +319,7 @@ private fun PlaceActions(entry: FolderEntry, sheet: GlassSheetState) {
         }
     }
     entry.play?.let { PopUpRow(it, sheet::close) }
+    SelectRow(onSelect, sheet::close)
     ExcludeRow(if (entry.isDirectory) entry.path else entry.path.substringBeforeLast('/'), sheet)
     val found = content
     if (found != null) {

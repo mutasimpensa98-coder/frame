@@ -1,5 +1,7 @@
 # Next
 
+Updated 2026-11-21, after multi-select was built on branch `select` (owner request of 2026-11-21): items 152 to 167 of section 2, and new entries in sections 3, 4, 5 and 7. The lines below are the earlier updates.
+
 Updated 2026-11-19, after branch `android10` lowered `minSdk` to 30 so the app installs on Android 11 and newer (waiver of 2026-11-19; Android 10 was built first and dropped the same day). Before that, updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else. Before that, the feature tour was built on branch `tour`; before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 Updated 2026-11-19, after the developer name on About, the episode delete on Home and "Play in pop-up" were built on branch `features`. Before that, updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else. Before that, the feature tour was built on branch `tour`; before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
@@ -225,10 +227,33 @@ Android 11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص 
 150. من إعدادات التلفون › التطبيقات › فريم › «صورة داخل صورة» اقفلها، وجرّب «تشغيل في نافذة منبثقة». هل الفيديو اشتغل بملء الشاشة وطلعت فوقه رسالة قصيرة تقول إنها موقوفة؟ بعدها رجّع الخاصية.
 151. والنافذة المنبثقة شغّالة فوق الرئيسية، اضغط مطوّل على بطاقة نفس الفيديو اللي يشتغل واحذفه (اختار فيديو ما يهمكش). هل النافذة سكّرت وحدها أول ما خلص الحذف، والصوت وقف؟ وهل ما بقاش للفيديو بطاقة في «تابع المشاهدة»، ولا اختصار له لما تضغط مطوّل على أيقونة التطبيق؟
 
+التحديد المتعدد (فرع `select`). جرّب الحذف والنقل بفيديوهات ما تهمكش:
+
+152. في المكتبة، اضغط مطوّل على أي بطاقة. هل فيه سطر «تحديد» ثاني سطر في القائمة، تحت «تشغيل في نافذة منبثقة» على طول؟ اضغطه: هل القائمة سكّرت، والبطاقة صار عليها علامة صح وحافة ملوّنة، والشريط اللي فوق صار فيه × و«عنصر واحد محدد» و«تحديد الكل»، وشريط التبويبات اللي تحت تبدّل بشريط فيه أزرار؟
+153. والتحديد شغّال، اضغط على بطاقات ثانية. هل كل ضغطة تحدد البطاقة أو تلغي تحديدها بدل ما تفتحها، والعدد اللي فوق يتغيّر صح (جرّب 2 و3 و11)؟ اسحب القائمة لتحت وارجع: هل التحديد بقى زي ما هو، والسحب نفسه ما حددش شي بالغلط؟ والضغط المطوّل على بطاقة: هل يحددها بس وما يفتحش القائمة؟
+154. اضغط «تحديد الكل»: هل الكل تحدد وصار الزر «إلغاء الكل»؟ اضغطه: هل راح التحديد وبقيت في وضع التحديد؟ واضغط × أو زر الرجوع: هل طلعت من وضع التحديد بس وما طلعتش من المكتبة؟ ولو لغيت تحديد آخر بطاقة بإيدك، هل الوضع سكّر وحده ورجع شريط التبويبات؟
+155. جرّب نفس الشي في «عرض كقائمة»، وفي «مقاطع» و«أفلام» و«مسلسلات» و«المفضلة» و«حابب نشوفه». هل العلامة واضحة في كل شكل؟ وغيّر الفلتر والتحديد شغّال: هل التحديد تلغى؟
+156. العلامة والحافة: جرّبهم في الثيم الداكن والفاتح، ومع لون غير الأبيض من الإعدادات › «المظهر». هل البطاقة المحددة باينة من أول نظرة فوق غلاف فاتح وفوق غلاف غامق؟
+157. الشريط اللي تحت في المكتبة: هل فيه «حابب نشوفه» و«المفضلة» و«مُشاهَد» و«المزيد»، و«حذف» بالأحمر في الآخر، وكل زر أيقونة وتحتها كلمة كاملة مش مقصوصة؟ اضغط «المزيد»: هل فيه «إخفاء» و«نقل إلى المجلد الخاص»؟ كبّر الخط من إعدادات التلفون وشوف الكلمات مرة ثانية.
+158. حدد فيلمين واضغط «حابب نشوفه»، ومرة ثانية حددهم واضغط «المفضلة». هل وضع التحديد سكّر، والاثنين ظهروا في «حابب نشوفه» وفي «المفضلة»؟ وفي فلتر «المفضلة» حدد واحد واضغط «إزالة»: هل طلع منها وحده؟
+159. حدد كم عنوان واضغط «مُشاهَد»: هل علامة الصح ظهرت عليهم كلهم؟ حددهم مرة ثانية: هل الزر صار «غير مُشاهَد»؟ ولو حددت واحد مُشاهَد وواحد لا، هل الزر مكتوب عليه «مُشاهَد»؟
+160. حدد 2 أو 3 فيديوهات ما تهمكش واضغط «حذف». هل طلعت ورقة التأكيد وفيها عددهم وأسماء منهم، وما انحذف شي قبل ما تأكّد؟ اضغط «إلغاء»: هل التحديد بقى زي ما هو؟ أكّد في المرة الثانية: هل انحذفوا، ووضع التحديد سكّر، والبطاقات راحت وحدها بدون سحب للتحديث؟
+161. حدد فيديوين واضغط «المزيد» › «نقل إلى المجلد الخاص». هل طلعت ورقة النقل وتقدّمها، وبعدها لقيتهم في المجلد الخاص وراحوا من المكتبة؟
+162. «مجلدات» في المكتبة: اضغط مطوّل على مجلد أو ملف واختار «تحديد»، وحدد مجلد وملف مع بعض. هل الشريط اللي تحت فيه «المجلد الخاص» و«حذف» بس؟ وهل الضغط على مجلد والتحديد شغّال يحدده وما يفتحهش؟ جرّب «حذف» على مجلد ما يهمكش: هل ورقة التأكيد فيها عدد ملفاته؟
+163. افتح مسلسل، واضغط مطوّل على حلقة واختار «تحديد»، وحدد كم حلقة. هل الشريط فيه «مُشاهَد» و«المجلد الخاص» و«حذف»؟ جرّب «مُشاهَد» على 3 حلقات، و«حذف» على حلقة ما تبيهاش: هل ورقة التأكيد فيها ملفات الحلقات المحددة بس، وباقي المسلسل في مكانه؟ وبدّل الموسم والتحديد شغّال: هل التحديد راح؟
+164. البحث: اكتب اسم، واضغط مطوّل على نتيجة واختار «تحديد». هل خانة البحث تبدّلت بشريط التحديد، ولما تسكّر التحديد رجعت الخانة وفيها نفس الكلمة؟ وجرّب «تحديد» في صفحة ممثل، وصفحة نوع، و«عرض الكل» من الرئيسية.
+165. المجلد الخاص: اضغط مطوّل على فيديو. هل «تحديد» ثاني سطر تحت «تشغيل»؟ حدد فيديوين: هل الشريط اللي تحت فيه «نقل خارج المجلد» بس؟ اضغطه: هل الاثنين رجعوا لمجلداتهم، والرسالة في الآخر عدّتهم مع بعض؟
+166. الرئيسية: اضغط مطوّل على أي بطاقة. المتوقع إن «تحديد» مش موجود هنا، لأن صفوف الرئيسية معاينة بالعرض، وموجود في المكتبة وفي «عرض الكل». هل هذا يناسبك، ولا تبيه يفتح المكتبة في وضع التحديد؟
+167. الإعدادات › «مدير الوسائط»: حدد كم ملف زي قبل. هل التحديد والشريط اللي تحت والحذف يشتغلوا زي ما كانوا بالضبط؟
+
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
 
+- **Multi-select, the tap (`select`).** While a screen selects, `Modifier.selectableItem` takes the press before the card under it sees it, so the card opens nothing and the list still scrolls. Watch for a card that opens Details or plays while selecting, a pick made by a scroll or by the touch that stops a fling, and a long press that opens a menu in selection mode; items 152 and 153 ask.
+- **Multi-select, the bars.** The screen's top bar and, on Library and Search, the tab bar are swapped for the selection bars with no fade. Watch for a frame with both or neither, the last row hidden behind the action bar, and Back leaving the page instead of the mode; item 154 asks. On a tab the action bar takes the tab bar's place, so the number of glass layers is what it was; on a pushed page it is one more, two with the top bar.
+- **Multi-select, the mark.** A dimmed picture, an accent rim and a check on the accent fill, and a 12% accent wash on list rows. Nobody has looked at it on a white cover in the light theme or with the white accent; item 156 asks. The labels under the icons may take two lines at a large font; item 157 asks.
+- **Multi-select, many at once.** Watchlist, favourite, hide and watched go to the library one title after the other, so «تحديد الكل» on a large library may take seconds to show everywhere. A delete of many titles is one sheet and one delete.
 - **Play in pop-up, the moment it enters (`features`).** `PlayerActivity` asks for picture-in-picture on the first size or frame of the video, which can come while the player's opening fade still runs. If the system queues the request, the full black window shows for longer than a blink; item 145 asks. The landscape request is held until the window reports it is a pop-up (`PopUpGate.holdsOrientation`); a screen that still turns sideways first means that hold does not work on this phone.
 - **Deleting what the pop-up plays.** The player closes when the delete reports the file gone, which is after the trash took it; the picture may stand still for the moment between. A pop-up that stays open on a deleted video, or a Continue card for it that comes back, means the report did not reach `PlayerSession`; item 151 asks.
 - **Play in pop-up, a second one.** A pop-up on screen takes the new video in place through `PlaybackHost.popUp`, set in `onPictureInPictureModeChanged`. A full-screen flash on the second pop-up means that callback came late or the slot was cleared.
@@ -280,6 +305,13 @@ From this round's three requests, read in the code and never run:
 - **The sites line under subtitle results** is text only. Nothing in `:app` implements `PlayerHost.subtitleKeysIntent()`, so it cannot open the keys page.
 
 ## 4. Known limits in this build
+
+Multi-select (`select`):
+
+- No delete inside the private folder: its bar only moves videos out. See section 5.
+- «تحديد» is not in the long-press menu on Home or on the collection rail of Details. See section 5.
+- A selected folder is deleted and moved through Media Manager's entry for it, as its long-press menu does. A folder Media Manager does not list adds nothing, and the sheet then does not open.
+- The picks do not survive leaving the screen, a change of the Library filter, another season on Details, or the app being killed.
 
 Android 11 and 12 (`android10`, not seen on any phone below Android 17). `WAIVERS.md`, "2026-11-19: Android 11 and newer", lists what each version gets instead of the full app. These are the parts nobody could check without such a phone:
 
@@ -361,6 +393,9 @@ Shortcuts, widget, next episode, trailer and tonight's pick (this round, not see
 
 ## 5. Decisions for the owner
 
+- **«تحديد» on Home (2026-11-21).** It is not offered there, because the rows are horizontal previews; Library, Search and every "View all" page have it. The other way is to open Library in selection mode with that card picked. Item 166 asks.
+- **Delete inside the private folder (2026-11-21).** Not built. It would delete for good, with no trash, and needs its own confirmation because the sheet of Media Manager never sees private videos. Wanted?
+
 1. **Recently added on Home.** F-U5 lists Top rated, genre and collection only. With no key none of them can appear, so this round added Recently added as a fallback, used only when none of those rows qualifies. Keep it, or return to the brief's list?
 2. **Player sheets.** They are solid now, because `SurfaceView` gives Haze nothing to sample. Image 08 shows dimmed video behind the sheet. Keep solid, go back to a see-through tint, or try the `PixelCopy` backdrop of section 7.5?
 3. **Videos under 4.** Brief rule: a row with fewer than 4 titles is hidden. A phone with films and 1 to 3 clips shows those clips only in Library. Keep the rule for the Videos row?
@@ -383,6 +418,8 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 - Owner checks: font choice, HDR look, Arabic subtitle rendering, dialogue on A2 to A5.
 
 ## 7. Build next, in order
+
+First, before the list: **Multi-select (`select`).** Review, merge into `main`, write `docs/RELEASE-NOTES.md` in Arabic and ship as usual, then send items 152 to 167 of section 2. The grid and list layouts of the same screens change next: a new card only needs `Modifier.selectableItem(item)` (and `Modifier.selectionMark(item)` on its picture when the title sits outside it), and a new screen one `SelectionScaffold`; `SelectionRules` and `SelectionState` do not change with the layout.
 
 1. **Android 13 and newer (`android13`).** Review and merge into `main`, then ship as usual: the owner's phone takes it as an update, because the application ID, the key and the `versionCode` rule do not change. Then send items 103 to 115 for the other person's phone and record the answers.
 2. **Merge and ship `pack-library`.** Watchlist, cleanup suggestions, stats and automatic backup, with schema step 5 to 6 (one nullable `Title` column and the new `WatchLog` table), replayed by `tools/check_update.py` and never run on Android. Send items 75 to 91 of section 2. Then the steps below.

@@ -47,6 +47,10 @@ import com.frameglass.player.R
 import com.frameglass.player.nav.ArtRef
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.sharedArt
+import com.frameglass.player.select.SelectionLook
+import com.frameglass.player.select.selectItem
+import com.frameglass.player.select.selectableItem
+import com.frameglass.player.select.selectionMark
 
 private val GridGap = FrameSpacing.S12
 private val GridRowGap = 20.dp
@@ -58,17 +62,19 @@ private const val UnavailableAlpha = 0.45f
 internal fun TitlePoster(card: TitleCard, source: String, modifier: Modifier = Modifier) {
     val navigator = LocalNavigator.current
     val key = remember(source, card.id) { "$source:${card.id}" }
+    val item = card.selectItem()
     PosterCard(
         title = card.name,
         coverPath = card.coverPath,
         onClick = { navigator.details(card.id, ArtRef(key, card.coverPath)) },
-        modifier = modifier.cardMenu { CardTarget.Title(card.id, card.name) },
+        // The mark sits on the cover alone, so its rim hugs the poster and not the title under it.
+        modifier = modifier.selectableItem(item, look = null).cardMenu(item) { CardTarget.Title(card.id, card.name) },
         year = card.year,
         rating = card.rating?.toCard(),
         progress = card.progress,
         watched = card.watched,
         unavailable = card.unavailable,
-        coverModifier = Modifier.sharedArt(key),
+        coverModifier = Modifier.selectionMark(item).sharedArt(key),
     )
 }
 
@@ -77,11 +83,12 @@ internal fun TitlePoster(card: TitleCard, source: String, modifier: Modifier = M
 internal fun TitleFrame(card: TitleCard, source: String, modifier: Modifier = Modifier) {
     val navigator = LocalNavigator.current
     val key = remember(source, card.id) { "$source:${card.id}" }
+    val item = card.selectItem()
     LandscapeCard(
         title = card.name,
         imagePath = card.coverPath,
         onClick = { navigator.details(card.id, ArtRef(key, card.coverPath)) },
-        modifier = modifier.cardMenu { CardTarget.Title(card.id, card.name) },
+        modifier = modifier.selectableItem(item).cardMenu(item) { CardTarget.Title(card.id, card.name) },
         subtitle = card.year?.let { localNumber(it) },
         progress = card.progress,
         imageModifier = Modifier.sharedArt(key),
@@ -95,13 +102,13 @@ internal fun TitleFrame(card: TitleCard, source: String, modifier: Modifier = Mo
 @Composable
 internal fun TitleListRow(card: TitleCard, source: String, modifier: Modifier = Modifier) {
     val navigator = LocalNavigator.current
-    val menu = LocalCardMenu.current
     val key = remember(source, card.id) { "$source:${card.id}" }
+    val item = card.selectItem()
     PressableGlass(
         onClick = { navigator.details(card.id, ArtRef(key, card.coverPath)) },
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().selectableItem(item, SelectionLook.Row),
         shape = FrameShapes.Poster,
-        onLongClick = menu?.let { { it.open(CardTarget.Title(card.id, card.name)) } },
+        onLongClick = cardMenuPress(item) { CardTarget.Title(card.id, card.name) },
         highlight = false,
     ) {
         Row(
@@ -111,6 +118,7 @@ internal fun TitleListRow(card: TitleCard, source: String, modifier: Modifier = 
         ) {
             Box(
                 Modifier
+                    .selectionMark(item)
                     .sharedArt(key)
                     .width(ListPosterWidth)
                     .aspectRatio(FrameSizes.PosterRatio),

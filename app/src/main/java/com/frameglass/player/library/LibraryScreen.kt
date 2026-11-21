@@ -47,6 +47,12 @@ import com.frameglass.player.folders.AddFolderButton
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Route
 import com.frameglass.player.quick.TonightSheet
+import com.frameglass.player.select.SelectItem
+import com.frameglass.player.select.SelectionPlace
+import com.frameglass.player.select.SelectionScaffold
+import com.frameglass.player.select.SelectionState
+import com.frameglass.player.select.clearance
+import com.frameglass.player.select.selectItem
 import com.frameglass.player.ui.GridColumnGap
 import com.frameglass.player.ui.GridLineGap
 import com.frameglass.player.ui.GridMessage
@@ -78,6 +84,19 @@ internal fun LibraryScreen() {
     val grid = rememberLazyGridState()
     val tonight = rememberGlassSheetState()
     val folders = query.filter == LibraryFilter.FOLDERS
+    val selection = remember { SelectionState<SelectItem> { it.key } }
+    // What "Select all" picks: the rows of Folders, or every title of the filter in view.
+    val listed = remember(folders, titles, root) {
+        if (folders) root?.entries?.mapNotNull { it.selectItem() } else titles?.map { it.selectItem() }
+    }
+    val place = when (query.filter) {
+        LibraryFilter.FOLDERS -> SelectionPlace.FOLDERS
+        LibraryFilter.FAVORITES -> SelectionPlace.FAVORITES
+        LibraryFilter.WATCHLIST -> SelectionPlace.WATCHLIST
+        else -> SelectionPlace.TITLES
+    }
+    // Picks belong to the filter they were made in.
+    LaunchedEffect(query.filter) { selection.clear() }
     val frames = query.filter == LibraryFilter.VIDEOS && !query.asList
 
     val filters = buildList {
@@ -118,9 +137,32 @@ internal fun LibraryScreen() {
     )
     val asList = query.asList || folders
     val top = statusInset() + FrameSizes.TopBarHeight
-    val bottom = navigationInset() + FrameSizes.TabBarClearance
+    val bottom = navigationInset() + selection.clearance(FrameSizes.TabBarClearance)
 
-    Box(Modifier.fillMaxSize()) {
+    SelectionScaffold(
+        selection = selection,
+        place = place,
+        listed = listed,
+        topBar = {
+            TopGlassBar(
+                title = stringResource(R.string.app_tab_library),
+                scrolled = { grid.glassScrolled() },
+                actions = {
+                    if (!folders) {
+                        GlassIconButton(
+                            icon = if (query.asList) Icons.Rounded.GridView else Icons.AutoMirrored.Rounded.ViewList,
+                            contentDescription = stringResource(
+                                if (query.asList) R.string.app_view_grid else R.string.app_view_list,
+                            ),
+                            onClick = { model.changeQuery { it.copy(asList = !it.asList) } },
+                        )
+                    }
+                    LibraryMenu(tonight)
+                    AddFolderButton()
+                },
+            )
+        },
+    ) {
         RefreshBox(indicatorTop = top, Modifier.fillMaxSize()) {
             GlassSource(Modifier.fillMaxSize()) {
                 LazyVerticalGrid(
@@ -186,23 +228,6 @@ internal fun LibraryScreen() {
                 }
             }
         }
-        TopGlassBar(
-            title = stringResource(R.string.app_tab_library),
-            scrolled = { grid.glassScrolled() },
-            actions = {
-                if (!folders) {
-                    GlassIconButton(
-                        icon = if (query.asList) Icons.Rounded.GridView else Icons.AutoMirrored.Rounded.ViewList,
-                        contentDescription = stringResource(
-                            if (query.asList) R.string.app_view_grid else R.string.app_view_list,
-                        ),
-                        onClick = { model.changeQuery { it.copy(asList = !it.asList) } },
-                    )
-                }
-                LibraryMenu(tonight)
-                AddFolderButton()
-            },
-        )
     }
     TonightSheet(tonight)
 }

@@ -1,7 +1,6 @@
 package com.frameglass.player.search
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -23,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -47,6 +47,12 @@ import com.frameglass.glass.SectionHeader
 import com.frameglass.player.R
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Route
+import com.frameglass.player.select.SelectItem
+import com.frameglass.player.select.SelectionPlace
+import com.frameglass.player.select.SelectionScaffold
+import com.frameglass.player.select.SelectionState
+import com.frameglass.player.select.clearance
+import com.frameglass.player.select.selectItem
 import com.frameglass.player.ui.CenteredMessage
 import com.frameglass.player.ui.FrameTextField
 import com.frameglass.player.ui.TitleGrid
@@ -76,8 +82,16 @@ internal fun SearchScreen() {
     }
     val found = results
     val nothing = found != null && found.titles.isEmpty() && found.people.isEmpty() && found.genres.isEmpty()
+    val selection = remember { SelectionState<SelectItem> { it.key } }
+    val listed = remember(found) { found?.titles?.map { it.selectItem() } }
 
-    Box(Modifier.fillMaxSize()) {
+    // While selecting, the selection bar stands where the search field was, and the words typed are kept.
+    SelectionScaffold(
+        selection = selection,
+        place = SelectionPlace.TITLES,
+        listed = listed,
+        topBar = { SearchField(query, onChange = { query = it }) },
+    ) {
         when {
             query.isBlank() -> CenteredMessage(
                 title = stringResource(R.string.app_search_title),
@@ -89,7 +103,7 @@ internal fun SearchScreen() {
                 source = "search",
                 state = grid,
                 top = statusInset() + FieldSpace,
-                bottom = navigationInset() + FrameSizes.TabBarClearance,
+                bottom = navigationInset() + selection.clearance(FrameSizes.TabBarClearance),
                 header = {
                     if (found.genres.isNotEmpty()) {
                         fullLine("genres") {
@@ -134,37 +148,41 @@ internal fun SearchScreen() {
                 },
             )
         }
-        GlassSurface(
-            kind = GlassKind.Control,
-            shape = FrameShapes.Chip,
-            modifier = Modifier
-                .statusBarsPadding()
-                .padding(start = FrameSpacing.S16, end = FrameSpacing.S16, top = FrameSpacing.S8)
-                .fillMaxWidth()
-                .height(FieldHeight),
+    }
+}
+
+@Composable
+private fun SearchField(query: String, onChange: (String) -> Unit) {
+    GlassSurface(
+        kind = GlassKind.Control,
+        shape = FrameShapes.Chip,
+        modifier = Modifier
+            .statusBarsPadding()
+            .padding(start = FrameSpacing.S16, end = FrameSpacing.S16, top = FrameSpacing.S8)
+            .fillMaxWidth()
+            .height(FieldHeight),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(start = FrameSpacing.S16, end = FrameSpacing.S4),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.fillMaxSize().padding(start = FrameSpacing.S16, end = FrameSpacing.S4),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Rounded.Search, null, Modifier.size(24.dp), tint = FrameColors.White)
-                FrameTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    placeholder = stringResource(R.string.app_search_placeholder),
-                    modifier = Modifier.weight(1f),
-                    filled = false,
-                    capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Search,
-                )
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = { query = "" }) {
-                        Icon(
-                            Icons.Rounded.Close,
-                            stringResource(R.string.app_search_clear),
-                            tint = FrameColors.White,
-                        )
-                    }
+            Icon(Icons.Rounded.Search, null, Modifier.size(24.dp), tint = FrameColors.White)
+            FrameTextField(
+                value = query,
+                onValueChange = onChange,
+                placeholder = stringResource(R.string.app_search_placeholder),
+                modifier = Modifier.weight(1f),
+                filled = false,
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Search,
+            )
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onChange("") }) {
+                    Icon(
+                        Icons.Rounded.Close,
+                        stringResource(R.string.app_search_clear),
+                        tint = FrameColors.White,
+                    )
                 }
             }
         }

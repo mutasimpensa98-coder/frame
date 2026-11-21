@@ -44,6 +44,10 @@ import com.frameglass.glass.SpoilerArt
 import com.frameglass.glass.bidiIsolate
 import com.frameglass.player.R
 import com.frameglass.player.nav.LocalNavigator
+import com.frameglass.player.select.SelectItem
+import com.frameglass.player.select.SelectionLook
+import com.frameglass.player.select.selectableItem
+import com.frameglass.player.select.selectionMark
 import com.frameglass.player.ui.FactChip
 import com.frameglass.player.ui.durationLabel
 import com.frameglass.player.ui.fileSizeLabel
@@ -54,11 +58,12 @@ private const val DimmedAlpha = 0.42f
 
 /**
  * F-U9: a 16:9 still, label, title, duration and progress. The whole row plays. With no still, as for every
- * episode matched through OMDb that has no file, the series [poster] stands in, pillarboxed.
+ * episode matched through OMDb that has no file, the series [poster] stands in, pillarboxed. [select] is the row
+ * as a pick, for a screen that is selecting; null for a row that cannot be picked.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun EpisodeListRow(row: EpisodeRow, poster: String?, onLongPress: () -> Unit) {
+internal fun EpisodeListRow(row: EpisodeRow, poster: String?, select: SelectItem?, onLongPress: () -> Unit) {
     val navigator = LocalNavigator.current
     val library = LocalContext.current.frameServices.library
     val playable = row.play?.playableKey
@@ -69,7 +74,10 @@ internal fun EpisodeListRow(row: EpisodeRow, poster: String?, onLongPress: () ->
 
     PressableGlass(
         onClick = { row.play?.let(navigator::play) },
-        modifier = Modifier.fillMaxWidth().padding(horizontal = FrameSpacing.S16, vertical = FrameSpacing.S4),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = FrameSpacing.S16, vertical = FrameSpacing.S4)
+            .selectableItem(select, SelectionLook.Row),
         shape = FrameShapes.Poster,
         enabled = row.play != null,
         onLongClick = onLongPress.takeIf { playable != null },
@@ -80,7 +88,13 @@ internal fun EpisodeListRow(row: EpisodeRow, poster: String?, onLongPress: () ->
             horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S12),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.width(StillWidth).aspectRatio(FrameSizes.LandscapeRatio).clip(FrameShapes.Poster)) {
+            Box(
+                Modifier
+                    .selectionMark(select)
+                    .width(StillWidth)
+                    .aspectRatio(FrameSizes.LandscapeRatio)
+                    .clip(FrameShapes.Poster),
+            ) {
                 SpoilerArt(row.imagePath, row.hideImage, Modifier.matchParentSize(), fallback = poster)
                 row.progress?.let {
                     ProgressLine(

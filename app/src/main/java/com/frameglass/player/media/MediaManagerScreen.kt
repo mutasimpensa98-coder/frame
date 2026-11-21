@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -37,11 +36,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -78,9 +74,7 @@ import com.frameglass.glass.FrameSizes
 import com.frameglass.glass.FrameSpacing
 import com.frameglass.glass.FrameType
 import com.frameglass.glass.GlassIconButton
-import com.frameglass.glass.GlassKind
 import com.frameglass.glass.GlassSource
-import com.frameglass.glass.GlassSurface
 import com.frameglass.glass.OutlinePill
 import com.frameglass.glass.PressableGlass
 import com.frameglass.glass.Skeleton
@@ -92,6 +86,9 @@ import com.frameglass.player.library.BackButton
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Navigator
 import com.frameglass.player.nav.Route
+import com.frameglass.player.select.SelectionBarSurface
+import com.frameglass.player.select.SelectionState
+import com.frameglass.player.select.clearance
 import com.frameglass.player.ui.DangerPill
 import com.frameglass.player.ui.bleed
 import com.frameglass.player.ui.clockLabel
@@ -111,45 +108,16 @@ private val ThumbWidth = 96.dp
 private val BarHeight = 8.dp
 private val LegendDot = 8.dp
 private val RowIcon = 28.dp
-private val SelectionClearance = 96.dp
 private val HeaderSkeletonHeight = 124.dp
 private const val OtherFill = 0.32f
 private const val MillisPerMinute = 60_000L
 private const val RowSkeletons = 6
 private val RowSkeletonHeight = 64.dp
 
-/** Which rows are picked. Ids stay valid across list updates, so a scan cannot drop a selection. */
-@Stable
-private class Selection {
-    val picked = mutableStateMapOf<String, MediaEntry>()
-    var active by mutableStateOf(false)
-        private set
+/** Which rows are picked: the state holder every selecting screen uses, here over Media Manager's own entries. */
+private typealias Selection = SelectionState<MediaEntry>
 
-    fun start(entry: MediaEntry) {
-        active = true
-        picked[entry.id] = entry
-    }
-
-    fun toggle(entry: MediaEntry) {
-        if (picked.remove(entry.id) == null) picked[entry.id] = entry
-        if (picked.isEmpty()) active = false
-    }
-
-    fun enter() {
-        active = true
-    }
-
-    fun selectAll(entries: List<MediaEntry>) {
-        if (entries.isEmpty()) return
-        active = true
-        entries.forEach { picked[it.id] = it }
-    }
-
-    fun clear() {
-        picked.clear()
-        active = false
-    }
-}
+private fun newSelection() = Selection { it.id }
 
 /** The waiver of 2026-11-07: what takes up space, with delete behind a confirmation. */
 @Composable
@@ -162,7 +130,7 @@ internal fun MediaManagerScreen() {
     val entries by remember(media, group) { group?.let(media::entries) ?: flowOf(emptyList()) }
         .collectAsStateWithLifecycle(null as List<MediaEntry>?)
     val suggestions by remember(media) { media.cleanupSuggestions }.collectAsStateWithLifecycle(null as CleanupSuggestions?)
-    val selection = remember { Selection() }
+    val selection = remember { newSelection() }
     val list = rememberLazyListState()
     val labels = listOf(
         stringResource(R.string.app_filter_folders),
@@ -290,7 +258,7 @@ internal fun MediaItemsScreen(route: Route.MediaItems) {
     val navigator = LocalNavigator.current
     val entry = remember(route) { route.entry() }
     val entries by remember(media, entry) { media.children(entry) }.collectAsStateWithLifecycle(null as List<MediaEntry>?)
-    val selection = remember { Selection() }
+    val selection = remember { newSelection() }
     val list = rememberLazyListState()
     val details by produceState(false, route.titleId) { value = services.library.hasDetails(route.titleId) }
 
@@ -329,7 +297,7 @@ private fun MediaPage(
 ) {
     val deletes = rememberUiModel().deletes
     val top = statusInset() + FrameSizes.TopBarHeight
-    val bottom = navigationInset() + if (selection.active) SelectionClearance else FrameSpacing.S32
+    val bottom = navigationInset() + selection.clearance(FrameSpacing.S32)
     BackHandler(enabled = selection.active, onBack = selection::clear)
 
     Box(Modifier.fillMaxSize().background(FrameColors.Canvas)) {
@@ -381,14 +349,7 @@ private fun MediaPage(
 @Composable
 private fun SelectionBar(entries: List<MediaEntry>, onDelete: () -> Unit, modifier: Modifier = Modifier) {
     val count = entries.size
-    GlassSurface(
-        kind = GlassKind.TabBar,
-        shape = FrameShapes.Chip,
-        modifier = modifier
-            .navigationBarsPadding()
-            .padding(horizontal = FrameSpacing.S16, vertical = FrameSpacing.S8)
-            .fillMaxWidth(),
-    ) {
+    SelectionBarSurface(modifier) {
         Row(
             modifier = Modifier.padding(horizontal = FrameSpacing.S16, vertical = FrameSpacing.S8),
             verticalAlignment = Alignment.CenterVertically,

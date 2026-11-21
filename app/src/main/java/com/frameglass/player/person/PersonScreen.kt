@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,6 +33,12 @@ import com.frameglass.glass.TopGlassBar
 import com.frameglass.glass.glassScrolled
 import com.frameglass.player.R
 import com.frameglass.player.library.BackButton
+import com.frameglass.player.select.SelectItem
+import com.frameglass.player.select.SelectionPlace
+import com.frameglass.player.select.SelectionScaffold
+import com.frameglass.player.select.SelectionState
+import com.frameglass.player.select.clearance
+import com.frameglass.player.select.selectItem
 import com.frameglass.player.ui.TitleGrid
 import com.frameglass.player.ui.fullLine
 import com.frameglass.player.ui.navigationInset
@@ -48,14 +53,28 @@ internal fun PersonScreen(personId: Long) {
     val person by remember(personId) { library.person(personId) }.collectAsStateWithLifecycle(null as PersonView?)
     val grid = rememberLazyGridState()
     val current = person
+    val selection = remember { SelectionState<SelectItem> { it.key } }
+    val listed = remember(current) { current?.titles?.map { it.selectItem() } }
 
-    Box(Modifier.fillMaxSize().background(FrameColors.Canvas)) {
+    SelectionScaffold(
+        selection = selection,
+        place = SelectionPlace.TITLES,
+        listed = listed,
+        modifier = Modifier.background(FrameColors.Canvas),
+        topBar = {
+            TopGlassBar(
+                title = current?.name.orEmpty(),
+                scrolled = { grid.glassScrolled() },
+                navigation = { BackButton() },
+            )
+        },
+    ) {
         TitleGrid(
             titles = current?.titles.orEmpty(),
             source = "person:$personId",
             state = grid,
             top = statusInset() + FrameSizes.TopBarHeight,
-            bottom = navigationInset() + FrameSpacing.S24,
+            bottom = navigationInset() + selection.clearance(FrameSpacing.S24),
             header = {
                 if (current != null) {
                     fullLine("person") {
@@ -89,11 +108,6 @@ internal fun PersonScreen(personId: Long) {
                     }
                 }
             },
-        )
-        TopGlassBar(
-            title = current?.name.orEmpty(),
-            scrolled = { grid.glassScrolled() },
-            navigation = { BackButton() },
         )
     }
 }

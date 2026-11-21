@@ -301,6 +301,15 @@
     <string name="app_media_empty">لا يوجد شيء هنا</string>
     <string name="app_media_select">تحديد</string>
     <string name="app_media_select_done">إلغاء التحديد</string>
+    <string name="app_select_all">تحديد الكل</string>
+    <string name="app_select_none">إلغاء الكل</string>
+    <string name="app_select_more">المزيد</string>
+    <string name="app_select_watchlist">حابب نشوفه</string>
+    <string name="app_select_favorite">المفضلة</string>
+    <string name="app_select_remove">إزالة</string>
+    <string name="app_select_watched">مُشاهَد</string>
+    <string name="app_select_unwatched">غير مُشاهَد</string>
+    <string name="app_select_private">المجلد الخاص</string>
     <string name="app_media_open_title">فتح العنوان</string>
     <string name="app_media_open_folder">فتح المجلد</string>
 

@@ -74,8 +74,23 @@ internal class VaultFlow(private val services: FrameServices, private val scope:
         }
     }
 
-    fun moveOut(titleId: Long) {
-        scope.launch { track(out = true) { vault.moveOut(titleId) } }
+    fun moveOut(titleId: Long) = moveOut(listOf(titleId))
+
+    /**
+     * Several titles leave one after the other as one move, and the final message counts them together. As inside
+     * the vault, one that fails does not stop the rest, and the move has failed only when nothing left the folder.
+     */
+    fun moveOut(titleIds: List<Long>) {
+        if (titleIds.isEmpty()) return
+        scope.launch {
+            track(out = true) {
+                var moved = 0
+                var failure: Throwable? = null
+                for (id in titleIds) vault.moveOut(id).fold({ moved += it }, { failure = it })
+                val error = failure
+                if (moved == 0 && error != null) Result.failure(error) else Result.success(moved)
+            }
+        }
     }
 
     private suspend fun track(out: Boolean, move: suspend () -> Result<Int>) {

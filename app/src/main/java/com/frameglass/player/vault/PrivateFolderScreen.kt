@@ -77,12 +77,21 @@ import com.frameglass.player.R
 import com.frameglass.player.library.BackButton
 import com.frameglass.player.model.VaultFlow
 import com.frameglass.player.nav.LocalNavigator
+import com.frameglass.player.select.SelectItem
+import com.frameglass.player.select.SelectionPlace
+import com.frameglass.player.select.SelectionScaffold
+import com.frameglass.player.select.SelectionState
+import com.frameglass.player.select.clearance
+import com.frameglass.player.select.privateSelectItem
+import com.frameglass.player.select.selectableItem
+import com.frameglass.player.select.selectionMark
 import com.frameglass.player.settings.ChoiceRow
 import com.frameglass.player.settings.SettingRow
 import com.frameglass.player.settings.SettingsDivider
 import com.frameglass.player.settings.SettingsSection
 import com.frameglass.player.settings.ToggleRow
 import com.frameglass.player.ui.FrameTextField
+import com.frameglass.player.ui.SelectRow
 import com.frameglass.player.ui.GridColumnGap
 import com.frameglass.player.ui.GridLineGap
 import com.frameglass.player.ui.fileSizeLabel
@@ -438,11 +447,32 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
     val grid = rememberLazyGridState()
     val itemSheet = rememberGlassSheetState()
     var picked by remember { mutableStateOf<TitleCard?>(null) }
+    // The folder's own selection: its bar only moves videos out. Nothing here reaches the library's actions.
+    val selection = remember { SelectionState<SelectItem> { it.key } }
+    val listed = remember(items) { items.map { it.privateSelectItem() } }
     val top = statusInset() + FrameSizes.TopBarHeight
-    val bottom = navigationInset() + FrameSpacing.S32
+    val bottom = navigationInset() + selection.clearance(FrameSpacing.S32)
     val moreLabel = stringResource(R.string.app_more)
 
-    Box(Modifier.fillMaxSize()) {
+    SelectionScaffold(
+        selection = selection,
+        place = SelectionPlace.PRIVATE,
+        listed = listed,
+        topBar = {
+            TopGlassBar(
+                title = stringResource(R.string.app_settings_private),
+                scrolled = { grid.glassScrolled() },
+                navigation = { BackButton() },
+                actions = {
+                    GlassIconButton(
+                        icon = Icons.Rounded.Lock,
+                        contentDescription = stringResource(R.string.app_private_lock_now),
+                        onClick = onLock,
+                    )
+                },
+            )
+        },
+    ) {
         GlassSource(Modifier.fillMaxSize()) {
             LazyVerticalGrid(
                 columns = libraryColumns(asList = false),
@@ -466,18 +496,26 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
                 }
                 progress?.let { now -> fullLine("moving") { MoveProgress(now) } }
                 items(items, key = { it.id }, contentType = { "poster" }) { card ->
+                    val item = card.privateSelectItem()
+                    val pickable = Modifier.selectableItem(item, look = null)
                     PosterCard(
                         title = card.name,
                         coverPath = card.coverPath,
                         onClick = { navigator.play(card.privatePlayRef()) },
-                        modifier = Modifier.longPress(moreLabel) {
-                            picked = card
-                            itemSheet.open()
+                        // While selecting, a press picks the card, so the sheet stays away.
+                        modifier = if (selection.active) {
+                            pickable
+                        } else {
+                            pickable.longPress(moreLabel) {
+                                picked = card
+                                itemSheet.open()
+                            }
                         },
                         year = card.year,
                         progress = card.progress,
                         watched = card.watched,
                         unavailable = card.unavailable,
+                        coverModifier = Modifier.selectionMark(item),
                     )
                 }
                 fullLine("hint") {
@@ -490,18 +528,6 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
                 fullLine("security") { SecuritySection(state) }
             }
         }
-        TopGlassBar(
-            title = stringResource(R.string.app_settings_private),
-            scrolled = { grid.glassScrolled() },
-            navigation = { BackButton() },
-            actions = {
-                GlassIconButton(
-                    icon = Icons.Rounded.Lock,
-                    contentDescription = stringResource(R.string.app_private_lock_now),
-                    onClick = onLock,
-                )
-            },
-        )
     }
     GlassSheet(itemSheet, title = picked?.name) {
         val card = picked
@@ -514,6 +540,7 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
                     navigator.play(card.privatePlayRef())
                 },
             )
+            SelectRow({ selection.start(card.privateSelectItem()) }, itemSheet::close)
             GlassRow(
                 text = stringResource(R.string.app_private_move_out),
                 supporting = stringResource(R.string.app_private_move_out_hint),

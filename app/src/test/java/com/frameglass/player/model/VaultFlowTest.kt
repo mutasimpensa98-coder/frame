@@ -56,6 +56,37 @@ class VaultFlowTest {
     }
 
     @Test
+    fun severalTitlesMoveOutAsOneMoveAndAreCountedTogether() {
+        vault.moveResult = Result.success(2)
+        flow.moveOut(listOf(4L, 9L, 11L))
+        assertEquals(listOf(4L, 9L, 11L), vault.movedOut)
+        assertEquals(0, flow.runningMoves)
+        assertEquals(MoveOutcome.Moved(6, out = true), flow.outcome)
+    }
+
+    @Test
+    fun oneTitleThatStaysDoesNotStopTheOthers() {
+        vault.stuck = setOf(9L)
+        flow.moveOut(listOf(4L, 9L, 11L))
+        assertEquals(listOf(4L, 9L, 11L), vault.movedOut)
+        assertEquals(MoveOutcome.Moved(2, out = true), flow.outcome)
+    }
+
+    @Test
+    fun aMoveOutFailsOnlyWhenNothingLeft() {
+        vault.stuck = setOf(4L, 9L)
+        flow.moveOut(listOf(4L, 9L))
+        assertEquals(MoveOutcome.Failed(out = true), flow.outcome)
+    }
+
+    @Test
+    fun movingOutNothingStartsNoMove() {
+        flow.moveOut(emptyList())
+        assertTrue(vault.movedOut.isEmpty())
+        assertNull(flow.outcome)
+    }
+
+    @Test
     fun leavingLocksAtOnceWhenSetToZero() {
         flow.pageLeft(0)
         assertEquals(1, vault.locks)
