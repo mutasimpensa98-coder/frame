@@ -7,6 +7,7 @@
     <string name="app_tab_search">البحث</string>
     <string name="app_tab_library">المكتبة</string>
     <string name="app_tab_settings">الإعدادات</string>
+    <string name="app_tab_folders">المجلدات</string>
 
     <string name="app_continue_watching">تابع المشاهدة</string>
     <string name="app_top_rated">الأعلى تقييمًا في مكتبتك</string>
@@ -220,6 +221,17 @@
     <string name="app_settings_appearance_hint">الثيمات وألوانك الخاصة ولون الغلاف</string>
     <string name="app_settings_language">اللغة</string>
     <string name="app_settings_language_hint">لغة الهاتف أو العربية أو الإنجليزية</string>
+    <string name="app_settings_bar">أقسام الشريط</string>
+    <string name="app_settings_bar_hint">اختر ما يظهر في الشريط السفلي</string>
+    <string name="app_bar_sections">الأقسام</string>
+    <string name="app_bar_home_hint">ما تكمل مشاهدته وصفوف عناوينك</string>
+    <string name="app_bar_folders_hint">فيديوهاتك حسب المجلد</string>
+    <string name="app_bar_library_hint">كل العناوين مع التصفية والترتيب</string>
+    <string name="app_bar_search_hint">البحث في تبويب مستقل</string>
+    <string name="app_bar_settings_hint">عند إيقافه يظهر زر ترس في أول قسم يفتح الإعدادات</string>
+    <string name="app_bar_last">لا بد أن يبقى قسم واحد على الأقل</string>
+    <string name="app_bar_note">التغييرات تُطبَّق فورًا. إذا بقي قسم واحد يختفي الشريط.</string>
+    <string name="app_bar_preview">معاينة الشريط</string>
     <string name="app_settings_library_hint">البحث والمجلدات المستبعدة والعناوين المخفية</string>
     <string name="app_settings_playback_hint">اللمس المزدوج والحلقة التالية والصوت</string>
     <string name="app_settings_subtitles_hint">الحجم واللون والموضع والخط</string>

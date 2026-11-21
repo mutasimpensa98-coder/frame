@@ -128,6 +128,10 @@ internal fun BoxScope.GlassOverlayLayer(host: GlassOverlayHost) {
     }
 }
 
+/** True while a glass sheet or menu is on screen, for gestures that must wait until it has closed. */
+@Composable
+fun isGlassOverlayOpen(): Boolean = LocalGlassOverlayHost.current?.slots?.isNotEmpty() == true
+
 @Composable
 private fun GlassOverlay(content: @Composable () -> Unit) {
     val host = LocalGlassOverlayHost.current

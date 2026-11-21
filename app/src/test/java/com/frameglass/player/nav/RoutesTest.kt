@@ -2,6 +2,7 @@ package com.frameglass.player.nav
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.saveable.SaverScope
+import com.frameglass.data.api.BarSection
 import com.frameglass.data.api.HomeRowKind
 import com.frameglass.data.api.MediaEntryKind
 import org.junit.Assert.assertEquals
@@ -23,6 +24,8 @@ class RoutesTest {
             Route.Tour(setup = true),
             Route.Tour(setup = false),
             Route.Tabs,
+            Route.Section(BarSection.SETTINGS),
+            Route.Section(BarSection.LIBRARY),
             Route.About,
             Route.MediaManager,
             Route.PrivateFolder,

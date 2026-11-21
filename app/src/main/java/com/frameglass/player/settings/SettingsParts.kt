@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.HorizontalDivider
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -269,5 +271,44 @@ internal fun <T> ChoiceRow(
                 )
             }
         }
+    }
+}
+
+/**
+ * A row with the icon tile of [SettingsLink] and a switch at its end, for a list of things that are on or off.
+ * With [enabled] off the switch stays where it is, and [description] should say why.
+ */
+@Composable
+internal fun SettingsSwitchLink(
+    icon: ImageVector,
+    hue: TileHue,
+    title: String,
+    description: String,
+    checked: Boolean,
+    onChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChange)
+            .heightIn(min = RowMinHeight)
+            .padding(horizontal = FrameSpacing.S16, vertical = FrameSpacing.S12),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S12),
+    ) {
+        ColorIconTile(icon, hue, size = IconTile, glyph = TileIcon)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = bidiIsolate(title),
+                style = RowTitle,
+                color = FrameColors.White,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(description, style = FrameType.Label, color = FrameColors.SecondaryText)
+        }
+        // The row is the switch: one target, read out as one.
+        Switch(checked = checked, onCheckedChange = null, enabled = enabled)
     }
 }

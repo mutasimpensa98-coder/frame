@@ -25,6 +25,13 @@ None of these values has been tuned on the phone yet, except that the first buil
 | Poster wash | Decoded at 96 px, blurred at 48 px wide, radius 4 px, 3 passes; canvas veil 0.42 dark, 0.30 light | Field behind a whole poster in Hero and Details. Blurred once on load, so it is not one of the three blurred layers. |
 | Stage poster | Shadow 20 dp, black 55% | The whole poster lifted off its wash |
 | Hero stage | Title logo 56 dp high; fade black 28% at the top to clear at 16%, canvas 90% at 60%, full canvas at the bottom | Hero page that shows a poster |
+| Follow spring (2026-11-22) | Damping 1.0, stiffness 1600 | What a finger carries: the tab pill under a drag on the bar or a swipe of the pages. `FrameMotion.follow()` |
+| Page spring (2026-11-22) | Damping 1.0, stiffness 380 | Whole pages sliding to a tab the bar asked for. The pace of the default spatial spring with no overshoot. `FrameMotion.page()` |
+| Tab bar width (2026-11-22) | 4 and 5 tabs: the full width. 2 and 3: 10 dp at each end and one slot per tab, a slot as wide as in the 4-tab bar and at most 96 dp | `TabBarMath.barWidth`. One tab: no bar |
+| Tab labels (2026-11-22) | Caption, 12 sp, 3 dp clear at both sides of a slot. All shrink together to fit the widest; hidden below 80%, fading over the 6% above it | `TabBarMath.labelScale`, `labelAlpha` |
+| Tab colour (2026-11-22) | Icon and label take the colour of text on the pill by the share of them the pill covers: all of it within 0.23 of a slot from the tab's centre, none beyond 0.93 | `TabBarMath.coverage`. Pill 1.16 slots wide, content 0.7 |
+| Tab tick (2026-11-22) | One light tick when the pill, carried by hand, passes 0.08 of a slot beyond the midpoint between two tabs | `TabBarMath.tick` |
+| List clearance (2026-11-22) | 88 dp over the tab bar, 32 dp where there is no bar, plus the navigation inset | `FrameSizes.TabBarClearance`, which reads `LocalTabBarClearance` |
 
 ## Glass recipes in force
 

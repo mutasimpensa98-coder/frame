@@ -18,6 +18,18 @@ object FrameMotion {
     /** Alpha and tint: damping 1.0, stiffness 1600. */
     fun <T> effects(): SpringSpec<T> = spring(dampingRatio = 1f, stiffness = 1600f)
 
+    /**
+     * Something carried by a finger, such as the tab pill under a drag: damping 1.0, stiffness 1600. It catches up
+     * with the finger in a few frames and never passes it.
+     */
+    fun <T> follow(): SpringSpec<T> = spring(dampingRatio = 1f, stiffness = 1600f)
+
+    /**
+     * Whole pages sliding into place: damping 1.0, stiffness 380. The pace of [defaultSpatial] with no overshoot,
+     * because a page that overshoots shows the edge of a third one.
+     */
+    fun <T> page(): SpringSpec<T> = spring(dampingRatio = 1f, stiffness = 380f)
+
     /** Scale a glass control swells to while pressed. */
     const val PressScale = 1.04f
 

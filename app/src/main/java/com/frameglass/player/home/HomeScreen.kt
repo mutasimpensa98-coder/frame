@@ -72,6 +72,8 @@ import com.frameglass.player.folders.AddFolderButton
 import com.frameglass.player.folders.AddFolderSheet
 import com.frameglass.player.folders.openAllFilesAccess
 import com.frameglass.player.folders.rememberAllFilesAccess
+import com.frameglass.player.nav.BarExtrasSlot
+import com.frameglass.player.nav.LocalBarExtras
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Route
 import com.frameglass.player.quick.upcomingHint
@@ -100,6 +102,8 @@ private val ScanChipMaxWidth = 240.dp
 // A glass button and the margins on both of its sides, at the top end.
 private val EndButtonSpace = FrameSpacing.S12 + FrameSpacing.S48 + FrameSpacing.S12
 
+private val ExtraButtonGap = FrameSpacing.S8
+
 // A routine scan runs on every app open and ends within DoD-10's 3 s, so a full Home stays silent for it.
 private const val QuietScanMillis = 4_000L
 
@@ -120,6 +124,7 @@ internal fun HomeScreen(onOpenLibrary: () -> Unit) {
     }
 
     val view = homeView(current)
+    val endButtons = if (LocalBarExtras.current != null) EndButtonSpace + FrameSpacing.S48 + ExtraButtonGap else EndButtonSpace
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         when (view) {
@@ -136,7 +141,7 @@ internal fun HomeScreen(onOpenLibrary: () -> Unit) {
                 .align(Alignment.TopStart)
                 .statusBarsPadding()
                 // The end side stays clear of "Add a place", so a long count is cut short before it reaches it.
-                .padding(start = FrameSpacing.S12, top = FrameSpacing.S12, bottom = FrameSpacing.S12, end = EndButtonSpace),
+                .padding(start = FrameSpacing.S12, top = FrameSpacing.S12, bottom = FrameSpacing.S12, end = endButtons),
             horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S8),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -151,12 +156,18 @@ internal fun HomeScreen(onOpenLibrary: () -> Unit) {
                 ScanChip(scan.found)
             }
         }
-        AddFolderButton(
-            Modifier
+        Row(
+            modifier = Modifier
                 .align(Alignment.TopEnd)
                 .statusBarsPadding()
                 .padding(FrameSpacing.S12),
-        )
+            horizontalArrangement = Arrangement.spacedBy(ExtraButtonGap),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // The gear, only while Settings has no tab and Home is the first one (owner request of 2026-11-22).
+            BarExtrasSlot()
+            AddFolderButton()
+        }
     }
 }
 

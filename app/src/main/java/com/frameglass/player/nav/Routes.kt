@@ -3,6 +3,7 @@ package com.frameglass.player.nav
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import com.frameglass.data.api.BarSection
 import com.frameglass.data.api.HomeRowKind
 import com.frameglass.data.api.MediaEntry
 import com.frameglass.data.api.MediaEntryKind
@@ -15,7 +16,7 @@ import com.frameglass.data.api.MediaEntryKind
 internal data class ArtRef(val key: String? = null, val path: String? = null)
 
 /** The pages opened from the main Settings list that hold only settings. */
-internal enum class SettingsTopic { APPEARANCE, LANGUAGE, LIBRARY, PLAYBACK, SUBTITLES, ONLINE, BACKUP }
+internal enum class SettingsTopic { APPEARANCE, LANGUAGE, LIBRARY, PLAYBACK, SUBTITLES, ONLINE, BACKUP, BAR }
 
 internal sealed interface Route {
     data object Onboarding : Route
@@ -26,6 +27,13 @@ internal sealed interface Route {
      */
     data class Tour(val setup: Boolean) : Route
     data object Tabs : Route
+
+    /**
+     * One of the main pages opened as a page of its own, with Back leading out of it. It is how a section that has
+     * no tab in the bar stays reachable: Settings behind the gear, Library from Home's link (owner request of
+     * 2026-11-22).
+     */
+    data class Section(val section: BarSection) : Route
     data object About : Route
     data object MediaManager : Route
     data object PrivateFolder : Route
@@ -72,6 +80,7 @@ private fun Route.encode(): String = when (this) {
     Route.Onboarding -> "onboarding"
     is Route.Tour -> fields("tour", setup)
     Route.Tabs -> "tabs"
+    is Route.Section -> fields("section", section.id)
     Route.About -> "about"
     Route.MediaManager -> "media"
     Route.PrivateFolder -> "private"
@@ -92,6 +101,7 @@ private fun decode(saved: String): Route? {
         "onboarding" -> Route.Onboarding
         "tour" -> Route.Tour(setup = text(1).toBoolean())
         "tabs" -> Route.Tabs
+        "section" -> BarSection.of(text(1))?.let(Route::Section)
         "about" -> Route.About
         "media" -> Route.MediaManager
         "private" -> Route.PrivateFolder

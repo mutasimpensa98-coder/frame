@@ -3,6 +3,7 @@ package com.frameglass.data.backup
 import com.frameglass.data.api.AccentColor
 import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.AutoSubtitleMode
+import com.frameglass.data.api.BarSections
 import com.frameglass.data.api.MatchState
 import com.frameglass.data.api.SegmentKind
 import com.frameglass.data.api.ThemeId
@@ -88,9 +89,17 @@ internal data class BackupSettings(
     val viewPrivate: String? = null,
     val viewLists: String? = null,
     // ---- End of view sizes. ----
+    // ---- Bar sections (owner request of 2026-11-22). One field; keep this block whole. ----
+    /**
+     * The sections of the tab bar as BarSections writes them. Null in a backup written before this setting and for
+     * a bar the owner never changed: both keep what the phone holds. So does a value with no section this build knows.
+     */
+    val barSections: String? = null,
+    // ---- End of bar sections. ----
 ) {
     /** [current] is what the phone holds now, for the fields an older backup does not have. */
-    fun toAppSettings(fontExists: Boolean, current: AppSettings) = withViews(base(fontExists, current), current)
+    fun toAppSettings(fontExists: Boolean, current: AppSettings) =
+        withBar(withViews(base(fontExists, current), current), current)
 
     // ---- View sizes (owner request of 2026-11-21): restored and saved apart from the lists below. ----
     private fun savedView(place: ViewPlace): String? = when (place) {
@@ -112,6 +121,13 @@ internal data class BackupSettings(
         viewLists = s.viewLists?.name,
     )
     // ---- End of view sizes. ----
+
+    // ---- Bar sections (owner request of 2026-11-22): restored and saved apart from the lists below. ----
+    private fun withBar(restored: AppSettings, current: AppSettings): AppSettings =
+        restored.copy(barSections = BarSections.normalise(barSections) ?: current.barSections)
+
+    private fun barOf(s: AppSettings) = copy(barSections = BarSections.normalise(s.barSections))
+    // ---- End of bar sections. ----
 
     private fun base(fontExists: Boolean, current: AppSettings): AppSettings {
         // A backup from before the ready themes holds the old choice, which comes back as the look it was.
@@ -165,7 +181,7 @@ internal data class BackupSettings(
             s.sendFileHash, s.vaultLockSeconds, s.cinemaMode, s.tmdbEnabled, s.imdbEnabled, s.autoSubtitles.name,
             s.hideUnseenStills, s.theme.name, s.followSystem, s.customHue, s.customShade, s.customSurface,
             s.customAccent,
-        ).viewsOf(s)
+        ).viewsOf(s).barOf(s)
     }
 }
 

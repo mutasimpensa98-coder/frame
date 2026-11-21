@@ -16,6 +16,7 @@ import com.frameglass.data.api.AccentColor
 import com.frameglass.data.api.ApiKeyKind
 import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.AutoSubtitleMode
+import com.frameglass.data.api.BarSections
 import com.frameglass.data.api.CustomThemeDefaults
 import com.frameglass.data.api.SettingsRepository
 import com.frameglass.data.api.ViewPlace
@@ -91,6 +92,11 @@ private object Prefs {
     /** One key per place, absent until the owner picks a size there. */
     fun view(place: ViewPlace) = stringPreferencesKey(ViewKeys.of(place))
     // ---- End of view sizes. ----
+
+    // ---- Bar sections (owner request of 2026-11-22). One key; keep this block whole. ----
+    /** Absent until the owner changes the sections of the tab bar. */
+    val barSections = stringPreferencesKey("barSections")
+    // ---- End of bar sections. ----
 }
 
 /** The preference names of the view sizes. A name never changes once a build has shipped with it. */
@@ -105,7 +111,7 @@ internal object ViewKeys {
 
 /** How AppSettings is laid out in the preferences file. Pure, so a round trip is tested without a phone. */
 internal object SettingsPrefs {
-    fun read(p: Preferences): AppSettings = readViews(p, readBase(p))
+    fun read(p: Preferences): AppSettings = readBar(p, readViews(p, readBase(p)))
 
     // ---- View sizes (owner request of 2026-11-21): read and written apart from the lists below. ----
     private fun readViews(p: Preferences, s: AppSettings): AppSettings =
@@ -118,6 +124,16 @@ internal object SettingsPrefs {
         }
     }
     // ---- End of view sizes. ----
+
+    // ---- Bar sections (owner request of 2026-11-22): read and written apart from the lists below. ----
+    private fun readBar(p: Preferences, s: AppSettings): AppSettings =
+        s.copy(barSections = BarSections.normalise(p[Prefs.barSections]))
+
+    private fun writeBar(p: MutablePreferences, s: AppSettings) {
+        val sections = BarSections.normalise(s.barSections)
+        if (sections == null) p.remove(Prefs.barSections) else p[Prefs.barSections] = sections
+    }
+    // ---- End of bar sections. ----
 
     private fun readBase(p: Preferences): AppSettings {
         val d = AppSettings()
@@ -203,6 +219,7 @@ internal object SettingsPrefs {
         p[Prefs.tmdbEnabled] = s.tmdbEnabled
         p[Prefs.imdbEnabled] = s.imdbEnabled
         writeViews(p, s)
+        writeBar(p, s)
     }
 }
 

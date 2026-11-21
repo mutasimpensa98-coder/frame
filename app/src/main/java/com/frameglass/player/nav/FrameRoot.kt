@@ -15,11 +15,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -32,7 +34,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import com.frameglass.data.api.BarSection
 import com.frameglass.data.api.PlayRef
+import com.frameglass.data.api.visibleSections
 import com.frameglass.glass.EffectsLevel
 import com.frameglass.glass.FrameColors
 import com.frameglass.glass.FrameMotion
@@ -51,6 +55,7 @@ import com.frameglass.player.person.PersonScreen
 import com.frameglass.player.settings.AboutScreen
 import com.frameglass.player.settings.AppearanceScreen
 import com.frameglass.player.settings.BackupSettingsScreen
+import com.frameglass.player.settings.BarSectionsScreen
 import com.frameglass.player.settings.LanguageScreen
 import com.frameglass.player.settings.LibrarySettingsScreen
 import com.frameglass.player.settings.OnlineSettingsScreen
@@ -123,6 +128,15 @@ internal val LocalNavigator = staticCompositionLocalOf<Navigator> { error("Navig
 
 private const val PageShift = 12
 
+/**
+ * Null is "the first tab". Anything that is not an id restores as null too, such as the tab number a version before
+ * the bar's sections may have left in the same place.
+ */
+private val SectionIdSaver = Saver<MutableState<String?>, Any>(
+    save = { it.value.orEmpty() },
+    restore = { saved -> mutableStateOf((saved as? String)?.ifEmpty { null }) },
+)
+
 private fun pushTransform(rtl: Boolean, reduced: Boolean): ContentTransform {
     val enter = fadeIn(FrameMotion.effects())
     return ContentTransform(
@@ -172,8 +186,12 @@ internal fun FrameRoot(link: Route? = null, onLinkOpened: () -> Unit = {}) {
             mutableStateListOf(TourFlow.firstRoute(loaded.onboardingDone))
         }
         val context = LocalContext.current
-        var tab by rememberSaveable { mutableIntStateOf(0) }
-        val navigator = remember(stack, context) { Navigator(stack, context, showHome = { tab = 0 }) }
+        // The section in view, by its id: the bar's sections can change under it.
+        var tab by rememberSaveable(saver = SectionIdSaver) { mutableStateOf<String?>(null) }
+        val sections = remember(loaded.barSections) { loaded.visibleSections() }
+        val navigator = remember(stack, context) {
+            Navigator(stack, context, showHome = { tab = BarSection.HOME.id })
+        }
         LaunchedEffect(link) {
             val route = link ?: return@LaunchedEffect
             if (AppLinks.shouldOpen(stack, route)) navigator.push(route)
@@ -202,7 +220,14 @@ internal fun FrameRoot(link: Route? = null, onLinkOpened: () -> Unit = {}) {
                         entryProvider = entryProvider {
                             entry<Route.Onboarding> { OnboardingScreen() }
                             entry<Route.Tour> { TourScreen(it) }
-                            entry<Route.Tabs> { TabsScreen(tab, onSelect = { tab = it }) }
+                            entry<Route.Tabs> {
+                                TabsScreen(
+                                    sections = sections,
+                                    selected = TabRules.shown(BarSection.of(tab), sections),
+                                    onSelect = { tab = it.id },
+                                )
+                            }
+                            entry<Route.Section> { SectionPage(it.section) }
                             entry<Route.About> { AboutScreen() }
                             entry<Route.Details> { DetailsScreen(it) }
                             entry<Route.Person> { PersonScreen(it.personId) }
@@ -222,6 +247,7 @@ internal fun FrameRoot(link: Route? = null, onLinkOpened: () -> Unit = {}) {
                                     SettingsTopic.SUBTITLES -> SubtitleSettingsScreen()
                                     SettingsTopic.ONLINE -> OnlineSettingsScreen()
                                     SettingsTopic.BACKUP -> BackupSettingsScreen()
+                                    SettingsTopic.BAR -> BarSectionsScreen()
                                 }
                             }
                         },

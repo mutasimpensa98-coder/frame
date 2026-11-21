@@ -2,6 +2,8 @@ package com.frameglass.glass
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -9,6 +11,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -130,6 +133,12 @@ object FrameSpacing {
     val S48 = 48.dp
 }
 
+/**
+ * What [FrameSizes.TabBarClearance] is here. The screen that draws [LiquidTabBar] provides it for its tabs, so every
+ * list reads the room it must leave from one place. Without a bar it is the plain margin.
+ */
+val LocalTabBarClearance = compositionLocalOf { FrameSizes.TabBarHiddenClearance }
+
 /** Fixed proportions and sizes shared by the screens. */
 object FrameSizes {
     /** Width over height of a poster. */
@@ -147,8 +156,21 @@ object FrameSizes {
     /** Height of [LiquidTabBar] without its margins. */
     val TabBarHeight = 64.dp
 
-    /** List bottom padding that clears [LiquidTabBar]; add the navigation bar inset to it. */
-    val TabBarClearance = 88.dp
+    /**
+     * List bottom padding for a screen that can be a tab; add the navigation bar inset to it. It follows the bar
+     * ([LocalTabBarClearance]): room for [LiquidTabBar] where one is on screen, and a plain margin where the bar
+     * is hidden or the screen was opened as a page of its own.
+     */
+    val TabBarClearance: Dp
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalTabBarClearance.current
+
+    /** [TabBarClearance] under a [LiquidTabBar]. */
+    val TabBarShownClearance = 88.dp
+
+    /** [TabBarClearance] with no bar on screen. */
+    val TabBarHiddenClearance = 32.dp
 
     /** Height of [TopGlassBar] without the status bar. */
     val TopBarHeight = 64.dp

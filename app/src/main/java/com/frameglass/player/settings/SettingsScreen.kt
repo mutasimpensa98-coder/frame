@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CallToAction
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.rounded.Info
@@ -28,15 +29,19 @@ import com.frameglass.glass.TileHue
 import com.frameglass.glass.TopGlassBar
 import com.frameglass.glass.glassScrolled
 import com.frameglass.player.R
+import com.frameglass.player.library.BackButton
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Route
 import com.frameglass.player.nav.SettingsTopic
 import com.frameglass.player.ui.navigationInset
 import com.frameglass.player.ui.statusInset
 
-/** F-U14, as a clear main list in the style of image 05. Every row opens its own page. */
+/**
+ * F-U14, as a clear main list in the style of image 05. Every row opens its own page. With [asPage] it was opened
+ * from the gear, because Settings has no tab in the bar, and it carries a back arrow like any other page.
+ */
 @Composable
-internal fun SettingsScreen() {
+internal fun SettingsScreen(asPage: Boolean = false) {
     val navigator = LocalNavigator.current
     val list = rememberLazyListState()
     val language = rememberLanguageLabel()
@@ -71,6 +76,14 @@ internal fun SettingsScreen() {
                             description = stringResource(R.string.app_settings_language_hint),
                             value = language,
                             onClick = { navigator.push(Route.Settings(SettingsTopic.LANGUAGE)) },
+                        )
+                        SettingsDivider(LinkDividerInset)
+                        SettingsLink(
+                            icon = Icons.Rounded.CallToAction,
+                            hue = TileHue.Orange,
+                            title = stringResource(R.string.app_settings_bar),
+                            description = stringResource(R.string.app_settings_bar_hint),
+                            onClick = { navigator.push(Route.Settings(SettingsTopic.BAR)) },
                         )
                     }
                 }
@@ -160,6 +173,11 @@ internal fun SettingsScreen() {
         TopGlassBar(
             title = stringResource(R.string.app_tab_settings),
             scrolled = { list.glassScrolled() },
+            navigation = if (asPage) {
+                { BackButton() }
+            } else {
+                null
+            },
         )
     }
 }

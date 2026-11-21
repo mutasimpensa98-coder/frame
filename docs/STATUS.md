@@ -1,5 +1,7 @@
 # Status
 
+Updated 2026-11-22, after the tabs were reworked on branch `tabs` (waiver of 2026-11-22): a finger drags the bar's pill, a swipe moves between the main pages, Folders takes the tab Search had, and the bar's sections are a choice in Settings. Not merged, not installed and not seen on a phone: no drag and no swipe of this code has run on any device. See "This round: tabs".
+
 Updated 2026-11-21, after five findings of an independent review of the merged tree were fixed on branch `themes`. Not installed and not seen on a phone. See "This round: review fixes on the merged tree".
 
 Updated 2026-11-21, after branch `views` (with `select`) was merged into branch `themes`. Nothing of the merged tree is installed or seen on a phone. See "Build and tests" and the last rows of "This round: more themes and custom colours".
@@ -19,6 +21,7 @@ Updated 2026-11-19, after the developer name on About, the episode delete on Hom
 
 ## Read this first
 
+- **Branch `tabs` (2026-11-22) reworks the main bar and puts the main pages in a pager.** Drag along the bar, swipe between the pages, Home, Folders, Library and Settings by default with Search as a section that is off, a Settings page to choose the sections, and a bar that turns into a shorter capsule for two or three and leaves for one. The numbers and the rules are unit tested. Every gesture, and the look of the bar at any count, in either language and on any theme, is unseen. The Folders tab is a stand-in until branch `library` is merged. See "This round: tabs".
 - **Review fixes on `themes` (2026-11-21), after the merge.** The private delete sheet closes when the folder locks; a private delete keeps a title the owner used in the library; a picked folder of folders really deletes and moves what is under it; the delete answers before its cleanup, which a kill no longer loses; and the theme pictures are worked out off the main thread while a slider is dragged. Unit tested where a rule could be tested; none of it has run on a phone. See "This round: review fixes on the merged tree".
 - **Branch `themes` (2026-11-21) adds eight ready themes, a custom theme with three sliders, two more accents, "any colour", and a Follow the phone switch.** Built and unit tested, never installed or seen on a phone: no theme has been looked at on any screen, and the new Appearance page has never been drawn. The update keeps the old look by a tested mapping. See "This round: more themes and custom colours".
 - **Branch `views` (2026-11-21) also puts a lock button at the top start of Home that opens the private folder.** One glass button, no test of its own, never seen on a phone. See "This round: private folder shortcut on Home".
@@ -68,6 +71,8 @@ First build only. Screenshots are in `evidence/phase-1/first-build/`, listed in 
 Phase 0 matrix, on the round 2 `qa` build (`evidence/phase-0/matrix.csv`): 50 of 53 Core rows passed. The results and the three open rows are in `phase-0-results.md`. Earlier runs are in `D:\FrameGlass\logs\`: `matrix-run1.csv` for run 1 and `matrix-run2.log` for run 2, 29 of 53.
 
 ## Build and tests
+
+Branch `tabs`, on this PC on 2026-11-22, with the build cache: `testDebugUnitTest`, `:parser:test`, `assembleRelease`, `:app:lintRelease` and `:glass:lintRelease` pass, and `python -I tools\check_update.py` passes (5 steps, 26 tables, 21 saved rows kept; no schema changed, and it was run because the settings and the backup did). Logs: `D:\FrameGlass\logs\build-tabs.log` and `check-update-tabs.log`. Unit tests: 1,612 run, 1,611 passed, 0 failed, 1 skipped (the same `AnimeIndexTest`): parser 161, data 613 (16 new: `BarSectionsTest`), net 353, engine 75, player 122, app 219 (16 new: `TabRulesTest`; `RoutesTest` also carries the new route), glass 69 (17 new: `TabBarMathTest`). Lint: `:glass` no issue, `:app` 0 errors, 24 warnings and 1 hint, the same counts as before this round and none in a file or a string of it. `:data:lintRelease`, `:player:lintRelease`, `assembleQa` and `fg.ps1 build` were not run. Release APK 23,914,893 bytes. Nothing was installed, and no emulator or phone was used.
 
 Branch `themes` after the review fixes, on this PC on 2026-11-21, with the build cache: `testDebugUnitTest`, `:parser:test`, `assembleRelease`, `:app:lintRelease` and `:data:lintRelease` pass, and `python -I tools\check_update.py` passes (5 steps, 26 tables, 21 saved rows kept; no schema changed). Log: `D:\FrameGlass\logs\build-themes-review.log`. Unit tests: 1,563 run, 1,562 passed, 0 failed, 1 skipped (the same `AnimeIndexTest`): parser 161, data 597 (9 new, all in `VaultDeleteRulesTest`), net 353, engine 75, player 122, app 203 (19 new: `VaultDeleteFlowTest` 10 to 18, `CardMenuRulesTest` +4, `SelectionRulesTest` +4, `DeleteFlowTest` +2, `VaultFlowTest` +1), glass 52 (1 new in `ThemeContrastTest`). Lint: `:data` no issue, `:app` 0 errors, 24 warnings and 1 hint, the same 25 findings as before the fixes and none in a file of this round. Release APK 23,859,857 bytes. Nothing was installed, and no emulator or phone was used.
 
@@ -204,7 +209,7 @@ No real TMDB, AniList, AniSkip or OMDb call has been made from the app. The test
 
 | ID | Feature | Status | Phone | Notes |
 |---|---|---|---|---|
-| F-U1 | Tabs | BUILT | Part: bar on Home and Library (`08`, `09`) | Search and Settings tabs not in the evidence. |
+| F-U1 | Tabs | BUILT | Part: the first build's bar on Home and Library (`08`, `09`) | Changed by the waiver of 2026-11-22 on branch `tabs`: Home, Folders, Library, Settings by default, sections chosen in Settings, a drag on the bar, a swipe between the pages. The evidence shows the old four-tab bar only. See "This round: tabs". |
 | F-U2 | Library filter | UNIT TESTED | Part: chips (`09`) | `LibraryFilterTest`, `FavoritesFilterTest`. Videos and Favourites chips added after that run. Filtering not seen. |
 | F-U3 | Library sort | UNIT TESTED | Part: closed dropdown and grid (`09`) | `LibraryOrderTest`, `TitleListsTest`. |
 | F-U4 | Cards | BUILT | Part: 2:3 frames with titles (`09`) | Rating badge and progress line never seen. The owner asked for both. Videos now use 16:9 cards. |
@@ -287,6 +292,45 @@ Glass over video is off: `VideoBlurHook.ENABLED` is false until step 0.7 is meas
 | F-T5 | Info panel | BUILT | Not seen | |
 | F-T6 | Sleep timer | UNIT TESTED | Not seen | `EpisodeEndTest` (branch `pack-player`): «آخر الحلقة» shows no next card, stays paused at the end on screen, ends playback and background audio behind the screen, and is cancelled when the owner picks another item. The minute timers are untested. |
 | F-T7 | Anime4K | NOT BUILT (allowed) | Not seen | Needs mpv, Phase 8. |
+
+## This round: tabs
+
+Owner request of 2026-11-22, built on branch `tabs` (cut from `main` at `e20bfe5`). Waiver "2026-11-22: Tabs: drag, swipe, Folders tab, hideable sections". Not merged, not installed and not seen on a phone, in either language, on any theme or Android version. No permission, dependency, network host, manifest or schema change. Branch `library` is built beside it and brings the search inside Library and the Folders screen.
+
+`UNIT TESTED` below means the numbers or the rule a part rests on. The part that touches the screen, which is pointer input, the pager and the springs, has no test and has never run.
+
+| Part | Status | Notes |
+|---|---|---|
+| Drag along the bar | BUILT | `LiquidTabBar` takes a sideways drag after the touch slop anywhere on the bar; the pill goes to the finger on the `follow` spring and stays between the centres of the end tabs; letting go selects the nearest tab, and a cancelled drag returns. `TabBarMathTest` (17) holds the numbers: finger to position and back in both directions, the ends, the nearest tab, one tick per tab crossed with none for a tremor on the midpoint, colour by how much of a tab the pill covers, stretch by speed. Not run: that a tap is still a tap, that the press of the tab under the finger ends cleanly when the drag takes over, and the haptic. |
+| Colours travel with the pill | BUILT | Icon and label are drawn in a colour worked out from the pill's position while drawing, so a move recomposes nothing. Not seen: the mix of the two colours halfway, which on a light theme may pass through a weak grey for an instant. |
+| Swipe between the pages | BUILT | `TabsScreen` holds a `HorizontalPager` over the visible sections in place of the cross-fade, and follows the layout direction. The pill follows the pager's position while a hand moves the pages and while they rest; a tap or a drag on the bar moves the pages on the `page` spring, and a tab that is not a neighbour cuts in behind a short fade one tab short and slides in (`TabRules.runUp`, tested). Only the page in view is composed at rest (`beyondViewportPageCount` 0), as with the cross-fade, so Home's hero does not advance unseen; each tab's scroll and typed text are kept by the `SaveableStateHolder` as before. Not measured: the first frame of a swipe, which composes the neighbour, and the cost of blurring two top bars and the tab bar while two pages slide. |
+| Which drag is a swipe | UNIT TESTED | `TabSwipeRules`, in `TabRulesTest`: a drag that reaches the pager itself is a swipe unless locked; a scroller inside a tab that could move keeps its drag even after it reaches its end; one that was already at its end hands a drag past that end to the pages; the first move decides for the whole gesture; rounding noise decides nothing; locked, the pages stay; pages standing between two tabs take a move first, as far as either tab. The rule is applied by `TabSwipeArbiter`, the pager's page nested-scroll connection, which no test runs: it drops what a row leaves over, stops a row's fling at the row's end, and settles the pages itself with the pager's fling after a handed-over drag. Read through against the bytecode of Compose foundation 1.12.1, not run. |
+| No swipe while selecting, under a sheet or menu, or under a tab's lock | BUILT | `TabSwipeRules.locked` (tested) turns the pager's own drag off and makes the arbiter keep the pages still. `LocalTabSwipeLock` is provided for the tabs; nothing on this branch sets it. |
+| Sections setting | UNIT TESTED | `BarSections`, `BarSectionsTest` (16): the default is Home, Folders, Library, Settings; a stored choice comes back in bar order; every set with a content section round-trips; an unknown id is skipped; a value with no content section is the default; Settings may leave and the last content section may not; no sequence of switches empties the bar. The page «أقسام الشريط» itself, with its five switches and the bar at its foot, has never been drawn. |
+| Settings file and backup | UNIT TESTED | One key, `barSections`, and one nullable backup field, each in a marked block at the end. An install from before the setting reads as the new default and writes no key until the owner changes the bar; a damaged key is the default and the next save removes it; the backup carries the choice, and a backup without it, or with no section this build knows, keeps the phone's bar (`BarSectionsTest`). JVM only. |
+| The bar follows the count | UNIT TESTED | `TabBarMath.barWidth`: four and five span the width, two and three are a capsule with the four-tab slot capped at 96 dp, and the width never jumps while a tab arrives or leaves. Each tab has a presence that springs in and out, the pill is kept in a scale that stays continuous through it, and a leaving tab keeps its place until it has shrunk away. The change is seen only on the Settings page, where the bar is shown. Never drawn. |
+| Labels are never cut | UNIT TESTED | A label is measured at its own width; all labels shrink together until the widest fits its slot with 3 dp clear at both sides, and below 80% they fade out and the icons move to the middle (`labelScale`, `labelAlpha`, tested with assumed widths). No Arabic or English label has been measured on a device: whether five tabs keep full-size labels on the owner's phone is not known. |
+| One section: no bar | BUILT | The bar is not composed, and lists read their bottom room from `FrameSizes.TabBarClearance`, now a composable read of `LocalTabBarClearance`: 88 dp under a bar, 32 dp without one. Home, Library, Search, Settings and the Folders stand-in read it unchanged. Not seen. |
+| Settings off: the gear | BUILT | `LocalBarExtras` hands a gear to the first tab only. Home shows it beside "+", and the Folders stand-in in its top bar. Library and Search do not take it on this branch, because their files are the other branch's: there the gear floats above the bar at the end side (`UnhostedExtras`) until their top bars call `BarExtrasSlot()`. It opens Settings as a page with a back arrow (`Route.Section`, in `RoutesTest`). Not seen. |
+| A section with no tab stays reachable | UNIT TESTED | `TabRules.opensAsPage`: Home's "Open Library" selects the tab while Library has one and pushes it as a page when it has none. A pushed Library has no back arrow in its top bar; Back leaves it. Search with no tab is reached only by turning its tab on until branch `library` is merged. |
+| Back | UNIT TESTED | `TabRules.backTarget`: the first visible tab from any other, then out, whatever tab is first. |
+| Folders tab | BUILT | `FoldersTabHost` is a stand-in marked `MERGE`: the root folders in the sizes of `ViewPlace.FOLDERS`, with selection, the long-press menu and pull to refresh, made from the parts Library's Folders view uses. It is replaced by `FoldersScreen()` of branch `library`. |
+| Degraded mode | BUILT | The pill is set under the finger with no spring, tabs arrive and leave on the effects spring, and a tap on the bar changes the page behind a fade. A swipe still moves the pages with the finger and they still slide to rest unless the phone removes animations. Not seen. |
+
+Not seen, and worth the first look on a phone:
+
+- Whether a swipe starts smoothly. The neighbour page is composed as the swipe begins; Library with a full grid is the heavy one.
+- The hero on its last picture, and a row or the chip line at its end: a drag past the end changes the tab. It follows the rule the owner was given, and may still surprise.
+- A quick flick that begins on a row at its end: the settle is given the finger's speed, but that path is the least certain one in the code.
+- The tick: one per tab crossed may feel like too many on a drag across the whole bar.
+- Five tabs with Arabic labels at the phone's font size, and the capsule of two and of three on every theme.
+- Right-to-left: the first tab at the right, and the direction of a swipe.
+- A row's stretch at its end during a drag is gone inside the tabs: what the row leaves over is dropped so the pages cannot take it.
+- A tap on the bar while a swipe is still settling waits for the settle before the pages move.
+- TalkBack: the pager's page actions and the tabs' selected state were not tried.
+- Android 11 and 12, where the bar is flat tint and rim.
+
+The owner checks are items 203 to 217 of `NEXT.md` section 2.
 
 ## This round: review fixes on the merged tree
 

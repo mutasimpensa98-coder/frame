@@ -424,6 +424,10 @@ data class AppSettings(
     val viewPrivate: ViewSize? = null,
     val viewLists: ViewSize? = null,
     // ---- End of view sizes. ----
+    // ---- Bar sections (owner request of 2026-11-22). One field; keep this block whole; see ApiBar.kt. ----
+    /** The sections of the tab bar as BarSections writes them. Null until the owner changes them: the default bar. */
+    val barSections: String? = null,
+    // ---- End of bar sections. ----
 )
 
 interface SettingsRepository {
