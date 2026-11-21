@@ -11,6 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.frameglass.data.api.HomeRowKind
 import com.frameglass.data.api.TitleCard
+import com.frameglass.data.api.ViewPlace
 import com.frameglass.data.api.frameServices
 import com.frameglass.glass.FrameColors
 import com.frameglass.glass.FrameSizes
@@ -27,6 +28,8 @@ import com.frameglass.player.select.selectItem
 import com.frameglass.player.ui.TitleGrid
 import com.frameglass.player.ui.navigationInset
 import com.frameglass.player.ui.statusInset
+import com.frameglass.player.views.ViewButton
+import com.frameglass.player.views.rememberViewSize
 
 @Composable
 private fun TitleListScreen(
@@ -39,16 +42,19 @@ private fun TitleListScreen(
     val grid = rememberLazyGridState()
     val selection = remember { SelectionState<SelectItem> { it.key } }
     val listed = remember(titles) { titles.map { it.selectItem() } }
+    val size = rememberViewSize(ViewPlace.LISTS)
     SelectionScaffold(
         selection = selection,
         place = place,
         listed = listed,
         modifier = Modifier.background(FrameColors.Canvas),
+        selectingActions = { ViewButton(ViewPlace.LISTS) },
         topBar = {
             TopGlassBar(
                 title = title,
                 scrolled = { grid.glassScrolled() },
                 navigation = { BackButton() },
+                actions = { ViewButton(ViewPlace.LISTS) },
             )
         },
     ) {
@@ -59,6 +65,7 @@ private fun TitleListScreen(
             top = statusInset() + FrameSizes.TopBarHeight,
             bottom = navigationInset() + selection.clearance(FrameSpacing.S24),
             frames = frames,
+            size = size,
         )
     }
 }

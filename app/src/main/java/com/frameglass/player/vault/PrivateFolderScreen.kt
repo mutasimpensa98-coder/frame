@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -54,6 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.frameglass.data.api.TitleCard
 import com.frameglass.data.api.VaultProgress
 import com.frameglass.data.api.VaultState
+import com.frameglass.data.api.ViewPlace
 import com.frameglass.data.api.frameServices
 import com.frameglass.data.api.privatePlayRef
 import com.frameglass.glass.FrameColors
@@ -67,7 +66,6 @@ import com.frameglass.glass.GlassSheet
 import com.frameglass.glass.GlassSheetState
 import com.frameglass.glass.GlassSource
 import com.frameglass.glass.OutlinePill
-import com.frameglass.glass.PosterCard
 import com.frameglass.glass.TopGlassBar
 import com.frameglass.glass.WhitePill
 import com.frameglass.glass.bidiIsolate
@@ -83,8 +81,6 @@ import com.frameglass.player.select.SelectionScaffold
 import com.frameglass.player.select.SelectionState
 import com.frameglass.player.select.clearance
 import com.frameglass.player.select.privateSelectItem
-import com.frameglass.player.select.selectableItem
-import com.frameglass.player.select.selectionMark
 import com.frameglass.player.settings.ChoiceRow
 import com.frameglass.player.settings.SettingRow
 import com.frameglass.player.settings.SettingsDivider
@@ -92,17 +88,18 @@ import com.frameglass.player.settings.SettingsSection
 import com.frameglass.player.settings.ToggleRow
 import com.frameglass.player.ui.FrameTextField
 import com.frameglass.player.ui.SelectRow
-import com.frameglass.player.ui.GridColumnGap
-import com.frameglass.player.ui.GridLineGap
 import com.frameglass.player.ui.fileSizeLabel
 import com.frameglass.player.ui.fullLine
-import com.frameglass.player.ui.gridPadding
-import com.frameglass.player.ui.libraryColumns
-import com.frameglass.player.ui.longPress
 import com.frameglass.player.ui.metaLine
 import com.frameglass.player.ui.navigationInset
 import com.frameglass.player.ui.rememberUiModel
 import com.frameglass.player.ui.statusInset
+import com.frameglass.player.views.CellHooks
+import com.frameglass.player.views.LocalFullLinePad
+import com.frameglass.player.views.ViewButton
+import com.frameglass.player.views.rememberViewSize
+import com.frameglass.player.views.ViewGrid
+import com.frameglass.player.views.titleCells
 import kotlinx.coroutines.launch
 
 private const val MinPassword = 4
@@ -452,18 +449,20 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
     val listed = remember(items) { items.map { it.privateSelectItem() } }
     val top = statusInset() + FrameSizes.TopBarHeight
     val bottom = navigationInset() + selection.clearance(FrameSpacing.S32)
-    val moreLabel = stringResource(R.string.app_more)
+    val size = rememberViewSize(ViewPlace.PRIVATE)
 
     SelectionScaffold(
         selection = selection,
         place = SelectionPlace.PRIVATE,
         listed = listed,
+        selectingActions = { ViewButton(ViewPlace.PRIVATE) },
         topBar = {
             TopGlassBar(
                 title = stringResource(R.string.app_settings_private),
                 scrolled = { grid.glassScrolled() },
                 navigation = { BackButton() },
                 actions = {
+                    ViewButton(ViewPlace.PRIVATE)
                     GlassIconButton(
                         icon = Icons.Rounded.Lock,
                         contentDescription = stringResource(R.string.app_private_lock_now),
@@ -474,14 +473,7 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
         },
     ) {
         GlassSource(Modifier.fillMaxSize()) {
-            LazyVerticalGrid(
-                columns = libraryColumns(asList = false),
-                state = grid,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = gridPadding(top, bottom),
-                horizontalArrangement = Arrangement.spacedBy(GridColumnGap),
-                verticalArrangement = Arrangement.spacedBy(GridLineGap),
-            ) {
+            ViewGrid(size, frames = false, grid, top, bottom) {
                 fullLine("summary") {
                     Text(
                         text = metaLine(
@@ -495,27 +487,21 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
                     )
                 }
                 progress?.let { now -> fullLine("moving") { MoveProgress(now) } }
-                items(items, key = { it.id }, contentType = { "poster" }) { card ->
-                    val item = card.privateSelectItem()
-                    val pickable = Modifier.selectableItem(item, look = null)
-                    PosterCard(
-                        title = card.name,
-                        coverPath = card.coverPath,
+                // The same five looks as Library. Here a tap plays, and the sheet of the folder is the only menu.
+                titleCells(items, size, frames = false) { card ->
+                    CellHooks(
+                        item = card.privateSelectItem(),
+                        artKey = null,
                         onClick = { navigator.play(card.privatePlayRef()) },
                         // While selecting, a press picks the card, so the sheet stays away.
-                        modifier = if (selection.active) {
-                            pickable
+                        onLongPress = if (selection.active) {
+                            null
                         } else {
-                            pickable.longPress(moreLabel) {
+                            {
                                 picked = card
                                 itemSheet.open()
                             }
                         },
-                        year = card.year,
-                        progress = card.progress,
-                        watched = card.watched,
-                        unavailable = card.unavailable,
-                        coverModifier = Modifier.selectionMark(item),
                     )
                 }
                 fullLine("hint") {
@@ -523,6 +509,8 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
                         text = stringResource(if (items.isEmpty()) R.string.app_private_empty else R.string.app_private_hint),
                         style = FrameType.Body,
                         color = FrameColors.SecondaryText,
+                        // The line gap of a compact list is too tight for a note under the last row.
+                        modifier = Modifier.padding(top = LocalFullLinePad.current),
                     )
                 }
                 fullLine("security") { SecuritySection(state) }

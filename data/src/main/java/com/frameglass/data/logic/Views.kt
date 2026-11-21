@@ -43,6 +43,7 @@ internal fun TitleInfo.card(): TitleCard = TitleCard(
     progress = progress,
     unavailable = !available,
     watched = watched,
+    genre = genres.firstOrNull(),
 )
 
 internal fun Playable.ref(): PlayRef = PlayRef(playableKey = key)

@@ -39,6 +39,8 @@ data class TitleCard(
     val progress: Float?,
     val unavailable: Boolean,
     val watched: Boolean,
+    /** The first genre, for the line of facts of a list row and of a large card. Null for a clip or an unmatched title. */
+    val genre: String? = null,
 )
 
 data class HeroItem(
@@ -401,6 +403,13 @@ data class AppSettings(
      */
     val tmdbEnabled: Boolean = true,
     val imdbEnabled: Boolean = true,
+    // ---- View sizes (owner request of 2026-11-21). Keep this block last and whole; see ApiViews.kt. ----
+    /** Null until the owner picks a size for that place, which shows ViewPlace.default. Read through viewSize(). */
+    val viewLibrary: ViewSize? = null,
+    val viewFolders: ViewSize? = null,
+    val viewPrivate: ViewSize? = null,
+    val viewLists: ViewSize? = null,
+    // ---- End of view sizes. ----
 )
 
 interface SettingsRepository {

@@ -91,8 +91,14 @@
     <string name="app_sort_recent">Recently added</string>
     <string name="app_sort_name">Name</string>
     <string name="app_sort_rating">Rating</string>
-    <string name="app_view_grid">Show as grid</string>
-    <string name="app_view_list">Show as list</string>
+    <!-- View sizes, smallest to largest, and the button that opens their sheet. -->
+    <string name="app_view_title">View</string>
+    <string name="app_view_button">View: %1$s</string>
+    <string name="app_view_compact">Compact list</string>
+    <string name="app_view_list">List</string>
+    <string name="app_view_small">Small grid</string>
+    <string name="app_view_medium">Medium grid</string>
+    <string name="app_view_large">Large grid</string>
     <string name="app_library_empty">No titles here yet.</string>
     <string name="app_cinema_library_empty">Cinema mode shows only films, series and anime here. Your other videos are under Videos.</string>
     <string name="app_library_no_folders">No folders with videos yet.</string>

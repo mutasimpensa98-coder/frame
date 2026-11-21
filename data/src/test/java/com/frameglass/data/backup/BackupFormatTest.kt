@@ -5,6 +5,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
+import com.frameglass.data.api.ViewSize
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -303,6 +304,54 @@ class BackupFormatTest {
         assertEquals(null, saved.autoSubtitles)
         val off = phone.copy(autoSubtitles = com.frameglass.data.api.AutoSubtitleMode.OFF)
         assertEquals(com.frameglass.data.api.AutoSubtitleMode.OFF, saved.toAppSettings(fontExists = false, off).autoSubtitles)
+    }
+
+    @Test
+    fun theViewSizesRoundTripPlaceByPlace() {
+        val chosen = phone.copy(
+            viewLibrary = ViewSize.SMALL_GRID,
+            viewFolders = ViewSize.LIST,
+            viewPrivate = ViewSize.LARGE_GRID,
+        )
+        val back = BackupCodec.decode(BackupCodec.encode(doc.copy(settings = BackupSettings.from(chosen)))).settings
+            .toAppSettings(fontExists = false, phone)
+        assertEquals(ViewSize.SMALL_GRID, back.viewLibrary)
+        assertEquals(ViewSize.LIST, back.viewFolders)
+        assertEquals(ViewSize.LARGE_GRID, back.viewPrivate)
+        assertEquals(null, back.viewLists)
+        // Nothing else moved on the way.
+        assertEquals(chosen, back)
+    }
+
+    @Test
+    fun aBackupWrittenBeforeViewSizesKeepsThePhonesSizes() {
+        val json = BackupCodec.encode(doc.copy(settings = BackupSettings.from(phone)))
+            .replace(Regex(""",?\s*"view(Library|Folders|Private|Lists)": ("[A-Z_]+"|null)"""), "")
+        assertTrue("viewLibrary" !in json && "viewLists" !in json)
+        val saved = BackupCodec.decode(json).settings
+        assertEquals(null, saved.viewLibrary)
+        val onPhone = phone.copy(viewLibrary = ViewSize.COMPACT_LIST, viewLists = ViewSize.LARGE_GRID)
+        val back = saved.toAppSettings(fontExists = false, onPhone)
+        assertEquals(ViewSize.COMPACT_LIST, back.viewLibrary)
+        assertEquals(ViewSize.LARGE_GRID, back.viewLists)
+        assertEquals(null, back.viewFolders)
+    }
+
+    @Test
+    fun aPlaceTheBackupHasNoSizeForKeepsThePhones() {
+        val saved = BackupSettings.from(phone.copy(viewLibrary = ViewSize.LIST))
+        val onPhone = phone.copy(viewLibrary = ViewSize.LARGE_GRID, viewFolders = ViewSize.MEDIUM_GRID)
+        val back = saved.toAppSettings(fontExists = false, onPhone)
+        assertEquals(ViewSize.LIST, back.viewLibrary)
+        assertEquals(ViewSize.MEDIUM_GRID, back.viewFolders)
+    }
+
+    @Test
+    fun aViewSizeThisBuildDoesNotKnowKeepsThePhones() {
+        val json = BackupCodec.encode(doc.copy(settings = BackupSettings.from(phone.copy(viewPrivate = ViewSize.SMALL_GRID))))
+            .replace("SMALL_GRID", "HUGE_GRID")
+        val onPhone = phone.copy(viewPrivate = ViewSize.LIST)
+        assertEquals(ViewSize.LIST, BackupCodec.decode(json).settings.toAppSettings(fontExists = false, onPhone).viewPrivate)
     }
 
     @Test

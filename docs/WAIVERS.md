@@ -176,3 +176,14 @@ The owner asked for three small things. None needs a permission, a dependency, a
 - F-P13: the long-press menus gain «تشغيل في نافذة منبثقة» as their first row, which starts playback and enters picture-in-picture by itself. It is behind a menu, as R13 asks, and adds nothing to Home, Library or the player's controls. Where picture-in-picture is missing or turned off for the app, the video plays in the full window and the player says so.
 - A pop-up over Home lets the owner delete the very video that is playing. The delete is the same confirmed one. When it takes the file, playback stops, the pop-up or the player closes, no position is saved for that file, and it is no longer the last thing played.
 - The player window is open to other apps for "Open with" (section 4.10). The pop-up request counts only when this app made it; the same intent from another app plays in the full window.
+
+## 2026-11-21: View sizes
+
+The owner asked for several more ways to show lists, videos and folders, from small to larger, behind the view button, in the private folder too («إضافة عدة أشكال أخرى لعرض القوائم والفيديوات والمجلدات (من صغير للأكبر) عند الضغط على تغيير العرض»), with a compact folder list as the reference for the smallest, and approved the storyboard of five sizes. This changes the brief as follows:
+
+- F-U3 "a grid and list toggle": the button opens a sheet of five sizes instead: compact list, list, small grid, medium grid, large grid. Its icon is the size in use. The default of Library stays the 3-column poster grid. The same button is on the folder pages, the row, genre and person pages, beside the search field while titles are listed, and in the private folder.
+- F-U3 is silent on Folders, which were one list. They now open as the compact list, the look of the owner's reference, until a size is chosen there.
+- F-U4 "2:3 posters with title and year below, a small glass rating badge": holds for the medium grid. The small grid shows the poster alone, with no title, year or rating badge; its progress line and watched mark stay. A small 16:9 frame keeps its title on the picture. The large grid has a larger title and the year with the first genre under it. The two lists are rows, not posters.
+- The choice is kept per place (Library, Folders, the private folder, the list pages with Search) in the settings and in the backup. A place with nothing stored shows its default, so an older install and an older backup keep the look they had.
+
+It needs no permission, dependency, network host or schema change. Media Manager keeps its own list.

@@ -23,8 +23,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +34,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.frameglass.data.api.SearchResults
+import com.frameglass.data.api.ViewPlace
 import com.frameglass.data.api.frameServices
 import com.frameglass.glass.CastAvatar
 import com.frameglass.glass.FilterChips
@@ -60,6 +61,8 @@ import com.frameglass.player.ui.bleed
 import com.frameglass.player.ui.fullLine
 import com.frameglass.player.ui.navigationInset
 import com.frameglass.player.ui.statusInset
+import com.frameglass.player.views.ViewButton
+import com.frameglass.player.views.rememberViewSize
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flatMapLatest
@@ -84,13 +87,17 @@ internal fun SearchScreen() {
     val nothing = found != null && found.titles.isEmpty() && found.people.isEmpty() && found.genres.isEmpty()
     val selection = remember { SelectionState<SelectItem> { it.key } }
     val listed = remember(found) { found?.titles?.map { it.selectItem() } }
+    // Results are a list of titles like the row, genre and person pages, and share their size.
+    val size = rememberViewSize(ViewPlace.LISTS)
+    val hasTitles = query.isNotBlank() && found?.titles?.isNotEmpty() == true
 
     // While selecting, the selection bar stands where the search field was, and the words typed are kept.
     SelectionScaffold(
         selection = selection,
         place = SelectionPlace.TITLES,
         listed = listed,
-        topBar = { SearchField(query, onChange = { query = it }) },
+        selectingActions = { ViewButton(ViewPlace.LISTS) },
+        topBar = { SearchField(query, showView = hasTitles, onChange = { query = it }) },
     ) {
         when {
             query.isBlank() -> CenteredMessage(
@@ -104,6 +111,7 @@ internal fun SearchScreen() {
                 state = grid,
                 top = statusInset() + FieldSpace,
                 bottom = navigationInset() + selection.clearance(FrameSizes.TabBarClearance),
+                size = size,
                 header = {
                     if (found.genres.isNotEmpty()) {
                         fullLine("genres") {
@@ -151,40 +159,47 @@ internal fun SearchScreen() {
     }
 }
 
+/** The search field. With [showView], while titles are listed under it, the view button stands at its end. */
 @Composable
-private fun SearchField(query: String, onChange: (String) -> Unit) {
-    GlassSurface(
-        kind = GlassKind.Control,
-        shape = FrameShapes.Chip,
+private fun SearchField(query: String, showView: Boolean, onChange: (String) -> Unit) {
+    Row(
         modifier = Modifier
             .statusBarsPadding()
             .padding(start = FrameSpacing.S16, end = FrameSpacing.S16, top = FrameSpacing.S8)
-            .fillMaxWidth()
-            .height(FieldHeight),
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S8),
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize().padding(start = FrameSpacing.S16, end = FrameSpacing.S4),
-            verticalAlignment = Alignment.CenterVertically,
+        GlassSurface(
+            kind = GlassKind.Control,
+            shape = FrameShapes.Chip,
+            modifier = Modifier.weight(1f).height(FieldHeight),
         ) {
-            Icon(Icons.Rounded.Search, null, Modifier.size(24.dp), tint = FrameColors.White)
-            FrameTextField(
-                value = query,
-                onValueChange = onChange,
-                placeholder = stringResource(R.string.app_search_placeholder),
-                modifier = Modifier.weight(1f),
-                filled = false,
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Search,
-            )
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onChange("") }) {
-                    Icon(
-                        Icons.Rounded.Close,
-                        stringResource(R.string.app_search_clear),
-                        tint = FrameColors.White,
-                    )
+            Row(
+                modifier = Modifier.fillMaxSize().padding(start = FrameSpacing.S16, end = FrameSpacing.S4),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Rounded.Search, null, Modifier.size(24.dp), tint = FrameColors.White)
+                FrameTextField(
+                    value = query,
+                    onValueChange = onChange,
+                    placeholder = stringResource(R.string.app_search_placeholder),
+                    modifier = Modifier.weight(1f),
+                    filled = false,
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Search,
+                )
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { onChange("") }) {
+                        Icon(
+                            Icons.Rounded.Close,
+                            stringResource(R.string.app_search_clear),
+                            tint = FrameColors.White,
+                        )
+                    }
                 }
             }
         }
+        if (showView) ViewButton(ViewPlace.LISTS)
     }
 }

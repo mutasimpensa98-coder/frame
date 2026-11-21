@@ -30,7 +30,6 @@ private const val KeepAliveMillis = 5_000L
 internal data class LibraryQuery(
     val filter: LibraryFilter = LibraryFilter.ALL,
     val sort: LibrarySort = LibrarySort.RECENT,
-    val asList: Boolean = false,
 )
 
 /**

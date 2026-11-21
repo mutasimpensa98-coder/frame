@@ -17,6 +17,10 @@ import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.AutoSubtitleMode
 import com.frameglass.data.api.SettingsRepository
 import com.frameglass.data.api.ThemeMode
+import com.frameglass.data.api.ViewPlace
+import com.frameglass.data.api.ViewSize
+import com.frameglass.data.api.storedViewSize
+import com.frameglass.data.api.withViewSize
 import com.frameglass.data.logic.ServiceUse
 import com.frameglass.data.secure.KeyVault
 import com.frameglass.net.ApiKey
@@ -72,6 +76,21 @@ private object Prefs {
     val clipPassDone = booleanPreferencesKey("internal.clipPassDone")
     val animePassDone = booleanPreferencesKey("internal.animePassDone")
     val imdbPausedUntil = longPreferencesKey("internal.imdbPausedUntil")
+
+    // ---- View sizes (owner request of 2026-11-21). Keep this block last and whole. ----
+    /** One key per place, absent until the owner picks a size there. */
+    fun view(place: ViewPlace) = stringPreferencesKey(ViewKeys.of(place))
+    // ---- End of view sizes. ----
+}
+
+/** The preference names of the view sizes. A name never changes once a build has shipped with it. */
+internal object ViewKeys {
+    fun of(place: ViewPlace): String = when (place) {
+        ViewPlace.LIBRARY -> "viewLibrary"
+        ViewPlace.FOLDERS -> "viewFolders"
+        ViewPlace.PRIVATE -> "viewPrivate"
+        ViewPlace.LISTS -> "viewLists"
+    }
 }
 
 internal class SettingsStore(
@@ -104,7 +123,21 @@ internal class SettingsStore(
 
     override val settings: Flow<AppSettings> = store.data.map(::read).distinctUntilChanged()
 
-    private fun read(p: Preferences): AppSettings {
+    private fun read(p: Preferences): AppSettings = readViews(p, readBase(p))
+
+    // ---- View sizes (owner request of 2026-11-21): read and written apart from the list above. ----
+    private fun readViews(p: Preferences, s: AppSettings): AppSettings =
+        ViewPlace.entries.fold(s) { settings, place -> settings.withViewSize(place, ViewSize.parse(p[Prefs.view(place)])) }
+
+    private fun writeViews(p: androidx.datastore.preferences.core.MutablePreferences, s: AppSettings) {
+        for (place in ViewPlace.entries) {
+            val size = s.storedViewSize(place)
+            if (size == null) p.remove(Prefs.view(place)) else p[Prefs.view(place)] = size.name
+        }
+    }
+    // ---- End of view sizes. ----
+
+    private fun readBase(p: Preferences): AppSettings {
         val d = AppSettings()
         return AppSettings(
             onlineFeatures = p[Prefs.online] ?: d.onlineFeatures,
@@ -168,6 +201,7 @@ internal class SettingsStore(
         p[Prefs.onboarding] = s.onboardingDone
         p[Prefs.tmdbEnabled] = s.tmdbEnabled
         p[Prefs.imdbEnabled] = s.imdbEnabled
+        writeViews(p, s)
     }
 
     suspend fun current(): AppSettings = settings.first()

@@ -23,6 +23,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.frameglass.data.api.PersonView
+import com.frameglass.data.api.ViewPlace
 import com.frameglass.data.api.frameServices
 import com.frameglass.glass.CoverImage
 import com.frameglass.glass.FrameColors
@@ -43,6 +44,8 @@ import com.frameglass.player.ui.TitleGrid
 import com.frameglass.player.ui.fullLine
 import com.frameglass.player.ui.navigationInset
 import com.frameglass.player.ui.statusInset
+import com.frameglass.player.views.ViewButton
+import com.frameglass.player.views.rememberViewSize
 
 private val PhotoSize = 112.dp
 
@@ -55,17 +58,20 @@ internal fun PersonScreen(personId: Long) {
     val current = person
     val selection = remember { SelectionState<SelectItem> { it.key } }
     val listed = remember(current) { current?.titles?.map { it.selectItem() } }
+    val size = rememberViewSize(ViewPlace.LISTS)
 
     SelectionScaffold(
         selection = selection,
         place = SelectionPlace.TITLES,
         listed = listed,
         modifier = Modifier.background(FrameColors.Canvas),
+        selectingActions = { ViewButton(ViewPlace.LISTS) },
         topBar = {
             TopGlassBar(
                 title = current?.name.orEmpty(),
                 scrolled = { grid.glassScrolled() },
                 navigation = { BackButton() },
+                actions = { ViewButton(ViewPlace.LISTS) },
             )
         },
     ) {
@@ -75,6 +81,7 @@ internal fun PersonScreen(personId: Long) {
             state = grid,
             top = statusInset() + FrameSizes.TopBarHeight,
             bottom = navigationInset() + selection.clearance(FrameSpacing.S24),
+            size = size,
             header = {
                 if (current != null) {
                     fullLine("person") {

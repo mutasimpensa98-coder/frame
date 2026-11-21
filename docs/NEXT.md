@@ -1,5 +1,7 @@
 # Next
 
+Updated 2026-11-21, after the five view sizes were built on branch `views`, on top of `select`: items 168 to 179 of section 2, and new entries in sections 3, 4, 5 and 7.
+
 Updated 2026-11-21, after multi-select was built on branch `select` (owner request of 2026-11-21): items 152 to 167 of section 2, and new entries in sections 3, 4, 5 and 7. The lines below are the earlier updates.
 
 Updated 2026-11-19, after branch `android10` lowered `minSdk` to 30 so the app installs on Android 11 and newer (waiver of 2026-11-19; Android 10 was built first and dropped the same day). Before that, updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else. Before that, the feature tour was built on branch `tour`; before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
@@ -246,10 +248,29 @@ Android 11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص 
 166. الرئيسية: اضغط مطوّل على أي بطاقة. المتوقع إن «تحديد» مش موجود هنا، لأن صفوف الرئيسية معاينة بالعرض، وموجود في المكتبة وفي «عرض الكل». هل هذا يناسبك، ولا تبيه يفتح المكتبة في وضع التحديد؟
 167. الإعدادات › «مدير الوسائط»: حدد كم ملف زي قبل. هل التحديد والشريط اللي تحت والحذف يشتغلوا زي ما كانوا بالضبط؟
 
+أشكال العرض الخمسة (فرع `views`):
+
+168. المكتبة: اضغط زر العرض اللي فوق (الأيقونة اللي جنب الثلاث نقاط). هل طلعت ورقة «شكل العرض» وفيها خمسة: «قائمة مدمجة»، «قائمة»، «شبكة صغيرة»، «شبكة متوسطة»، «شبكة كبيرة»، كل وحدة بأيقونتها، وعلامة صح على الشكل الحالي؟ وهل أيقونة الزر نفسه تتغير حسب الشكل اللي اخترته؟
+169. جرّب الخمسة في «الكل». المدمجة: سطور قصيرة بصورة صغيرة واسم وسطر معلومات. القائمة: زي قبل. الصغيرة: 4 في الصف، صور بس. المتوسطة: 3 في الصف زي قبل. الكبيرة: 2 في الصف بعنوان أكبر وتحته السنة والنوع. هل كل شكل مرتب، والعربي من اليمين، وما فيش نص مقصوص أو راكب على بعضه؟
+170. «مقاطع»: الشبكات لازم تكون 3 ثم 2 ثم 1 في الصف، والاسم مكتوب على الصورة نفسها. هل هذا اللي ظهر؟ وفي «قائمة»، هل صورة المقطع بالعرض مش بالطول؟
+171. «مجلدات»: المتوقع إنها تفتح أول مرة «قائمة مدمجة» زي الصورة اللي بعتها: مربع صغير فيه أيقونة مجلد، والاسم، وتحته عدد الفيديوهات ورقعة الحجم. هل قريبة منها؟ وجرّب الباقي: هل الملفات والمجلدات الاثنين يتغيروا، وفي الشبكات المجلد اللي له صورة عليه علامة مجلد صغيرة؟
+172. بدّل الشكل وأنت نازل في نص القائمة. هل بقيت تقريبًا عند نفس الفيلم، وما رجعتش لفوق؟ وهل السحب ناعم في «شبكة صغيرة» لما المكتبة كبيرة؟
+173. اختار شكل للمكتبة وشكل ثاني للمجلدات، واقفل التطبيق من التطبيقات الأخيرة وافتحه. هل كل مكان فتح على الشكل اللي اخترته له؟
+174. المجلد الخاص: هل فيه زر العرض فوق جنب القفل، والخمسة أشكال يشتغلوا فيه، واختياره محفوظ لحاله؟
+175. «عرض الكل» من الرئيسية، وصفحة ممثل، وصفحة نوع، ونتائج البحث (الزر يطلع جنب خانة البحث لما تظهر عناوين): هل زر العرض موجود، ولما تغيّر الشكل في وحدة يتغيّر في الباقي؟
+176. التحديد مع الأشكال: في كل شكل من الخمسة اضغط مطوّل واختار «تحديد». هل العلامة واضحة حتى على المربع الصغير في «قائمة مدمجة»؟ والتحديد شغّال، غيّر الشكل من زر العرض اللي في شريط التحديد: هل اللي حددته بقى محدد؟
+177. «شبكة صغيرة» ما فيهاش تقييم ولا اسم تحت الغلاف، بس خط التقدم وعلامة المشاهدة باقيين. هل هذا مناسب، ولا تبي الاسم تحت الغلاف؟
+178. جرّب الأشكال الخمسة في الثيم الفاتح ومع لون ثاني، وكبّر الخط من إعدادات التلفون. هل كل شي مقروء وفي مكانه؟
+179. اعمل نسخة احتياطية بعد ما تختار أشكالك، وبعدها غيّر الأشكال ورجّع النسخة. هل الأشكال رجعت زي ما كانت وقت النسخة؟
+
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
 
+- **View sizes, the looks (`views`).** Five looks times posters, frames and folders, drawn from numbers and the storyboard only. Watch for: a compact row taller or shorter than the reference (it should be near 52 dp), a small frame whose title crowds the picture, the large title of a 2-column poster cut at a large font, and the gap between the chips and the first row at each size; items 169 to 171 and 178 ask.
+- **View sizes, the change.** The grid keeps its state and its keys, so the first visible item should stay. A jump to the top, or a flash of the wrong kind of cell, means the lazy grid rebuilt; item 172 asks. Speed in the 4-column grid was not measured.
+- **View sizes, Folders.** They open as the compact list on every install, the owner's phone included, because nothing was stored for them before. A folder with a picture shows a folder icon in the compact row and its picture with a small folder badge in the grids; item 171 asks.
+- **View sizes, the search field.** The field shares its line with the view button while titles are listed, so it is one button narrower then. Watch for the field jumping as results come and go; item 175 asks.
 - **Multi-select, the tap (`select`).** While a screen selects, `Modifier.selectableItem` takes the press before the card under it sees it, so the card opens nothing and the list still scrolls. Watch for a card that opens Details or plays while selecting, a pick made by a scroll or by the touch that stops a fling, and a long press that opens a menu in selection mode; items 152 and 153 ask.
 - **Multi-select, the bars.** The screen's top bar and, on Library and Search, the tab bar are swapped for the selection bars with no fade. Watch for a frame with both or neither, the last row hidden behind the action bar, and Back leaving the page instead of the mode; item 154 asks. On a tab the action bar takes the tab bar's place, so the number of glass layers is what it was; on a pushed page it is one more, two with the top bar.
 - **Multi-select, the mark.** A dimmed picture, an accent rim and a check on the accent fill, and a 12% accent wash on list rows. Nobody has looked at it on a white cover in the light theme or with the white accent; item 156 asks. The labels under the icons may take two lines at a large font; item 157 asks.
@@ -305,6 +326,13 @@ From this round's three requests, read in the code and never run:
 - **The sites line under subtitle results** is text only. Nothing in `:app` implements `PlayerHost.subtitleKeysIntent()`, so it cannot open the keys page.
 
 ## 4. Known limits in this build
+
+View sizes (`views`):
+
+- Media Manager, the rows of Home, the collection rail and the episode list keep their one look.
+- The small grid of posters shows no title, year or rating; item 177 asks whether the owner wants the name back.
+- The line of a large card is the year and the first genre. A clip or an unmatched title has no genre and shows the year alone.
+- A backup that holds view sizes cannot be read by a build from before them, as with every setting added before.
 
 Multi-select (`select`):
 
@@ -393,6 +421,8 @@ Shortcuts, widget, next episode, trailer and tonight's pick (this round, not see
 
 ## 5. Decisions for the owner
 
+- **Folders open as the compact list (2026-11-21).** That is the reference the owner sent, and it replaces the larger list every install showed until now. The old row is the size «قائمة», one tap away. Keep compact as the default?
+
 - **«تحديد» on Home (2026-11-21).** It is not offered there, because the rows are horizontal previews; Library, Search and every "View all" page have it. The other way is to open Library in selection mode with that card picked. Item 166 asks.
 - **Delete inside the private folder (2026-11-21).** Not built. It would delete for good, with no trash, and needs its own confirmation because the sheet of Media Manager never sees private videos. Wanted?
 
@@ -418,6 +448,8 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 - Owner checks: font choice, HDR look, Arabic subtitle rendering, dialogue on A2 to A5.
 
 ## 7. Build next, in order
+
+Also before the list: **View sizes (`views`)**, cut from `select`, so it merges after it. Branch `themes` adds fields to `AppSettings`, `SettingsStore` and `BackupSettings` too; the ones of this branch sit in marked blocks at the end of each, and are read and written by functions of their own (`readViews`, `writeViews`, `withViews`, `viewsOf`), so a conflict there is only the two blocks meeting. Send items 168 to 179 of section 2.
 
 First, before the list: **Multi-select (`select`).** Review, merge into `main`, write `docs/RELEASE-NOTES.md` in Arabic and ship as usual, then send items 152 to 167 of section 2. The grid and list layouts of the same screens change next: a new card only needs `Modifier.selectableItem(item)` (and `Modifier.selectionMark(item)` on its picture when the title sits outside it), and a new screen one `SelectionScaffold`; `SelectionRules` and `SelectionState` do not change with the layout.
 

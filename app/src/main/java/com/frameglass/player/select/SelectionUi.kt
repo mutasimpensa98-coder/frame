@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -101,6 +102,7 @@ private val ArtRimWidth = 2.5.dp
 private val CheckRadius = 14.dp
 private val CheckRing = 2.dp
 private val CheckIcon = 18.dp
+private const val CheckShare = 0.3f
 
 private val ActionIcon = 24.dp
 private val ActionMinHeight = 56.dp
@@ -183,9 +185,11 @@ internal fun Modifier.selectionMark(
         val inner = Size((size.width - rimWidth).coerceAtLeast(0f), (size.height - rimWidth).coerceAtLeast(0f))
         val outline = shape.createOutline(size, layoutDirection, this)
         val rim = shape.createOutline(inner, layoutDirection, this)
-        val radius = CheckRadius.toPx()
-        val ring = CheckRing.toPx()
-        val icon = CheckIcon.toPx()
+        // On a small tile, such as the one of a compact row, the check shrinks to stay inside the picture.
+        val radius = minOf(CheckRadius.toPx(), size.minDimension * CheckShare)
+        val scale = radius / CheckRadius.toPx()
+        val ring = CheckRing.toPx() * scale
+        val icon = CheckIcon.toPx() * scale
         onDrawWithContent {
             drawContent()
             val strength = shown
@@ -198,7 +202,7 @@ internal fun Modifier.selectionMark(
             translate(rimWidth / 2f, rimWidth / 2f) {
                 drawOutline(rim, colors.accent, alpha = (if (art) 1f else RowRim) * strength, style = Stroke(rimWidth))
             }
-            if (art && size.minDimension > 2f * (radius + ring)) {
+            if (art) {
                 // A ring in the canvas colour keeps the check apart from whatever the picture holds.
                 drawCircle(colors.canvas, radius + ring, center, alpha = strength)
                 drawCircle(colors.accentFill, radius, center, alpha = strength)
@@ -449,6 +453,7 @@ internal fun SelectionTopBar(
     selection: SelectionState<SelectItem>,
     listed: List<SelectItem>,
     modifier: Modifier = Modifier,
+    actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val count = selection.count
     val picked = selection.picked
@@ -477,6 +482,7 @@ internal fun SelectionTopBar(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
+            actions?.invoke(this)
             if (listed.isNotEmpty()) {
                 BarChip(
                     text = stringResource(if (allPicked) R.string.app_select_none else R.string.app_select_all),
@@ -495,6 +501,7 @@ internal fun SelectionState<*>.clearance(normal: Dp): Dp = if (active) maxOf(nor
  * selection to the cards inside [content], swaps [topBar] for the selection bar, raises the action bar, takes Back
  * first, and drops picks that leave the list. [listed] is what the list holds now, in order, for "Select all";
  * null while it loads. The screen keeps [selection] itself, so it can clear it when its filter changes.
+ * [selectingActions] are the few buttons of the screen that stay while selecting, such as the view button.
  */
 @Composable
 internal fun SelectionScaffold(
@@ -502,6 +509,7 @@ internal fun SelectionScaffold(
     place: SelectionPlace,
     listed: List<SelectItem>?,
     modifier: Modifier = Modifier,
+    selectingActions: (@Composable RowScope.() -> Unit)? = null,
     topBar: @Composable () -> Unit,
     content: @Composable BoxScope.() -> Unit,
 ) {
@@ -525,7 +533,7 @@ internal fun SelectionScaffold(
         CompositionLocalProvider(LocalSelection provides selection) { content() }
         // Both bars are swapped in plainly, as Media Manager's are, so their glass is composed like any bar's.
         if (selection.active) {
-            SelectionTopBar(selection, listed.orEmpty())
+            SelectionTopBar(selection, listed.orEmpty(), actions = selectingActions)
             SelectionActionBar(place, selection.items, act, Modifier.align(Alignment.BottomCenter))
         } else {
             topBar()

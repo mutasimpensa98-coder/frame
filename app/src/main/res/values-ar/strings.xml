@@ -90,8 +90,13 @@
     <string name="app_sort_recent">أُضيف مؤخرًا</string>
     <string name="app_sort_name">الاسم</string>
     <string name="app_sort_rating">التقييم</string>
-    <string name="app_view_grid">عرض كشبكة</string>
-    <string name="app_view_list">عرض كقائمة</string>
+    <string name="app_view_title">شكل العرض</string>
+    <string name="app_view_button">شكل العرض: %1$s</string>
+    <string name="app_view_compact">قائمة مدمجة</string>
+    <string name="app_view_list">قائمة</string>
+    <string name="app_view_small">شبكة صغيرة</string>
+    <string name="app_view_medium">شبكة متوسطة</string>
+    <string name="app_view_large">شبكة كبيرة</string>
     <string name="app_library_empty">لا توجد عناوين هنا بعد.</string>
     <string name="app_cinema_library_empty">في وضع السينما تظهر هنا الأفلام والمسلسلات والأنمي فقط، وبقية فيديوهاتك في «مقاطع».</string>
     <string name="app_library_no_folders">لا توجد مجلدات فيها فيديوهات بعد.</string>
