@@ -1,5 +1,7 @@
 # Status
 
+Updated 2026-11-21, after the private folder shortcut on Home was built on branch `views` (owner request of 2026-11-21). Not merged, not installed and not seen on a phone. See "This round: private folder shortcut on Home".
+
 Updated 2026-11-21, after the delete inside the private folder was built on branch `views` (owner decision and waiver of 2026-11-21). Not merged, not installed and not seen on a phone. See "This round: delete inside the private folder".
 
 Updated 2026-11-21, after the five view sizes were built on branch `views`, on top of `select` (owner request and waiver of 2026-11-21). Not merged, not installed and not seen on a phone. See "This round: view sizes".
@@ -11,6 +13,7 @@ Updated 2026-11-19, after the developer name on About, the episode delete on Hom
 
 ## Read this first
 
+- **Branch `views` (2026-11-21) also puts a lock button at the top start of Home that opens the private folder.** One glass button, no test of its own, never seen on a phone. See "This round: private folder shortcut on Home".
 - **Branch `views` (2026-11-21) also adds a permanent delete inside the private folder, always behind its own confirmation sheet.** Built and unit tested (the plan, what goes with a video, and that nothing is deleted before the confirmation), never installed: no private video has been deleted by this code, on any device, and the cleanup of a title left with no file has only been read through. See "This round: delete inside the private folder".
 - **Branch `views` (2026-11-21), on top of `select`, adds five view sizes behind the view button: compact list, list, small, medium and large grid.** In Library, Folders, the row, genre and person pages, Search and the private folder, remembered per place and kept in backups. Built and unit tested (columns, what each size shows, the stored choice, the backup), never installed or seen on a phone: nobody has looked at any of the five, in any theme or language. Folders now open as the compact list. See "This round: view sizes".
 - **Branch `select` (2026-11-21) adds multi-select: «تحديد» in the long-press menus, then a selection bar on top and an action bar at the bottom.** Built and unit tested (rules and state only), never installed or seen on a phone. No tap has picked a card on a device, no bulk delete, move or mark has run, and nobody has looked at the mark in either theme. Not built: a delete inside the private folder. See "This round: multi-select".
@@ -57,6 +60,8 @@ First build only. Screenshots are in `evidence/phase-1/first-build/`, listed in 
 Phase 0 matrix, on the round 2 `qa` build (`evidence/phase-0/matrix.csv`): 50 of 53 Core rows passed. The results and the three open rows are in `phase-0-results.md`. Earlier runs are in `D:\FrameGlass\logs\`: `matrix-run1.csv` for run 1 and `matrix-run2.log` for run 2, 29 of 53.
 
 ## Build and tests
+
+Branch `views` after the Home shortcut, on this PC on 2026-11-21, with the build cache: `testDebugUnitTest`, `assembleRelease` and `:app:lintRelease` pass. Unit tests: 1,323 run, 0 failed, 1 skipped, the same counts as the build before it: the shortcut is one button and added no test. `:app` lint: 0 errors, 23 warnings and 1 hint. Release APK 23,800,925 bytes. Nothing was installed, and no emulator or phone was used.
 
 Branch `views` after the delete inside the private folder, on this PC on 2026-11-21, with the build cache: `testDebugUnitTest`, `assembleRelease` and `:app:lintRelease` pass, and `python -I tools/check_update.py` passes (two queries were added to the DAOs, and no table or column changed). Unit tests: 1,323 run, 0 failed, 1 skipped (the same `AnimeIndexTest`): data 560 (12 new: `VaultDeleteRulesTest`), net 353, engine 75, player 122, app 180 (12 new: `VaultDeleteFlowTest` 10, two in `SelectionRulesTest`), glass 33. `:parser:test`, `assembleQa`, `fg.ps1 build` and lint of the other modules were not run. `:app` lint: 0 errors, 23 warnings and 1 hint, none in a file or a string of this round. Release APK 23,800,925 bytes. Nothing was installed, and no emulator or phone was used.
 
@@ -368,6 +373,17 @@ Five faults from the review of the merge were fixed:
 | An owner pick made while the downloaded file was being read could be undone. | `addLive` and `playLive` ask again after the read and before the screen changes. No test. |
 | A player at the root of its task, opened from a shortcut or the widget, stayed open under the keys page. | The player calls `exit()` after starting the intent, which saves the position. `FrameRoot` uses `AppLinks.shouldOpen`, which skips the page when it is already on top (`AppLinksTest`). |
 | TMDB's air date is the network's local date, so in Libya an episode often lands that night or the next morning. | The episode stays announced until air date + 1 day (`Upcoming.of`, `AirDates.dayOf`), and that case reads «تنزل الليلة» and «حلقة جديدة الليلة»; tomorrow stays «تنزل غدًا». `UpcomingTest`, `AirDatesTest`. |
+
+## This round: private folder shortcut on Home
+
+Owner request of 2026-11-21 («فوق على اليسار»), built on branch `views` as a commit of its own. No permission, dependency, manifest or schema change, and no new string: the button says `app_settings_private`, «المجلد الخاص» / "Private folder", which both languages already had.
+
+| Part | Status | Notes |
+|---|---|---|
+| The lock button | BUILT | `PrivateFolderButton` in `HomeScreen.kt`: the same `GlassIconButton` as "Add a place" (`Icons.Rounded.Lock`, same size, same glass over the hero, same status bar inset and 12 dp margin), at the top start: left in English, where the owner asked for it, and right in Arabic, so the two buttons keep opposite corners. It shows wherever "Add a place" shows, the empty Home included. A tap is `navigator.push(Route.PrivateFolder)`, the call the Settings row makes, so it asks for the fingerprint or the password, or opens the setup when no password exists. No badge and no count. Not seen. |
+| The scan count | BUILT | The chip that counts a long scan sat alone at the top start. It now sits beside the lock in one row, which stops short of "Add a place", so a long count is cut before it reaches that button. Not seen: the three together on a narrow screen or at a large font. |
+
+Brief R13 asks that new capability not crowd Home. This is one icon the owner asked for by place, mirrored against the one already there; nothing else was added.
 
 ## This round: delete inside the private folder
 

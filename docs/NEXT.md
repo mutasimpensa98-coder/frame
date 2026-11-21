@@ -1,5 +1,7 @@
 # Next
 
+Updated 2026-11-21, after the private folder shortcut on Home was built on branch `views`: item 185 of section 2 and one entry in section 3.
+
 Updated 2026-11-21, after the delete inside the private folder was built on branch `views`: items 180 to 184 of section 2, and entries in sections 3 and 4. It is no longer a decision of section 5.
 
 Updated 2026-11-21, after the five view sizes were built on branch `views`, on top of `select`: items 168 to 179 of section 2, and new entries in sections 3, 4, 5 and 7.
@@ -273,10 +275,15 @@ Android 11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص 
 183. حدد فيديوين تجربة في المجلد الخاص («تحديد»). هل الشريط اللي تحت فيه «نقل خارج المجلد» و«حذف نهائي» بالأحمر في الآخر؟ اضغط «حذف نهائي»: هل الورقة فيها الاسمين والعدد 2؟ ألغِ: هل التحديد بقى؟ أكّد: هل الاثنين راحوا والتحديد سكّر؟
 184. شغّل فيديو تجربة من المجلد الخاص في نافذة صغيرة (زر الرئيسية وهو يشتغل)، وارجع للمجلد الخاص واحذفه نهائيًا. هل النافذة سكّرت وحدها والصوت وقف؟
 
+اختصار المجلد الخاص في الرئيسية (فرع `views`):
+
+185. الرئيسية: هل فيه زر قفل زجاجي فوق على اليسار (بالإنجليزي)، بنفس شكل زر «+» اللي على اليمين، وما يغطيش عنوان الفيلم اللي في الصورة الكبيرة؟ اضغطه: هل فتح المجلد الخاص وطلب البصمة أو كلمة السر؟ وبالعربي: هل القفل صار على اليمين و«+» على اليسار؟ ولما التطبيق يبحث عن فيديوهات مدة طويلة، هل عدّاد البحث طلع جنب القفل وما ركبش عليه ولا على «+»؟
+
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
 
+- **The lock on Home (`views`).** A third glass control over the hero, with the tab bar and "Add a place": three blurred layers is the limit, so with a sheet open one of them falls back to tint and rim. Watch the lock's contrast over a bright hero, and the scan count beside it; item 185 asks.
 - **Delete inside the private folder (`views`).** It is for good, and nothing has run it. Watch that no video goes before the red button is pressed (item 181), that the folder's count and size fall at once (item 182), and that no trace of a deleted video's name stays in Library, Search or the hidden list. A card left behind that says «غير متوفر» means the file went and its row did not; deleting it again removes the row.
 - **Delete inside the private folder, during a scan.** The cleanup of a title left with no file waits for a running scan to end, so the sheet can show «جارٍ الحذف…» for as long as a search of the phone takes. The video itself is gone before that wait.
 - **View sizes, the looks (`views`).** Five looks times posters, frames and folders, drawn from numbers and the storyboard only. Watch for: a compact row taller or shorter than the reference (it should be near 52 dp), a small frame whose title crowds the picture, the large title of a 2-column poster cut at a large font, and the gap between the chips and the first row at each size; items 169 to 171 and 178 ask.
