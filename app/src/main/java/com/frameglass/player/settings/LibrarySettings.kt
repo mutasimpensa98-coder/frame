@@ -15,7 +15,10 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.frameglass.data.api.AppSettings
+import com.frameglass.data.api.ChipOrder
+import com.frameglass.data.api.FoldersMode
 import com.frameglass.data.api.TitleCard
+import com.frameglass.data.api.foldersView
 import com.frameglass.data.api.frameServices
 import com.frameglass.glass.FrameColors
 import com.frameglass.glass.FrameType
@@ -41,6 +44,7 @@ internal fun LibrarySettingsScreen() {
         item(key = "search") { SearchSection(settings) }
         item(key = "excluded") { ExcludedSection(excluded) }
         item(key = "hidden") { HiddenSection(hidden) }
+        item(key = "layout") { LayoutSection(settings) }
         item(key = "show") { ShowSection(settings) }
     }
 }
@@ -161,6 +165,40 @@ private fun HiddenSection(hidden: List<TitleCard>) {
                 },
             )
         }
+    }
+}
+
+/**
+ * How Library is laid out (owner requests of 2026-11-22): whether Folders list every folder at once or as a tree,
+ * and the way back from an order of the filter chips the owner dragged them into.
+ */
+@Composable
+private fun LayoutSection(settings: AppSettings) {
+    val model = rememberUiModel()
+    val moved = !ChipOrder.isDefault(settings.libraryChips)
+
+    SettingsSection(stringResource(R.string.app_library_section_layout)) {
+        ChoiceRow(
+            title = stringResource(R.string.app_folders_view),
+            description = stringResource(R.string.app_folders_view_hint),
+            options = listOf(
+                FoldersMode.FLAT to stringResource(R.string.app_folders_view_flat),
+                FoldersMode.TREE to stringResource(R.string.app_folders_view_tree),
+            ),
+            selected = settings.foldersView,
+            onSelect = { mode -> model.updateSettings { it.copy(foldersMode = mode) } },
+        )
+        SettingsDivider()
+        SettingRow(
+            title = stringResource(R.string.app_chips_reset),
+            description = stringResource(R.string.app_chips_reset_hint),
+            value = if (moved) null else stringResource(R.string.app_chips_order_default),
+            onClick = if (moved) {
+                { model.updateSettings { it.copy(libraryChips = null) } }
+            } else {
+                null
+            },
+        )
     }
 }
 

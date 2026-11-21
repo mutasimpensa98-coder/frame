@@ -311,11 +311,13 @@ private fun PlaceActions(entry: FolderEntry, sheet: GlassSheetState, onSelect: (
     val media = LocalContext.current.frameServices.media
     val navigator = LocalNavigator.current
     val fileRow = entry.play?.fileRowId
-    // A folder stands for every video under it, in folders of its own too. Empty when nothing there can go.
-    val content by produceState(emptyList<MediaEntry>(), entry.path) {
+    // A folder of the tree stands for every video under it, in folders of its own too, and a row of the flat list
+    // for the videos directly in it. Empty when nothing there can go.
+    val content by produceState(emptyList<MediaEntry>(), entry.path, entry.direct) {
         value = when {
             fileRow != null -> listOf(CardMenuRules.fileEntry(fileRow, entry.name))
-            entry.isDirectory -> CardMenuRules.foldersUnder(entry.path, media.entries(MediaGroup.FOLDERS).first())
+            entry.isDirectory ->
+                CardMenuRules.folderContent(entry.path, entry.direct, media.entries(MediaGroup.FOLDERS).first())
             else -> emptyList()
         }
     }

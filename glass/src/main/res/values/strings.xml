@@ -4,6 +4,8 @@
     <string name="glass_new_episode">New episode</string>
     <string name="glass_rating">Rated %1$s on %2$s</string>
     <string name="glass_sort_by">Sort by %1$s</string>
+    <string name="glass_chip_move_start">Move toward the start</string>
+    <string name="glass_chip_move_end">Move toward the end</string>
     <string name="glass_unavailable">Unavailable</string>
     <string name="glass_view_all">View all</string>
     <string name="glass_watched">Watched</string>

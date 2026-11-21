@@ -34,6 +34,7 @@ class RoutesTest {
             Route.Row(HomeRowKind.GENRE, "Drama"),
             Route.Row(HomeRowKind.TOP_RATED, null),
             Route.Folder("/storage/emulated/0/Movies"),
+            Route.Folder("/storage/emulated/0/DCIM/Camera", direct = true),
             Route.MediaItems(MediaEntryKind.FOLDER, "folder|primary|Movies/Old", "Old", null, "/storage/emulated/0/Movies/Old"),
             Route.MediaItems(MediaEntryKind.TITLE, "title|9", "Quiet Coast", 9, null),
             Route.MediaItems(MediaEntryKind.CLIP_GROUP, "clips", "Clips", null, null),

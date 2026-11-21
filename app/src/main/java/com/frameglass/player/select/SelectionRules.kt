@@ -28,8 +28,16 @@ internal sealed interface SelectItem {
         override val key: String get() = "title|$id"
     }
 
-    /** A folder row in Folders. */
-    data class Folder(val path: String, override val name: String, override val onStorage: Boolean) : SelectItem {
+    /**
+     * A folder row in Folders. With [direct] it is a row of the flat list, which stands for the videos directly in
+     * the folder and never for the folders inside it.
+     */
+    data class Folder(
+        val path: String,
+        override val name: String,
+        override val onStorage: Boolean,
+        val direct: Boolean = false,
+    ) : SelectItem {
         override val key: String get() = "folder|$path"
     }
 
@@ -63,7 +71,7 @@ internal fun TitleCard.privateSelectItem() = SelectItem.Private(id, name)
 
 /** A video row whose file the library no longer knows has nothing to act on, so it cannot be picked. */
 internal fun FolderEntry.selectItem(): SelectItem? = when {
-    isDirectory -> SelectItem.Folder(path, name, onStorage = !unavailable)
+    isDirectory -> SelectItem.Folder(path, name, onStorage = !unavailable, direct = direct)
     else -> play?.fileRowId?.let { SelectItem.File(it, name, onStorage = !unavailable) }
 }
 
@@ -232,6 +240,9 @@ internal object SelectionRules {
         return BarLayout(rest.take(room - 1), rest.drop(room - 1), pinned)
     }
 
+    private fun inFolder(item: SelectItem.Folder, path: String): Boolean =
+        if (item.direct) path.trimEnd('/') == item.path.trimEnd('/') else CardMenuRules.isUnder(item.path, path)
+
     /** Titles for the watchlist, favourites and hide, which only a title can take. */
     fun titleIds(items: Collection<SelectItem>): List<Long> =
         items.filterIsInstance<SelectItem.Title>().map { it.id }.distinct()
@@ -249,8 +260,8 @@ internal object SelectionRules {
     }.distinct()
 
     /** Folders whose Media Manager entries must be looked up before a delete or a move. */
-    fun foldersOnStorage(items: Collection<SelectItem>): List<String> =
-        items.filterIsInstance<SelectItem.Folder>().filter { it.onStorage }.map { it.path }.distinct()
+    fun foldersOnStorage(items: Collection<SelectItem>): List<SelectItem.Folder> =
+        items.filterIsInstance<SelectItem.Folder>().filter { it.onStorage }.distinctBy { it.path }
 
     /** Episodes whose files must be looked up before a delete or a move. */
     fun episodesOnStorage(items: Collection<SelectItem>): List<String> =
@@ -258,9 +269,10 @@ internal object SelectionRules {
 
     /**
      * Everything the confirmation sheet is asked about, in pick order. [folders] are Media Manager's folder entries
-     * and [versions] the files of each picked episode by playable key. A picked folder stands for every entry at
-     * its path or under it, so a folder of folders counts all the videos inside. An item with nothing on storage,
-     * a folder with no video anywhere under it and anything inside the private folder add no entry.
+     * and [versions] the files of each picked episode by playable key. A picked folder of the tree stands for
+     * every entry at its path or under it, so a folder of folders counts all the videos inside. A picked row of the
+     * flat list stands for the entry at its own path alone. An item with nothing on storage, a folder with no video
+     * anywhere under it and anything inside the private folder add no entry.
      */
     fun deleteEntries(
         items: Collection<SelectItem>,
@@ -270,7 +282,7 @@ internal object SelectionRules {
         when (item) {
             is SelectItem.Title -> listOf(CardMenuRules.titleEntry(item.id, item.name))
             is SelectItem.File -> listOf(CardMenuRules.fileEntry(item.fileRowId, item.name))
-            is SelectItem.Folder -> CardMenuRules.foldersUnder(item.path, folders)
+            is SelectItem.Folder -> CardMenuRules.folderContent(item.path, item.direct, folders)
             is SelectItem.Episode ->
                 CardMenuRules.episodeEntries(versions[item.playableKey].orEmpty(), item.title, item.label)
             is SelectItem.Private -> emptyList()
@@ -279,8 +291,8 @@ internal object SelectionRules {
 
     /**
      * What a move into the private folder takes. [folderFiles] are the file rows of each Media Manager folder by
-     * its path, and a picked folder takes those of every folder at its path or under it. [versions] as for
-     * [deleteEntries]. Only files on storage go.
+     * its path. A picked folder of the tree takes those of every folder at its path or under it, and a picked row
+     * of the flat list those of its own path alone. [versions] as for [deleteEntries]. Only files on storage go.
      */
     fun moveIn(
         items: Collection<SelectItem>,
@@ -291,8 +303,7 @@ internal object SelectionRules {
         val rows = movable.flatMap { item ->
             when (item) {
                 is SelectItem.File -> listOf(item.fileRowId)
-                is SelectItem.Folder ->
-                    folderFiles.filterKeys { CardMenuRules.isUnder(item.path, it) }.values.flatten()
+                is SelectItem.Folder -> folderFiles.filterKeys { inFolder(item, it) }.values.flatten()
                 is SelectItem.Episode ->
                     versions[item.playableKey].orEmpty().filter { it.available }.map { it.fileRowId }
                 else -> emptyList()

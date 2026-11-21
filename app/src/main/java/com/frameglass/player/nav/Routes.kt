@@ -61,7 +61,12 @@ internal sealed interface Route {
     data class Person(val personId: Long) : Route
     data class Genre(val name: String) : Route
     data class Row(val kind: HomeRowKind, val label: String?) : Route
-    data class Folder(val path: String) : Route
+
+    /**
+     * One folder. With [direct] it is a row of the flat list of folders, and the page shows the videos directly in
+     * it and nothing of the folders inside it. Without, it is a folder of the tree.
+     */
+    data class Folder(val path: String, val direct: Boolean = false) : Route
 }
 
 private const val Separator = "\u001F"
@@ -82,7 +87,7 @@ private fun Route.encode(): String = when (this) {
     is Route.Person -> fields("person", personId)
     is Route.Genre -> fields("genre", name)
     is Route.Row -> fields("row", kind.name, label)
-    is Route.Folder -> fields("folder", path)
+    is Route.Folder -> fields("folder", path, direct)
 }
 
 private fun decode(saved: String): Route? {
@@ -111,7 +116,8 @@ private fun decode(saved: String): Route? {
         "person" -> text(1)?.toLongOrNull()?.let(Route::Person)
         "genre" -> text(1)?.let(Route::Genre)
         "row" -> text(1)?.let { Route.Row(HomeRowKind.valueOf(it), text(2)) }
-        "folder" -> text(1)?.let(Route::Folder)
+        // A stack saved before the flat list has no third field, which reads as a folder of the tree.
+        "folder" -> text(1)?.let { Route.Folder(it, direct = text(2).toBoolean()) }
         else -> null
     }
 }

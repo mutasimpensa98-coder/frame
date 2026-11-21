@@ -230,6 +230,19 @@ class CardMenuRulesTest {
     }
 
     @Test
+    fun aRowOfTheFlatListTakesItsOwnFolderAndNothingUnderIt() {
+        fun own(path: String) = CardMenuRules.folderContent(path, direct = true, listed).map { it.folderPath }
+        assertEquals(listOf("/storage/shows"), own("/storage/shows"))
+        assertEquals(listOf("/storage/shows"), own("/storage/shows/"))
+        assertEquals(listOf("/storage/clips"), own("/storage/clips"))
+        // "harbour" holds only folders, so it has no row in the flat list, and asking for it finds nothing.
+        assertTrue(own("/storage/shows/harbour").isEmpty())
+        assertTrue(own("").isEmpty())
+        // A folder of the tree still takes everything under it.
+        assertEquals(under("/storage/shows"), CardMenuRules.folderContent("/storage/shows", direct = false, listed).map { it.folderPath })
+    }
+
+    @Test
     fun aSiblingWhoseNameOnlyStartsTheSameIsNotInside() {
         assertFalse(CardMenuRules.isUnder("/storage/shows/harbour", "/storage/shows/harbour 2"))
         assertFalse(CardMenuRules.isUnder("/storage/shows/harbour", "/storage/shows"))

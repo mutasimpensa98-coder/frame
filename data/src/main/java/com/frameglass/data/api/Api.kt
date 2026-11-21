@@ -152,6 +152,14 @@ data class FolderEntry(
     val progress: Float?,
     val unavailable: Boolean,
     val play: PlayRef?,
+    /**
+     * A folder of the flat list or of a folder search: the row stands for the videos directly in the folder, not
+     * for those in folders inside it, which have rows of their own. Its count and size are those videos, a tap
+     * opens them alone, and a delete or a move takes them alone.
+     */
+    val direct: Boolean = false,
+    /** The short parent path that tells two folders of one name apart in the flat list. Null when the name is unique. */
+    val hint: String? = null,
 )
 
 data class FolderView(val path: String?, val name: String?, val entries: List<FolderEntry>)
@@ -248,6 +256,23 @@ interface LibraryRepository {
 
     fun titles(filter: LibraryFilter, sort: LibrarySort): Flow<List<TitleCard>>
     fun folder(path: String?): Flow<FolderView>
+
+    /**
+     * Every folder that holds videos directly, as one list with no folder inside a folder (owner request of
+     * 2026-11-22). Each entry is FolderEntry.direct. Two folders of one name carry FolderEntry.hint.
+     */
+    fun flatFolders(sort: FolderSort = FolderSort.NAME): Flow<FolderView> = flowOf(FolderView(null, null, emptyList()))
+
+    /** The videos directly in [path] and nothing of the folders inside it: what a FolderEntry.direct row opens. */
+    fun folderVideos(path: String): Flow<FolderView> = flowOf(FolderView(path, null, emptyList()))
+
+    /**
+     * Folders and videos whose name holds every word of [query]: first the folders that hold videos directly, as
+     * FolderEntry.direct rows, then the videos. [under] keeps the search inside one folder, and with [deep] off
+     * only the videos directly in it are searched. A blank query finds nothing.
+     */
+    fun searchFolders(query: String, under: String? = null, deep: Boolean = true): Flow<FolderView> =
+        flowOf(FolderView(under, null, emptyList()))
     fun title(id: Long): Flow<TitleDetail?>
     fun episodes(titleId: Long, season: Int): Flow<List<EpisodeRow>>
     fun search(query: String): Flow<SearchResults>
@@ -424,6 +449,12 @@ data class AppSettings(
     val viewPrivate: ViewSize? = null,
     val viewLists: ViewSize? = null,
     // ---- End of view sizes. ----
+    // ---- Library layout (owner requests of 2026-11-22). Keep this block whole; see ApiLibraryLayout.kt. ----
+    /** Null until the owner picks, which shows FoldersMode.DEFAULT. Read through foldersView. */
+    val foldersMode: FoldersMode? = null,
+    /** The order of the filter chips of Library. Null until a chip is moved, which shows ChipOrder.DEFAULT. */
+    val libraryChips: List<LibraryFilter>? = null,
+    // ---- End of library layout. ----
 )
 
 interface SettingsRepository {

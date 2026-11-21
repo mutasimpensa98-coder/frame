@@ -99,14 +99,14 @@ private class SelectionRunner(
     }
 
     /**
-     * Media Manager's entries for every picked folder: the folder itself when it holds videos, and every folder
-     * under it that does. Its delete and its file lists are keyed on these.
+     * Media Manager's entries for every picked folder: the folder itself when it holds videos, and, for a folder
+     * of the tree, every folder under it that does. Its delete and its file lists are keyed on these.
      */
     private suspend fun folderEntries(items: List<SelectItem>): List<MediaEntry> {
-        val paths = SelectionRules.foldersOnStorage(items)
-        if (paths.isEmpty()) return emptyList()
+        val picked = SelectionRules.foldersOnStorage(items)
+        if (picked.isEmpty()) return emptyList()
         val folders = media.entries(MediaGroup.FOLDERS).first()
-        return paths.flatMap { CardMenuRules.foldersUnder(it, folders) }.distinctBy { it.id }
+        return picked.flatMap { CardMenuRules.folderContent(it.path, it.direct, folders) }.distinctBy { it.id }
     }
 
     private suspend fun episodeFiles(items: List<SelectItem>): Map<String, List<FileVersion>> =

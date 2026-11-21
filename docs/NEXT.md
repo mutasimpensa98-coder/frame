@@ -1,5 +1,7 @@
 # Next
 
+Updated 2026-11-22, after search in Library, the flat list of folders, the Folders screen and the drag order of the chips were built on branch `library` (waiver of 2026-11-22): items 203 to 228 of section 2, and entries in sections 3, 4, 5 and 7. Branch `tabs` adds its own checks, and the merge renumbers them.
+
 Updated 2026-11-21, after branch `views` (with `select`) was merged into branch `themes`. The checks of `views` keep items 152 to 185 of section 2, and the themes checks are now items 186 to 202. Nothing of either branch has been seen on a phone.
 
 Updated 2026-11-21, after eight ready themes and a custom theme were built on branch `themes` (waiver of 2026-11-21): items 186 to 202 of section 2, and entries in sections 3, 4 and 5.
@@ -303,10 +305,54 @@ Android 11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص 
 201. في الإعدادات: هل مربعات الأيقونات الملوّنة واضحة في كل ثيم؟ في بعض الثيمات يطلع لها إطار رفيع: هل شكله مقبول؟ وشارة التقييم لسه زرقاء لـ ⁦TMDB⁩ وصفراء لـ ⁦IMDb⁩؟
 202. اعمل نسخة احتياطية وانت على ثيم مخصّص ولون من «أي لون»، غيّر الثيم، ثم استرجع النسخة. هل رجع نفس الثيم ونفس اللون؟ ولو عندك نسخة من قبل التحديث: هل استرجاعها يرجّع الشكل اللي كان فيها؟
 
+البحث داخل المكتبة (فرع `library`، ما انجرّبش على تلفون):
+
+203. المكتبة: هل فيه زر بحث (عدسة) فوق، قبل زر شكل العرض؟ اضغطه: هل الشريط اللي فوق تحوّل لخانة بحث، والكيبورد طلع وحده، والتصنيفات والقائمة اختفوا وطلعت «ابحث في مكتبتك»؟ وهل الأزرار الأربعة اللي فوق مش زاحمين عنوان «المكتبة»، خصوصًا لو خط التلفون كبير؟
+204. اكتب أول حروف فيلم عندك. هل النتائج تطلع مع كل حرف بدون تأخير، وفيها العناوين والأشخاص والأنواع زي تبويب البحث بالضبط؟ وهل زر × يمسح الكتابة؟
+205. اقفل البحث مرة بالسهم اللي جنب الخانة ومرة بزر الرجوع. هل رجعت المكتبة على نفس التصنيف ونفس المكان اللي كنت نازل له في القائمة؟ وهل لازم ضغطة رجوع ثانية عشان ترجع للرئيسية؟
+206. في نتائج البحث: هل زر شكل العرض يطلع جنب الخانة لما تظهر عناوين، والنتائج بنفس شكل المكتبة؟ اضغط مطوّل على نتيجة واختر «تحديد»: هل التحديد والشريط اللي تحت يشتغلوا؟ ولما تسكّر التحديد: هل رجعت خانة البحث وكلامك لسه فيها؟
+207. افتح فيلم من النتائج وارجع. هل البحث لسه مفتوح بنفس الكلمة والنتائج، والكيبورد ما غطّاش عليها؟
+208. اكتب كلمة ما لهاش نتيجة: هل طلعت «لا توجد نتائج»؟ امسحها واكتب حرف ثاني: هل الجملة هذي ما لمعتش لحظة قبل ما تطلع النتائج؟
+
+المجلدات دفعة واحدة (فرع `library`):
+
+209. المكتبة › «مجلدات» بعد التحديث: هل طلعت كل المجلدات اللي فيها فيديوهات في قائمة وحدة (⁦Camera⁩، ⁦Download⁩، …)، كل مجلد تحته عدد فيديوهاته ورقعة الحجم، وما فيش مجلد داخل مجلد؟ وهل قريبة من الصورة اللي بعتها؟
+210. اضغط على مجلد. هل فتح على فيديوهاته بس، بدون مجلدات جواه؟ وهل العدد اللي كان مكتوب عليه هو عدد اللي ظهر؟
+211. لو عندك مجلدين بنفس الاسم: هل في السطر الباهت تحت كل واحد مكانه (المجلد اللي فوقه) قبل عدد الفيديوهات، وتقدر تفرّق بينهم؟ وبالعربي: هل المسار مقروء وما انقلبش ترتيبه؟
+212. زر الترتيب فوق القائمة: جرّب «الاسم» و«الحجم» و«عدد الفيديوهات» و«الأحدث». هل كل ترتيب صحيح؟ «الأحدث» معناه المجلد اللي فيه آخر فيديو تصوّر أو تنزّل: هل هذا اللي تتوقعه؟
+213. جرّب الأشكال الخمسة من زر شكل العرض على القائمة الجديدة. هل كلها مرتبة والسطر الباهت ما يتقصّش بشكل يضيّع المعنى؟
+214. الإعدادات › المكتبة › «شكل المكتبة» › «عرض المجلدات»: اختر «مجلد داخل مجلد». هل رجعت المجلدات زي قبل التحديث؟ وبعدها رجّعها «كل المجلدات مرة واحدة».
+215. بمجلد تجربة جواه مجلد ثاني، وفي الاثنين فيديوهات ما تهمكش: حدد المجلد الخارجي من القائمة واضغط «حذف». هل ورقة التأكيد فيها فيديوهات المجلد الخارجي بس، والمجلد اللي جواه مش محسوب؟ ونفس الشي مع «نقل إلى المجلد الخاص».
+216. اضغط مطوّل على مجلد › «استبعاد المجلد»: المتوقع إنه يستبعد المجلد وكل اللي جواه، حتى المجلدات اللي لها سطر لحالها في القائمة. هل هذا يناسبك؟ رجّعه من الإعدادات › المكتبة › «المجلدات المستبعدة».
+217. افتح مجلد من «مجلدات»: هل فيه زر بحث فوق جنب زر العرض؟ اكتب جزء من اسم فيديو فيه: هل لقاه؟ واكتب كلمتين مش ورا بعض من الاسم: هل لقاه برضه؟
+
+ترتيب التصنيفات بالسحب (فرع `library`):
+
+218. المكتبة: اضغط مطوّل على تصنيف من اللي فوق، مثلاً «مجلدات». هل اهتز التلفون، والتصنيف كبر شوية وطلع له ظل؟ اسحبه يمين ويسار: هل يمشي مع إصبعك بالضبط والباقي يوسّعوا له بنعومة، وما فيش تصنيفين يتبادلوا مكانهم رايح جاي؟
+219. اسحبه لحافة الشاشة وخلّي إصبعك واقف: هل الصف يتحرك وحده لين توصل لأول أو آخر تصنيف؟ اتركه: هل نزل في مكانه الجديد بنعومة؟
+220. ضغطة قصيرة على تصنيف: هل لسه تختاره عادي؟ وسحب الصف بدون ضغط مطوّل: هل لسه يمرّر التصنيفات؟ واضغط مطوّل واترك بدون ما تسحب: هل ما تغيّرش التصنيف المختار؟
+221. والتصنيف مرفوع بإصبعك: هل الصفحة ما تتحركش لفوق وتحت، وسحب التحديث ما يشتغلش؟
+222. اقفل التطبيق من التطبيقات الأخيرة وافتحه. هل الترتيب محفوظ، والمكتبة فتحت على أول تصنيف في ترتيبك؟ جرّبها و«مجلدات» أول تصنيف.
+223. بالعربي: هل التصنيفات تبدأ من اليمين، والتصنيف المرفوع يمشي مع الإصبع في نفس الاتجاه؟
+224. حط «حابب نشوفه» أو «أنمي» في مكان معيّن، وبعدها فضّي القائمة لين يختفي التصنيف، ورجّع له عنوان. هل رجع في نفس المكان اللي حطيته فيه؟
+225. الإعدادات › المكتبة › «شكل المكتبة» › «إرجاع الترتيب»: هل رجّع التصنيفات لترتيبها الأول؟ وهل مكتوب جنبه «الافتراضي» لما ما يكونش فيه شي يترجّع؟
+226. اعمل نسخة احتياطية بعد ما ترتّب التصنيفات وتختار «مجلد داخل مجلد»، غيّر الاثنين، ثم استرجع النسخة. هل رجعوا زي ما كانوا وقت النسخة؟
+
+شاشة المجلدات كتبويب (بعد دمج فرع `tabs` مع فرع `library`):
+
+227. تبويب «المجلدات»: هل عنوانه «المجلدات» وفيه زر البحث وزر شكل العرض، ويعرض نفس قائمة «مجلدات» اللي في المكتبة، وبنفس اختيارك في «عرض المجلدات»؟ افتح مجلد: هل شريط التبويبات بقى تحت، وفيه سهم رجوع فوق، وزر الرجوع يرجّعك لقائمة المجلدات على نفس المكان قبل ما يطلع من التبويب؟
+228. في تبويب «المجلدات» اضغط البحث واكتب جزء من اسم مجلد أو فيديو. هل النتائج فيها المجلدات أول وبعدها الفيديوهات؟ وهل «تحديد» والضغط المطوّل يشتغلوا على النتائج؟ ولما ترفع تصنيف في المكتبة بإصبعك: هل السحب بين التبويبات واقف لين تتركه؟
+
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
 
+- **Search in Library (`library`).** The bar is swapped for the search field in one frame, and the grid of Library leaves the screen while the results show. Watch for: the keyboard not coming up by itself, or coming up again over the results after a page opened from one; the list of Library back at the top instead of where it was; Back leaving the tab while the search is open; and the title «المكتبة» cut by the four buttons at a large font. Items 203 to 208 ask.
+- **The flat list of folders (`library`).** Every install opens Folders flat after the update, the owner's too. Watch the count and size of a folder that also holds folders: they are its own videos only, and the page it opens must show the same number (item 210). The second line shows only for a name that repeats; a long path is cut at its start with «…/» (item 211).
+- **Delete and move from a flat row (`library`).** A row takes the videos directly in its folder and nothing under it. The confirmation sheet is the place to see it: its count must be the row's count (item 215). Excluding is different on purpose and takes everything under the folder (item 216).
+- **Dragging a chip (`library`).** The gesture was written from the rules and has never run. Watch for: a long press that also opens something or picks the chip; a chip that jumps when lifted, or that sits off the finger after the row scrolled; two chips of very different widths trading back and forth; the page scrolling or refreshing under a lifted chip; the row not scrolling when the chip is held at an edge; and, in Arabic, a chip moving against the finger. Items 218 to 223 ask. If a chip ever stays lifted, leaving the tab and coming back resets the row.
+- **Library opening on the first chip (`library`).** With Anime or Watchlist first in the order, Library shows its skeleton until their lists load, then opens there. Watch for a flash of another filter, or a skeleton that stays (item 222).
+- **The Folders screen (`library` with `tabs`).** It has never been composed. After the merge, watch Back inside an opened folder (it must step out, not jump to Home), the scroll place of the list after stepping back, and the tab bar staying visible; items 227 and 228.
 - **Themes, every screen (`themes`).** The tests cover the tokens, not the screens. A screen that lays its own colour over a surface, or a fade tuned for near-black, shows only on the phone: Details and the hero are the likely places (item 190), then sheets and menus on Midnight and Paper (item 188).
 - **Themes, the fade.** A theme change hands a new palette to the whole tree on each frame for 200 ms. Watch for a stutter on Appearance, and for a surface that jumps at the first frame while the rest fades: rims, shadows and system bar icons take the new kind at once.
 - **Themes, the player behind a light app.** The player is dark and the app may be light or coloured in one process. `ThemeBridge` already handled dark over light; a custom palette is new to it. Watch for a frame of the wrong colours when leaving the player or picture-in-picture (item 200).
@@ -376,6 +422,17 @@ From this round's three requests, read in the code and never run:
 - **The sites line under subtitle results** is text only. Nothing in `:app` implements `PlayerHost.subtitleKeysIntent()`, so it cannot open the keys page.
 
 ## 4. Known limits in this build
+
+Search in Library, flat folders and chip order (`library`, not seen on any phone). `WAIVERS.md`, "2026-11-22: Search in Library, flat folders, chip order":
+
+- The search button of Library always searches titles, people and genres, on the Folders chip too. Folder and video names are searched from the Folders screen and from a folder page.
+- A folder search matches names only, not paths: the word must be in the folder's own name or in the file's name. It lists at most 200 folders and 200 videos.
+- The flat list sorts by name, size, number of videos or newest for the session only. The tree has no sort.
+- Two folders of one name are told apart by a line that only they have. A folder whose name is unique shows no path anywhere but in its long-press menu's exclude row.
+- Excluding a folder from a row of the flat list excludes the folders inside it too, although they have rows of their own.
+- A new chip order is saved when the chip is dropped. A drag that is cut off, as by a call, saves nothing.
+- A screen reader moves a chip one place at a time through two custom actions; there is no drag for it.
+- The order of the chips does not change the order of the tabs, and the Folders tab has no + button (F-U11).
 
 Themes (`themes`, not seen on any phone). `WAIVERS.md`, "2026-11-21: More themes and custom colours":
 
@@ -483,6 +540,8 @@ Shortcuts, widget, next episode, trailer and tonight's pick (this round, not see
 
 ## 5. Decisions for the owner
 
+- **Folders as one flat list (2026-11-22).** Six readings of the request wait for a yes or a no. (1) «الأحدث» sorts a folder by the file time of its newest video, not by when the app first saw it. (2) Folders had no sort at all; the flat list got the dropdown of Library with name, size, number of videos and newest. Keep it? (3) The parent path shows only under a name that repeats, as the request says; every other row has the count and the size alone. (4) Library's search button always searches titles, and folder names are searched from the Folders screen and inside a folder. (5) «استبعاد المجلد» on a row still takes everything under that folder, while delete and move take the row's own videos; item 216 asks. (6) Library opens on the first chip of the owner's order, where it always opened on «الكل».
+
 - **Folders open as the compact list (2026-11-21).** That is the reference the owner sent, and it replaces the larger list every install showed until now. The old row is the size «قائمة», one tap away. Keep compact as the default?
 
 - **«تحديد» on Home (2026-11-21).** It is not offered there, because the rows are horizontal previews; Library, Search and every "View all" page have it. The other way is to open Library in selection mode with that card picked. Item 166 asks.
@@ -513,6 +572,8 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 - Owner checks: font choice, HDR look, Arabic subtitle rendering, dialogue on A2 to A5.
 
 ## 7. Build next, in order
+
+Also before the list: **Search in Library, flat folders and chip order (`library`)**, cut from `main` at `e20bfe5`, to be merged with branch `tabs` of the same day. Both add to `AppSettings`, `SettingsStore` and `BackupSettings`: this branch's two fields sit in a block marked "Library layout" at the end of each, read and written by `readLibraryLayout`, `writeLibraryLayout`, `withLibraryLayout` and `libraryLayoutOf`; the conflicts are the last line of each list and the one line of `SettingsPrefs.read` and of `BackupSettings.toAppSettings`, and both blocks stay. `nav/TabSwipeLock.kt` exists on both branches with the same two declarations; take either. `TabsScreen.kt`, `GlassBars.kt` and `SettingsScreen.kt` are untouched here. After the merge: put `FoldersScreen()` in the tab, check that its `BackHandler` only counts while its tab is the one shown (a pager that keeps a hidden page composed would need a guard), renumber the owner checks, write `docs/RELEASE-NOTES.md` in Arabic and send items 203 to 228. Then run `:parser:test`, which this branch did not.
 
 Also before the list: **View sizes (`views`)**, cut from `select`, so it merges after it. Branch `themes` adds fields to `AppSettings`, `SettingsStore` and `BackupSettings` too; the ones of this branch sit in marked blocks at the end of each, and are read and written by functions of their own (`readViews`, `writeViews`, `withViews`, `viewsOf`). The two were merged on `themes` on 2026-11-21: the blocks are whole, and in `SettingsStore` they now live in the pure `SettingsPrefs` beside the theme keys. Send items 168 to 179 of section 2.
 

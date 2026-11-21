@@ -5,6 +5,8 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
+import com.frameglass.data.api.FoldersMode
+import com.frameglass.data.api.LibraryFilter
 import com.frameglass.data.api.ViewSize
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -352,6 +354,66 @@ class BackupFormatTest {
             .replace("SMALL_GRID", "HUGE_GRID")
         val onPhone = phone.copy(viewPrivate = ViewSize.LIST)
         assertEquals(ViewSize.LIST, BackupCodec.decode(json).settings.toAppSettings(fontExists = false, onPhone).viewPrivate)
+    }
+
+    @Test
+    fun theLibraryLayoutRoundTrips() {
+        val chosen = phone.copy(
+            foldersMode = FoldersMode.TREE,
+            libraryChips = listOf(LibraryFilter.FOLDERS, LibraryFilter.ALL, LibraryFilter.WATCHLIST),
+        )
+        val json = BackupCodec.encode(doc.copy(settings = BackupSettings.from(chosen)))
+        assertTrue("\"foldersMode\": \"TREE\"" in json)
+        val back = BackupCodec.decode(json).settings.toAppSettings(fontExists = false, phone)
+        assertEquals(FoldersMode.TREE, back.foldersMode)
+        assertEquals(listOf(LibraryFilter.FOLDERS, LibraryFilter.ALL, LibraryFilter.WATCHLIST), back.libraryChips)
+        // Nothing else moved on the way.
+        assertEquals(chosen, back)
+    }
+
+    @Test
+    fun aBackupWrittenBeforeTheLibraryLayoutKeepsThePhones() {
+        val json = BackupCodec.encode(doc.copy(settings = BackupSettings.from(phone)))
+            .replace(Regex(""",?\s*"(foldersMode|libraryChips)": null"""), "")
+        assertTrue("foldersMode" !in json && "libraryChips" !in json)
+        val saved = BackupCodec.decode(json).settings
+        assertEquals(null, saved.foldersMode)
+        assertEquals(null, saved.libraryChips)
+        val onPhone = phone.copy(foldersMode = FoldersMode.TREE, libraryChips = listOf(LibraryFilter.VIDEOS))
+        val back = saved.toAppSettings(fontExists = false, onPhone)
+        assertEquals(FoldersMode.TREE, back.foldersMode)
+        assertEquals(listOf(LibraryFilter.VIDEOS), back.libraryChips)
+        // And on a phone that never chose either, both stay unchosen: every folder at once, the default order.
+        val untouched = saved.toAppSettings(fontExists = false, phone)
+        assertEquals(null, untouched.foldersMode)
+        assertEquals(null, untouched.libraryChips)
+    }
+
+    @Test
+    fun aLibraryLayoutNeverChosenIsWrittenAsNothingAndKeepsThePhones() {
+        val saved = BackupSettings.from(phone.copy(foldersMode = FoldersMode.FLAT))
+        assertEquals("FLAT", saved.foldersMode)
+        assertEquals(null, saved.libraryChips)
+        val onPhone = phone.copy(foldersMode = FoldersMode.TREE, libraryChips = listOf(LibraryFilter.FOLDERS))
+        val back = saved.toAppSettings(fontExists = false, onPhone)
+        assertEquals(FoldersMode.FLAT, back.foldersMode)
+        assertEquals(listOf(LibraryFilter.FOLDERS), back.libraryChips)
+    }
+
+    @Test
+    fun aLibraryLayoutThisBuildDoesNotKnowKeepsThePhones() {
+        val chosen = phone.copy(foldersMode = FoldersMode.TREE, libraryChips = listOf(LibraryFilter.FOLDERS, LibraryFilter.ALL))
+        val json = BackupCodec.encode(doc.copy(settings = BackupSettings.from(chosen)))
+            .replace("\"TREE\"", "\"SPIRAL\"")
+            .replace("\"FOLDERS\"", "\"PODCASTS\"")
+        val onPhone = phone.copy(foldersMode = FoldersMode.FLAT)
+        val back = BackupCodec.decode(json).settings.toAppSettings(fontExists = false, onPhone)
+        assertEquals(FoldersMode.FLAT, back.foldersMode)
+        // The chip this build knows keeps its place, and the unknown name is dropped.
+        assertEquals(listOf(LibraryFilter.ALL), back.libraryChips)
+        // An order of nothing but unknown names is no order.
+        val unknown = BackupSettings.from(phone).copy(libraryChips = listOf("PODCASTS", "RADIO"))
+        assertEquals(listOf(LibraryFilter.VIDEOS), unknown.toAppSettings(false, phone.copy(libraryChips = listOf(LibraryFilter.VIDEOS))).libraryChips)
     }
 
     @Test

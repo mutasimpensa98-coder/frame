@@ -6,7 +6,10 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.frameglass.data.api.AccentColor
 import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.AutoSubtitleMode
+import com.frameglass.data.api.ChipOrder
 import com.frameglass.data.api.CustomThemeDefaults
+import com.frameglass.data.api.FoldersMode
+import com.frameglass.data.api.LibraryFilter
 import com.frameglass.data.api.ThemeId
 import com.frameglass.data.api.ViewPlace
 import com.frameglass.data.api.ViewSize
@@ -76,10 +79,68 @@ class SettingsPrefsTest {
             viewFolders = ViewSize.LARGE_GRID,
             viewPrivate = ViewSize.COMPACT_LIST,
             viewLists = ViewSize.LIST,
+            foldersMode = FoldersMode.TREE,
+            libraryChips = listOf(LibraryFilter.FOLDERS, LibraryFilter.VIDEOS, LibraryFilter.ALL),
         )
         val file = mutablePreferencesOf()
         SettingsPrefs.write(file, chosen)
         assertEquals(chosen, SettingsPrefs.read(file))
+    }
+
+    @Test
+    fun theLibraryLayoutIsAbsentUntilTheOwnerChooses() {
+        val file = mutablePreferencesOf()
+        SettingsPrefs.write(file, AppSettings())
+        assertFalse(file.contains(stringPreferencesKey(LayoutKeys.FOLDERS_MODE)))
+        assertFalse(file.contains(stringPreferencesKey(LayoutKeys.LIBRARY_CHIPS)))
+        // An install from before the setting has neither key, and lists every folder at once from its first start.
+        val read = SettingsPrefs.read(oldFile("DARK", "WHITE"))
+        assertNull(read.foldersMode)
+        assertNull(read.libraryChips)
+    }
+
+    @Test
+    fun eachFoldersViewRoundTripsAndClearingItRemovesTheKey() {
+        for (mode in FoldersMode.entries) {
+            val file = mutablePreferencesOf()
+            SettingsPrefs.write(file, AppSettings(foldersMode = mode))
+            assertEquals(mode.name, file[stringPreferencesKey(LayoutKeys.FOLDERS_MODE)])
+            assertEquals(mode, SettingsPrefs.read(file).foldersMode)
+            SettingsPrefs.write(file, AppSettings())
+            assertEquals(AppSettings(), SettingsPrefs.read(file))
+            assertFalse(file.contains(stringPreferencesKey(LayoutKeys.FOLDERS_MODE)))
+        }
+    }
+
+    @Test
+    fun theChipOrderIsStoredAsNamesAndResetLeavesNoKeyBehind() {
+        val order = ChipOrder.move(null, ChipOrder.DEFAULT, from = 7, to = 0)
+        val file = mutablePreferencesOf()
+        SettingsPrefs.write(file, AppSettings(libraryChips = order))
+        assertEquals(
+            "FOLDERS,ALL,MOVIES,SERIES,ANIME,VIDEOS,FAVORITES,WATCHLIST",
+            file[stringPreferencesKey(LayoutKeys.LIBRARY_CHIPS)],
+        )
+        assertEquals(order, SettingsPrefs.read(file).libraryChips)
+        SettingsPrefs.write(file, AppSettings(libraryChips = null))
+        assertFalse(file.contains(stringPreferencesKey(LayoutKeys.LIBRARY_CHIPS)))
+        // An empty order is no order.
+        SettingsPrefs.write(file, AppSettings(libraryChips = emptyList()))
+        assertFalse(file.contains(stringPreferencesKey(LayoutKeys.LIBRARY_CHIPS)))
+    }
+
+    @Test
+    fun aDamagedLibraryLayoutIsNoChoiceAndTheRestIsKept() {
+        val file = mutablePreferencesOf()
+        SettingsPrefs.write(file, AppSettings(theme = ThemeId.FOREST, foldersMode = FoldersMode.TREE, viewFolders = ViewSize.LIST))
+        file[stringPreferencesKey(LayoutKeys.FOLDERS_MODE)] = "SPIRAL"
+        file[stringPreferencesKey(LayoutKeys.LIBRARY_CHIPS)] = "PODCASTS,,FOLDERS,RADIO,ALL"
+        val read = SettingsPrefs.read(file)
+        assertNull(read.foldersMode)
+        // The names this build knows keep their order, and the rest of the chips follow when the row is built.
+        assertEquals(listOf(LibraryFilter.FOLDERS, LibraryFilter.ALL), read.libraryChips)
+        assertEquals(ThemeId.FOREST, read.theme)
+        assertEquals(ViewSize.LIST, read.viewFolders)
     }
 
     @Test

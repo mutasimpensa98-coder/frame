@@ -110,6 +110,23 @@
     <string name="app_search_nothing">Nothing found</string>
     <string name="app_search_people">People</string>
     <string name="app_search_titles">Titles</string>
+    <string name="app_search_close">Close search</string>
+    <string name="app_library_search">Search the library</string>
+    <string name="app_folders_title">Folders</string>
+    <string name="app_folders_search">Search folders</string>
+    <string name="app_folders_search_title">Search your folders</string>
+    <string name="app_folders_search_hint">Names of folders and videos</string>
+    <string name="app_folder_sort_size">Size</string>
+    <string name="app_folder_sort_count">Number of videos</string>
+    <string name="app_folder_sort_newest">Newest</string>
+    <string name="app_library_section_layout">Library layout</string>
+    <string name="app_folders_view">Folders view</string>
+    <string name="app_folders_view_hint">How Folders are listed in Library and on the Folders screen.</string>
+    <string name="app_folders_view_flat">All folders at once</string>
+    <string name="app_folders_view_tree">Folder inside folder</string>
+    <string name="app_chips_reset">Reset order</string>
+    <string name="app_chips_reset_hint">The sections at the top of Library go back to their first order. To move one, press and hold it, then drag it to its place.</string>
+    <string name="app_chips_order_default">Default</string>
 
     <string name="app_settings_library">Library</string>
     <string name="app_settings_playback">Playback</string>

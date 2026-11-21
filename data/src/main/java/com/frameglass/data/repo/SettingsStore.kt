@@ -16,7 +16,9 @@ import com.frameglass.data.api.AccentColor
 import com.frameglass.data.api.ApiKeyKind
 import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.AutoSubtitleMode
+import com.frameglass.data.api.ChipOrder
 import com.frameglass.data.api.CustomThemeDefaults
+import com.frameglass.data.api.FoldersMode
 import com.frameglass.data.api.SettingsRepository
 import com.frameglass.data.api.ViewPlace
 import com.frameglass.data.api.ViewSize
@@ -91,6 +93,18 @@ private object Prefs {
     /** One key per place, absent until the owner picks a size there. */
     fun view(place: ViewPlace) = stringPreferencesKey(ViewKeys.of(place))
     // ---- End of view sizes. ----
+
+    // ---- Library layout (owner requests of 2026-11-22). Keep this block whole. ----
+    /** Both are absent until the owner picks a folders view or moves a chip. */
+    val foldersMode = stringPreferencesKey(LayoutKeys.FOLDERS_MODE)
+    val libraryChips = stringPreferencesKey(LayoutKeys.LIBRARY_CHIPS)
+    // ---- End of library layout. ----
+}
+
+/** The preference names of the library layout. A name never changes once a build has shipped with it. */
+internal object LayoutKeys {
+    const val FOLDERS_MODE = "foldersMode"
+    const val LIBRARY_CHIPS = "libraryChips"
 }
 
 /** The preference names of the view sizes. A name never changes once a build has shipped with it. */
@@ -105,7 +119,7 @@ internal object ViewKeys {
 
 /** How AppSettings is laid out in the preferences file. Pure, so a round trip is tested without a phone. */
 internal object SettingsPrefs {
-    fun read(p: Preferences): AppSettings = readViews(p, readBase(p))
+    fun read(p: Preferences): AppSettings = readLibraryLayout(p, readViews(p, readBase(p)))
 
     // ---- View sizes (owner request of 2026-11-21): read and written apart from the lists below. ----
     private fun readViews(p: Preferences, s: AppSettings): AppSettings =
@@ -118,6 +132,20 @@ internal object SettingsPrefs {
         }
     }
     // ---- End of view sizes. ----
+
+    // ---- Library layout (owner requests of 2026-11-22): read and written apart from the lists below. ----
+    private fun readLibraryLayout(p: Preferences, s: AppSettings): AppSettings = s.copy(
+        foldersMode = FoldersMode.parse(p[Prefs.foldersMode]),
+        libraryChips = ChipOrder.parse(p[Prefs.libraryChips]),
+    )
+
+    private fun writeLibraryLayout(p: MutablePreferences, s: AppSettings) {
+        val mode = s.foldersMode
+        if (mode == null) p.remove(Prefs.foldersMode) else p[Prefs.foldersMode] = mode.name
+        val chips = s.libraryChips?.takeIf { it.isNotEmpty() }
+        if (chips == null) p.remove(Prefs.libraryChips) else p[Prefs.libraryChips] = ChipOrder.encode(chips)
+    }
+    // ---- End of library layout. ----
 
     private fun readBase(p: Preferences): AppSettings {
         val d = AppSettings()
@@ -203,6 +231,7 @@ internal object SettingsPrefs {
         p[Prefs.tmdbEnabled] = s.tmdbEnabled
         p[Prefs.imdbEnabled] = s.imdbEnabled
         writeViews(p, s)
+        writeLibraryLayout(p, s)
     }
 }
 

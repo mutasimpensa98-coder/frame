@@ -371,7 +371,7 @@ class SelectionRulesTest {
 
     @Test
     fun onlyFoldersAndEpisodesOnStorageAreLookedUp() {
-        assertEquals(listOf(folder.path), SelectionRules.foldersOnStorage(listOf(folder, emptyFolder, film)))
+        assertEquals(listOf(folder), SelectionRules.foldersOnStorage(listOf(folder, emptyFolder, film, folder)))
         assertEquals(
             listOf("tv:7:s1e2"),
             SelectionRules.episodesOnStorage(listOf(episode, episode.copy(playableKey = "tv:7:s1e9", onStorage = false))),
@@ -436,6 +436,53 @@ class SelectionRulesTest {
             listOf("/storage/films/drama", "/storage/films/drama/extras", "/storage/films/comedy"),
             entries.map { it.folderPath },
         )
+    }
+
+    @Test
+    fun aPickedRowOfTheFlatListDeletesItsOwnVideosAndLeavesTheFoldersInsideIt() {
+        // The flat list gives "films" a row for the videos directly in it, and each folder inside it a row of its own.
+        val row = SelectItem.Folder("/storage/films", "films", onStorage = true, direct = true)
+        val listed = listOf(
+            mediaFolder("/storage/films"),
+            mediaFolder("/storage/films/drama"),
+            mediaFolder("/storage/films/drama/extras"),
+            mediaFolder("/storage/films old"),
+        )
+        assertEquals(listOf("/storage/films"), SelectionRules.deleteEntries(listOf(row), listed, emptyMap()).map { it.folderPath })
+        // Picked with a row inside it, each takes its own and nothing is counted twice.
+        val inner = SelectItem.Folder("/storage/films/drama", "drama", onStorage = true, direct = true)
+        assertEquals(
+            listOf("/storage/films/drama", "/storage/films"),
+            SelectionRules.deleteEntries(listOf(inner, row), listed, emptyMap()).map { it.folderPath },
+        )
+        // The same path under another kind is not the folder.
+        val title = listOf(mediaFolder("/storage/films", MediaEntryKind.TITLE))
+        assertTrue(SelectionRules.deleteEntries(listOf(row), title, emptyMap()).isEmpty())
+    }
+
+    @Test
+    fun aPickedRowOfTheFlatListMovesItsOwnVideosOnly() {
+        val row = SelectItem.Folder("/storage/films", "films", onStorage = true, direct = true)
+        val move = SelectionRules.moveIn(
+            items = listOf(row),
+            folderFiles = mapOf(
+                "/storage/films" to listOf(50L),
+                "/storage/films/drama" to listOf(60L, 61L),
+                "/storage/films old" to listOf(80L),
+            ),
+            versions = emptyMap(),
+        )
+        assertEquals(listOf(50L), move.fileRowIds)
+    }
+
+    @Test
+    fun aRowOfTheFlatListIsPickedAsOne() {
+        val entry = folderEntry(directory = true).copy(direct = true, hint = "films")
+        val item = entry.selectItem() as SelectItem.Folder
+        assertTrue(item.direct)
+        // The key is the path either way, so a pick survives a change of the folders view.
+        assertEquals(folderEntry(directory = true).selectItem()?.key, item.key)
+        assertFalse((folderEntry(directory = true).selectItem() as SelectItem.Folder).direct)
     }
 
     @Test
