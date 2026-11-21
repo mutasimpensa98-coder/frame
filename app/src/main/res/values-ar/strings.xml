@@ -393,6 +393,12 @@
     <string name="app_private_hint">اضغط مطوّلًا على فيديو لنقله خارج المجلد.</string>
     <string name="app_private_move_out">نقل خارج المجلد</string>
     <string name="app_private_move_out_hint">يعود إلى مجلده الأصلي</string>
+    <string name="app_private_delete">حذف نهائي</string>
+    <string name="app_private_delete_row_hint">ما يرجعش</string>
+    <string name="app_private_delete_warning">حذف نهائي — ما يرجعش.</string>
+    <string name="app_private_delete_hint">المجلد الخاص ما فيهش سلة مهملات. الفيديو وترجماته ومكان وقوفك فيه يروحوا للأبد.</string>
+    <string name="app_private_delete_subtitles">ترجمات معها</string>
+    <string name="app_private_delete_error">ما قدرش يحذف. افتح المجلد الخاص وجرّب مرة ثانية.</string>
 
     <plurals name="app_videos">
         <item quantity="zero">لا فيديوهات</item>
@@ -513,6 +519,14 @@
         <item quantity="few">%d عناصر محددة</item>
         <item quantity="many">%d عنصرًا محددًا</item>
         <item quantity="other">%d عنصر محدد</item>
+    </plurals>
+    <plurals name="app_private_delete_title">
+        <item quantity="zero">لا فيديوهات للحذف</item>
+        <item quantity="one">حذف فيديو واحد نهائيًا؟</item>
+        <item quantity="two">حذف فيديوين نهائيًا؟</item>
+        <item quantity="few">حذف %d فيديوهات نهائيًا؟</item>
+        <item quantity="many">حذف %d فيديو نهائيًا؟</item>
+        <item quantity="other">حذف %d فيديو نهائيًا؟</item>
     </plurals>
     <plurals name="app_delete_title">
         <item quantity="zero">لا فيديوهات للحذف</item>

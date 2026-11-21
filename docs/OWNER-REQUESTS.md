@@ -6,6 +6,8 @@ The requests of the last two rounds are built and listed in `STATUS.md` and `NEX
 
 2026-11-21: «إضافة عدة أشكال أخرى لعرض القوائم والفيديوات والمجلدات (من صغير للأكبر) عند الضغط على تغيير العرض … (حتى في الprivate folder)». Built on branch `views`, not merged, not on the phone. See `STATUS.md`, "This round: view sizes".
 
+2026-11-21: a delete inside the private folder, permanent and always confirmed. Built on branch `views`, not merged, not on the phone. See `STATUS.md`, "This round: delete inside the private folder".
+
 Found on the phone on 2026-11-07:
 
 - Files pushed by adb have no MediaStore row, so delete calls them permanent. Check the trash path on a real camera or download clip.

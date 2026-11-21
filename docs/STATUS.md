@@ -1,5 +1,7 @@
 # Status
 
+Updated 2026-11-21, after the delete inside the private folder was built on branch `views` (owner decision and waiver of 2026-11-21). Not merged, not installed and not seen on a phone. See "This round: delete inside the private folder".
+
 Updated 2026-11-21, after the five view sizes were built on branch `views`, on top of `select` (owner request and waiver of 2026-11-21). Not merged, not installed and not seen on a phone. See "This round: view sizes".
 
 Updated 2026-11-21, after multi-select was built on branch `select` (owner request of 2026-11-21). It is not merged, not installed and not seen on a phone. See "This round: multi-select". The lines below are the earlier updates.
@@ -9,6 +11,7 @@ Updated 2026-11-19, after the developer name on About, the episode delete on Hom
 
 ## Read this first
 
+- **Branch `views` (2026-11-21) also adds a permanent delete inside the private folder, always behind its own confirmation sheet.** Built and unit tested (the plan, what goes with a video, and that nothing is deleted before the confirmation), never installed: no private video has been deleted by this code, on any device, and the cleanup of a title left with no file has only been read through. See "This round: delete inside the private folder".
 - **Branch `views` (2026-11-21), on top of `select`, adds five view sizes behind the view button: compact list, list, small, medium and large grid.** In Library, Folders, the row, genre and person pages, Search and the private folder, remembered per place and kept in backups. Built and unit tested (columns, what each size shows, the stored choice, the backup), never installed or seen on a phone: nobody has looked at any of the five, in any theme or language. Folders now open as the compact list. See "This round: view sizes".
 - **Branch `select` (2026-11-21) adds multi-select: «تحديد» in the long-press menus, then a selection bar on top and an action bar at the bottom.** Built and unit tested (rules and state only), never installed or seen on a phone. No tap has picked a card on a device, no bulk delete, move or mark has run, and nobody has looked at the mark in either theme. Not built: a delete inside the private folder. See "This round: multi-select".
 - **1.0.116 is on the phone (2026-11-19), updated in place, minSdk 30.** Seen on the phone: Play in pop-up from a Continue card enters picture-in-picture (pinned 16:9 window over Home, playing); the long-press menu shows on the hero; a lone video filed as a series shows one plain Delete after the 1.0.116 fix, a real series shows Delete the whole series; About shows the developer line. Not tried: Delete this episode (no series was in Continue watching), deleting the video the pop-up plays, anything on Android 11 or 12.
@@ -54,6 +57,8 @@ First build only. Screenshots are in `evidence/phase-1/first-build/`, listed in 
 Phase 0 matrix, on the round 2 `qa` build (`evidence/phase-0/matrix.csv`): 50 of 53 Core rows passed. The results and the three open rows are in `phase-0-results.md`. Earlier runs are in `D:\FrameGlass\logs\`: `matrix-run1.csv` for run 1 and `matrix-run2.log` for run 2, 29 of 53.
 
 ## Build and tests
+
+Branch `views` after the delete inside the private folder, on this PC on 2026-11-21, with the build cache: `testDebugUnitTest`, `assembleRelease` and `:app:lintRelease` pass, and `python -I tools/check_update.py` passes (two queries were added to the DAOs, and no table or column changed). Unit tests: 1,323 run, 0 failed, 1 skipped (the same `AnimeIndexTest`): data 560 (12 new: `VaultDeleteRulesTest`), net 353, engine 75, player 122, app 180 (12 new: `VaultDeleteFlowTest` 10, two in `SelectionRulesTest`), glass 33. `:parser:test`, `assembleQa`, `fg.ps1 build` and lint of the other modules were not run. `:app` lint: 0 errors, 23 warnings and 1 hint, none in a file or a string of this round. Release APK 23,800,925 bytes. Nothing was installed, and no emulator or phone was used.
 
 Branch `views`, on this PC on 2026-11-21, with the build cache: `testDebugUnitTest`, `assembleRelease` and `:app:lintRelease` pass, and `python -I tools/check_update.py` passes (no schema changed; it was run because the settings and the backup did). The output was not saved under `D:\FrameGlass\logs`. Unit tests: 1,299 run, 0 failed, 1 skipped (the same `AnimeIndexTest`): data 548 (13 new: `ViewSettingsTest` 9, four in `BackupFormatTest`), net 353, engine 75, player 122, app 168 (16 new: `ViewRulesTest`), glass 33. `:parser:test`, `assembleQa`, `fg.ps1 build` and lint of the other modules were not run; no manifest or dependency changed. `:app` lint: 0 errors, 23 warnings and 1 hint, none in a file or a string of this round, `NewApi` and `MissingTranslation` 0. Release APK 23,780,997 bytes. Nothing was installed, and no emulator or phone was used.
 
@@ -364,6 +369,21 @@ Five faults from the review of the merge were fixed:
 | A player at the root of its task, opened from a shortcut or the widget, stayed open under the keys page. | The player calls `exit()` after starting the intent, which saves the position. `FrameRoot` uses `AppLinks.shouldOpen`, which skips the page when it is already on top (`AppLinksTest`). |
 | TMDB's air date is the network's local date, so in Libya an episode often lands that night or the next morning. | The episode stays announced until air date + 1 day (`Upcoming.of`, `AirDates.dayOf`), and that case reads «تنزل الليلة» and «حلقة جديدة الليلة»; tomorrow stays «تنزل غدًا». `UpcomingTest`, `AirDatesTest`. |
 
+## This round: delete inside the private folder
+
+Owner decision of 2026-11-21, built on branch `views` as a commit of its own. Waiver "2026-11-21: Delete inside the private folder". Not installed and not seen on a phone. No permission, dependency, network host, manifest or schema change; `TitleDao.deleteAliases` and `MetaDao.deleteSegments` are new queries on existing tables.
+
+| Part | Status | Notes |
+|---|---|---|
+| The plan | UNIT TESTED | `PrivateVault.planDelete` (`VaultDeleteSource` in `data/api/ApiVaultDelete.kt`) and `VaultDeleteRules`. `VaultDeleteRulesTest` (12): a plan counts every video of the asked cards and the subtitles with them, in the order asked, with their size; a card asked twice counts once; nothing outside the asked cards is ever a target; a video moved in after the plan stays, and one that left meanwhile is not a target. Refused while the folder is locked. |
+| Nothing without the confirmation | UNIT TESTED | `VaultDeleteFlow` in `:app` has one way through: `ask` only plans, and only `confirm` on a plan that is on screen deletes. `VaultDeleteFlowTest` (10): asking deletes nothing; confirm with no plan on screen is a dead button; cancel leaves every video and a late tap after it deletes nothing; a confirmed delete runs once; a running delete cannot be dismissed or asked again; a folder that is locked, or that locks before the confirmation, deletes nothing; picks stay when nothing could be deleted. |
+| The sheet | BUILT | `VaultDeleteSheet` at the root, beside the other two. Title «حذف فيديو واحد نهائيًا؟» with Arabic plurals; the name in full for one video, the first three and «و N أخرى» for several; the count, the subtitles with them, the size; «حذف نهائي — ما يرجعش.» in the error colour over one line that says why; Cancel as the strong pill and «حذف نهائي» as the red one. Back, the scrim and a drag cancel. Not seen, in either language or theme. |
+| Where it is offered | UNIT TESTED | The card sheet of a private video (last row, «حذف نهائي» with «ما يرجعش» under it), and the selection bar of the folder, at the end in the error colour (`SelectionAction.DELETE_PRIVATE`, a different action from the library delete; `SelectionRulesTest` +2 and one changed). Picks stay until that delete has run. The rows and the bar themselves are not seen. |
+| The delete | BUILT | `PrivateVaultImpl.delete`: under the lock of the moves, not cancellable once started. Per video: the stored file first, then its subtitles, then its two rows in one transaction, so a stop in between leaves a card that says its file is missing and never a hidden file. A file that will not go is counted as failed and keeps its row. Read through only: no file has been deleted by it. |
+| What is cleaned after | BUILT | Progress lives in the vault row and goes with it; private playback never writes the last-session row, and Home never lists a private video, so nothing can dangle there. For a file with no copy left in the folder or the library: its frame, the subtitles saved for it and its track choices (`VaultDeleteRules.freeFileIds`, tested). For a title left with no file anywhere (`orphanTitles`, tested): progress, series preferences, watch log, skip times, cast and genre links, ratings, the lookup queue, episodes, aliases, the search index, the title row, its picture folder and a cover the owner chose (`forgetTitle`, one transaction, with no scan running). A title that still has a file keeps everything. The database part has not run. |
+| Backup | BUILT | A private video never had rows in a backup. The title left behind by a deleted one would have: it is no longer private-only, so the filter of `BackupManager` would let it through. Deleting the orphan title is what keeps its name out. Read through, not run. |
+| A private video that is playing | BUILT | The delete reports the stored paths through the same `DeletedLog` Media Manager fills, and `PlayerSession` already closes on a path it is playing (`DeletedFiles.holds`, by path). A late position save finds no row and does nothing. Not seen. |
+
 ## This round: view sizes
 
 Owner request of 2026-11-21, built on branch `views` (cut from `select` at `279b8e3`) after the storyboard `D:\FrameGlass\storyboards\views-themes\board.png`, section 1. Waiver "2026-11-21: View sizes". Not installed and not seen on a phone, in either language or any theme. No permission, dependency, network host, manifest or schema change.
@@ -401,7 +421,7 @@ Owner request of 2026-11-21, built on branch `select` (cut from `main` at `4df4b
 
 Not built in this round:
 
-- **Delete inside the private folder.** `PrivateVault` has no delete, and the confirmation sheet plans through Media Manager, which never lists private videos. Such a delete would be permanent, with no trash, so it waits for the owner's word (`NEXT.md` section 5). Until then: move out, then delete.
+- **Delete inside the private folder** was left out of that round and built the same day on `views`. See "This round: delete inside the private folder".
 - **Exclude folder, fix match, change cover and "Play in pop-up"** stay single-card actions in the long-press menu.
 
 The gaps a phone must close are in `NEXT.md` section 3, and the owner checks are items 152 to 167 of section 2.
@@ -507,6 +527,7 @@ From `WAIVERS.md`.
 |---|---|---|
 | The app finds videos by itself | BUILT | See F-L4 and F-U5. Never run. |
 | Media Manager and file deletion | UNIT TESTED | `MediaManagerTest`, `DeleteFlowTest`. The system trash and its confirmation have never run. |
+| Delete inside the private folder | UNIT TESTED | Waiver of 2026-11-21. `VaultDeleteRulesTest`, `VaultDeleteFlowTest`. No private video has been deleted by it. See "This round: delete inside the private folder". |
 | Private folder | UNIT TESTED | `VaultFilesTest`, `VaultAuthTest`, `VaultRulesTest`, `VaultFlowTest`. No move, biometric prompt, FLAG_SECURE or recovery has run. |
 | Themes and colours | UNIT TESTED | See F-U12. |
 | Favourites, hide title, exclude folder | UNIT TESTED | `FavoritesFilterTest`, `HiddenTitlesTest`, `ExclusionsTest`. The long-press menu has no test, and `:glass` cards have no long press, so `CardMenu` watches from outside. |

@@ -79,6 +79,9 @@ private class SelectionRunner(
                 selection.clear()
                 model.vault.moveOut(ids)
             }
+            // For good, so it only opens the private folder's own confirmation. The picks stay until that delete ran.
+            SelectionAction.DELETE_PRIVATE ->
+                model.vaultDeletes.ask(SelectionRules.privateIds(items), onDeleted = selection::clear)
             // Never without the sheet: this only asks, and the sheet names the files before anything goes.
             SelectionAction.DELETE -> model.launch {
                 val entries = SelectionRules.deleteEntries(items, folderEntries(items), episodeFiles(items))

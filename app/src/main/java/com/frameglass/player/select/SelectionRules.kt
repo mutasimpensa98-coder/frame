@@ -90,7 +90,7 @@ internal enum class SelectionPlace {
     /** The episode list of a series. */
     EPISODES,
 
-    /** Inside the private folder. */
+    /** Inside the private folder: move out, or delete for good. */
     PRIVATE,
 }
 
@@ -105,6 +105,9 @@ internal enum class SelectionAction {
     MOVE_TO_PRIVATE,
     MOVE_OUT,
     DELETE,
+
+    /** The delete inside the private folder. It is for good, and has a confirmation sheet of its own. */
+    DELETE_PRIVATE,
 }
 
 /** One button of the action bar. A button that does not apply to the picks stays in place, dimmed. */
@@ -175,7 +178,7 @@ internal object SelectionRules {
             SelectionAction.MOVE_TO_PRIVATE,
             SelectionAction.DELETE,
         )
-        SelectionPlace.PRIVATE -> listOf(SelectionAction.MOVE_OUT)
+        SelectionPlace.PRIVATE -> listOf(SelectionAction.MOVE_OUT, SelectionAction.DELETE_PRIVATE)
     }
 
     private fun watched(item: SelectItem): Boolean? = when (item) {
@@ -197,7 +200,9 @@ internal object SelectionRules {
         SelectionAction.MOVE_TO_PRIVATE,
         SelectionAction.DELETE,
         -> items.any { it !is SelectItem.Private && it.onStorage }
-        SelectionAction.MOVE_OUT -> items.any { it is SelectItem.Private }
+        SelectionAction.MOVE_OUT,
+        SelectionAction.DELETE_PRIVATE,
+        -> items.any { it is SelectItem.Private }
     }
 
     /**
@@ -215,9 +220,13 @@ internal object SelectionRules {
         }
     }
 
+    /** True for the two deletes, which sit at the end of the bar in the error colour. */
+    fun destructive(action: SelectionAction): Boolean =
+        action == SelectionAction.DELETE || action == SelectionAction.DELETE_PRIVATE
+
     /** Delete keeps its place at the end. The rest fill the row, and what does not fit goes behind "More". */
     fun bar(actions: List<BarAction>, slots: Int = BAR_SLOTS): BarLayout {
-        val (pinned, rest) = actions.partition { it.action == SelectionAction.DELETE }
+        val (pinned, rest) = actions.partition { destructive(it.action) }
         val room = (slots - pinned.size).coerceAtLeast(1)
         if (rest.size <= room) return BarLayout(rest, emptyList(), pinned)
         // "More" takes one of the places.

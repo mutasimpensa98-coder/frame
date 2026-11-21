@@ -121,10 +121,16 @@ internal class DataServices(context: Context, clock: Clock) : FrameServices {
         )
     }
 
+    /**
+     * Shared by the Media Manager and the private folder, which fill it, and playback, which closes on what it
+     * holds and refuses saves for it.
+     */
+    private val deletedLog = DeletedLog()
+
     private val privateFolder: Lazy<PrivateVaultImpl> = lazy {
         PrivateVaultImpl(
             context, db, VaultAuth(keys, clock), volumes, scanner, { catchUp.onFoldersChanged() }, resolver, labels,
-            sidecarLabels, settingsStore, scope, clock,
+            sidecarLabels, settingsStore, scope, clock, images, deletedLog,
         )
     }
 
@@ -142,9 +148,6 @@ internal class DataServices(context: Context, clock: Clock) : FrameServices {
             privateFolder, autoBackup,
         )
     }
-
-    /** Shared by the Media Manager, which fills it, and playback, which refuses saves for what it holds. */
-    private val deletedLog = DeletedLog()
 
     override val playback: PlaybackRepository by lazy {
         PlaybackRepositoryImpl(

@@ -15,6 +15,9 @@ import com.frameglass.data.api.SettingsRepository
 import com.frameglass.data.api.StorageSummary
 import com.frameglass.data.api.TitleCard
 import com.frameglass.data.api.VaultClosedException
+import com.frameglass.data.api.VaultDeletePlan
+import com.frameglass.data.api.VaultDeleteResult
+import com.frameglass.data.api.VaultDeleteSource
 import com.frameglass.data.api.VaultProgress
 import com.frameglass.data.api.VaultState
 import kotlinx.coroutines.CompletableDeferred
@@ -87,7 +90,28 @@ internal class FakeMedia : MediaManager {
     }
 }
 
-internal class FakeVault : PrivateVault {
+internal class FakeVault : PrivateVault, VaultDeleteSource {
+    /** The cards a plan was asked for, and the plans that were really carried out. */
+    val planned = ArrayList<List<Long>>()
+    val deletedPlans = ArrayList<VaultDeletePlan>()
+    var deleteResult: VaultDeleteResult? = null
+
+    /** While set, delete() waits here, so a test can look at the stage in between. */
+    var deleteGate: CompletableDeferred<Unit>? = null
+
+    override suspend fun planDelete(titleIds: List<Long>): VaultDeletePlan {
+        if (!current.value.unlocked) throw VaultClosedException()
+        planned += titleIds
+        return VaultDeletePlan(titleIds, titleIds.map { it * 10 }, titleIds.size, 0, 100L * titleIds.size, titleIds.map { "Video $it" })
+    }
+
+    override suspend fun delete(plan: VaultDeletePlan): VaultDeleteResult {
+        deleteGate?.await()
+        if (!current.value.unlocked) throw VaultClosedException()
+        deletedPlans += plan
+        return deleteResult ?: VaultDeleteResult(plan.fileCount, 0, plan.totalBytes)
+    }
+
     val current = MutableStateFlow(VaultState(false, false, false, 0, 0))
     val moved = ArrayList<Pair<List<Long>, List<Long>>>()
     val movedOut = ArrayList<Long>()

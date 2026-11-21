@@ -11,7 +11,11 @@ import com.frameglass.data.api.SidecarSubtitle
 import com.frameglass.data.api.TitleCard
 import com.frameglass.data.api.TitleKind
 import com.frameglass.data.api.TrackPrefs
+import com.frameglass.data.api.DeletedFiles
 import com.frameglass.data.api.VaultClosedException
+import com.frameglass.data.api.VaultDeletePlan
+import com.frameglass.data.api.VaultDeleteResult
+import com.frameglass.data.api.VaultDeleteSource
 import com.frameglass.data.api.VaultProgress
 import com.frameglass.data.api.VaultState
 import com.frameglass.data.db.EnrichState
@@ -39,12 +43,14 @@ import com.frameglass.data.logic.SegmentRules
 import com.frameglass.data.logic.SidecarClaim
 import com.frameglass.data.logic.SidecarMatcher
 import com.frameglass.data.logic.VaultCards
+import com.frameglass.data.logic.VaultDeleteRules
 import com.frameglass.data.logic.VaultNames
 import com.frameglass.data.logic.VaultRecovery
 import com.frameglass.data.logic.VaultRefs
 import com.frameglass.data.logic.WatchRules
 import com.frameglass.data.meta.TitleResolver
 import com.frameglass.data.scan.DeviceStorage
+import com.frameglass.data.scan.ImageStore
 import com.frameglass.data.scan.MountedVolume
 import com.frameglass.data.scan.Scanner
 import com.frameglass.data.scan.SidecarDisk
@@ -112,7 +118,9 @@ internal class PrivateVaultImpl(
     private val settings: SettingsStore,
     private val scope: CoroutineScope,
     private val clock: Clock,
-) : PrivateVault, VaultPlayback {
+    private val images: ImageStore,
+    private val deleted: DeletedLog,
+) : PrivateVault, VaultPlayback, VaultDeleteSource {
     private val dao get() = db.vault()
     private val scan get() = db.scan()
     private val titles get() = db.titles()
@@ -222,6 +230,116 @@ internal class PrivateVaultImpl(
             if (result.getOrDefault(0) > 0) rescan()
             result
         }
+    }
+
+    /** Only an open folder says what it holds, and only an open folder gives anything up. */
+    override suspend fun planDelete(titleIds: List<Long>): VaultDeletePlan {
+        if (!unlocked.value) throw VaultClosedException()
+        return withContext(Dispatchers.IO) {
+            val stored = dao.stored()
+            val wanted = stored.filter { it.groupId in titleIds }
+            val names = cards(wanted).associate { it.id to it.name }
+            VaultDeleteRules.plan(titleIds, stored, wanted.associate { it.id to dao.sidecars(it.id) }, names)
+        }
+    }
+
+    /**
+     * For good: app storage has no trash. It outlives the screen that confirmed it and waits for a running move.
+     * Each video goes before its rows, so a stop in between leaves a card that says its file is missing, never a
+     * hidden file nobody can find or delete.
+     */
+    override suspend fun delete(plan: VaultDeletePlan): VaultDeleteResult {
+        if (!unlocked.value) throw VaultClosedException()
+        return scope.async(Dispatchers.IO) {
+            moves.withLock { withContext(NonCancellable) { deleteStored(plan) } }
+        }.await()
+    }
+
+    private suspend fun deleteStored(plan: VaultDeletePlan): VaultDeleteResult {
+        val removed = ArrayList<VaultItem>()
+        val paths = HashSet<String>()
+        var failed = 0
+        var freed = 0L
+        for (row in VaultDeleteRules.targets(plan, dao.stored())) {
+            val sidecars = dao.sidecars(row.id)
+            val files = VaultDeleteRules.storedFiles(row, sidecars).map { File(folder, it) }
+            val video = files.first()
+            val size = files.sumOf { if (it.isFile) it.length() else 0L }
+            if (video.exists() && !video.delete()) {
+                failed++
+                continue
+            }
+            files.drop(1).forEach { it.delete() }
+            db.withTransaction {
+                dao.deleteSidecars(row.id)
+                dao.delete(row.id)
+            }
+            removed += row
+            paths += video.path
+            freed += size
+        }
+        if (removed.isNotEmpty()) {
+            // First, so a player still showing one of them closes before anything else is cleaned up under it.
+            deleted.add(DeletedFiles(emptySet(), paths))
+            forgetLeftovers(removed)
+        }
+        return VaultDeleteResult(removed.size, failed, freed)
+    }
+
+    /** What the app kept beside the files: nothing of a deleted private video may stay to be shown or backed up. */
+    private suspend fun forgetLeftovers(removed: List<VaultItem>) {
+        try {
+            val staying = dao.stored() + dao.unfinished()
+            val public = removed.flatMapTo(HashSet()) { row -> scan.byFileId(row.file.fileId).map { it.fileId } }
+            for (fileId in VaultDeleteRules.freeFileIds(removed, staying, public)) {
+                db.watch().deleteFilePrefs(fileId)
+                images.frameFile(fileId).delete()
+                sidecarLabels.folderOf(fileId).deleteRecursively()
+            }
+            // With no scan running, so a walk cannot file a new video under a title while it is being forgotten.
+            scanner.exclusive {
+                val ids = removed.mapNotNull { it.file.titleId }.distinct()
+                val privateLeft = ids.associateWith { dao.countOfTitle(it) }
+                val publicFiles = ids.associateWith { scan.filesOfTitle(it).size }
+                VaultDeleteRules.orphanTitles(removed, privateLeft, publicFiles).forEach { forgetTitle(it) }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // The videos are gone, which is what was asked. A leftover row names no file that still exists.
+            Log.w(TAG, "vault cleanup failed: ${e.javaClass.simpleName}")
+        }
+    }
+
+    /**
+     * A title whose last file was private and is now deleted. A title with a file in the library keeps everything,
+     * as after a delete from Media Manager; this one has nothing to come back to, and its name alone would tell
+     * what the private folder held, in the hidden list or in a backup.
+     */
+    private suspend fun forgetTitle(id: Long) {
+        val title = titles.title(id) ?: return
+        val watch = db.watch()
+        val meta = db.meta()
+        val gone = db.withTransaction {
+            if (dao.countOfTitle(id) > 0 || scan.filesOfTitle(id).isNotEmpty()) return@withTransaction false
+            watch.ofTitle(id).forEach { watch.delete(it.playableKey) }
+            watch.deleteSeriesPrefs(id)
+            watch.deleteLogOfTitle(id)
+            meta.deleteSegments(id)
+            meta.deleteTitlePersons(id)
+            meta.deleteTitleGenres(id)
+            meta.deleteRatings(id)
+            meta.deleteQueue(id)
+            titles.deleteEpisodes(id)
+            titles.deleteAliases(id)
+            titles.deleteIndex(id)
+            titles.delete(id)
+            true
+        }
+        if (!gone) return
+        images.deleteTitleDir(id)
+        // Only pictures the app made or copied in for this title. A frame of a library file is that file's own.
+        if (title.manualCover) images.delete(title.coverPath)
     }
 
     /** A move outlives the screen that started it, which only watches [progress]. */

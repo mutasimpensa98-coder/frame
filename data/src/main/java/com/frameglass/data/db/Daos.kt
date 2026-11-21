@@ -320,6 +320,9 @@ interface TitleDao {
     @Query("SELECT * FROM GroupAlias")
     suspend fun aliases(): List<GroupAlias>
 
+    @Query("DELETE FROM GroupAlias WHERE titleId = :titleId")
+    suspend fun deleteAliases(titleId: Long)
+
     @Insert
     suspend fun insertIndex(row: SearchIndex)
 
@@ -618,6 +621,9 @@ interface MetaDao {
 
     @Query("DELETE FROM IntroSegment WHERE titleId = :titleId AND source != :keepSource")
     suspend fun deleteSegmentsExcept(titleId: Long, keepSource: String)
+
+    @Query("DELETE FROM IntroSegment WHERE titleId = :titleId")
+    suspend fun deleteSegments(titleId: Long)
 
     @Query("DELETE FROM IntroSegment WHERE titleId = :titleId AND season IS :season AND source = :source")
     suspend fun deleteSeasonSegments(titleId: Long, season: Int?, source: String)

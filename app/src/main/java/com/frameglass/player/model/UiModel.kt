@@ -90,6 +90,9 @@ internal class UiModel(
     val deletes = DeleteFlow(services, scope)
     val vault = VaultFlow(services, scope)
 
+    /** The delete inside the private folder, which is for good and has a confirmation of its own. */
+    val vaultDeletes = VaultDeleteFlow(services, scope)
+
     /** The swipe to refresh of Home and Library, with live progress and then its summary. */
     val refreshes = RefreshFlow(scope, start = { library.refreshWithProgress() })
 }

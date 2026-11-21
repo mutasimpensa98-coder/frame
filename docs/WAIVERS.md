@@ -187,3 +187,15 @@ The owner asked for several more ways to show lists, videos and folders, from sm
 - The choice is kept per place (Library, Folders, the private folder, the list pages with Search) in the settings and in the backup. A place with nothing stored shows its default, so an older install and an older backup keep the look they had.
 
 It needs no permission, dependency, network host or schema change. Media Manager keeps its own list.
+
+## 2026-11-21: Delete inside the private folder
+
+The owner asked for a delete inside the private folder. This extends the waiver "2026-11-07: Private folder", which only moved videos in and out, and the waiver "2026-11-07: Media Manager and file deletion" as follows:
+
+- A private video can be deleted from its long-press sheet, and several from the selection bar. Only while the folder is unlocked, as for moving out.
+- The delete is permanent. Private videos live in app storage, which has no trash, so nothing can be brought back.
+- It never runs without a confirmation, and it has one of its own, because the confirmation of Media Manager never sees private videos. That sheet says in the error colour that the delete is for good («حذف نهائي — ما يرجعش»), names the video when it is one, gives the count and the total size, and its strong button is Cancel. Back, the scrim and a drag cancel too.
+- What goes: the video, the subtitles that moved in with it, its rows and its saved progress; then what the app kept beside them for that file (its frame, subtitles saved for it, its track choices). A title left with no file anywhere, private or in the library, is forgotten whole, with its match, cover and episode list, so its name cannot show in the hidden list or enter a backup. A title that still has a file keeps everything.
+- A private video that is playing closes when it is deleted, as a library video does.
+
+It needs no permission, dependency, network host or schema change.

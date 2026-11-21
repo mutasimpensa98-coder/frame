@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Fingerprint
@@ -443,6 +444,7 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
     val progress by remember(vault) { vault.progress }.collectAsStateWithLifecycle(null as VaultProgress?)
     val grid = rememberLazyGridState()
     val itemSheet = rememberGlassSheetState()
+    val vaultDeletes = rememberUiModel().vaultDeletes
     var picked by remember { mutableStateOf<TitleCard?>(null) }
     // The folder's own selection: its bar only moves videos out. Nothing here reaches the library's actions.
     val selection = remember { SelectionState<SelectItem> { it.key } }
@@ -536,6 +538,16 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
                 onClick = {
                     itemSheet.close()
                     flow.moveOut(card.id)
+                },
+            )
+            // Only opens the confirmation, which says it is for good and asks before anything goes.
+            GlassRow(
+                text = stringResource(R.string.app_private_delete),
+                supporting = stringResource(R.string.app_private_delete_row_hint),
+                icon = Icons.Rounded.DeleteForever,
+                onClick = {
+                    itemSheet.close()
+                    vaultDeletes.ask(listOf(card.id))
                 },
             )
         }

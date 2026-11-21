@@ -25,6 +25,7 @@ import androidx.compose.material.icons.rounded.BookmarkRemove
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
@@ -309,6 +310,8 @@ private fun face(action: SelectionAction): ActionFace = when (action) {
     SelectionAction.MOVE_OUT ->
         ActionFace(Icons.Rounded.Output, R.string.app_private_move_out, R.string.app_private_move_out)
     SelectionAction.DELETE -> ActionFace(Icons.Rounded.DeleteOutline, R.string.app_menu_delete, R.string.app_menu_delete)
+    SelectionAction.DELETE_PRIVATE ->
+        ActionFace(Icons.Rounded.DeleteForever, R.string.app_private_delete, R.string.app_private_delete)
 }
 
 /** An icon over a short label. The full wording is what a screen reader says. */
@@ -362,7 +365,7 @@ private fun ActionCell(entry: BarAction, onAction: (SelectionAction) -> Unit, mo
         label = stringResource(face.short),
         description = stringResource(face.full),
         enabled = entry.enabled,
-        danger = entry.action == SelectionAction.DELETE,
+        danger = SelectionRules.destructive(entry.action),
         onClick = { onAction(entry.action) },
         modifier = modifier,
     )

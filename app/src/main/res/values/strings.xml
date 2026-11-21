@@ -403,6 +403,13 @@
     <string name="app_private_hint">Press and hold a video to move it out.</string>
     <string name="app_private_move_out">Move out</string>
     <string name="app_private_move_out_hint">Back to its original folder</string>
+    <!-- Delete inside the private folder: for good, and always behind its own confirmation. -->
+    <string name="app_private_delete">Delete for good</string>
+    <string name="app_private_delete_row_hint">Cannot be undone</string>
+    <string name="app_private_delete_warning">Permanent delete. It cannot be undone.</string>
+    <string name="app_private_delete_hint">The private folder has no trash. The video, its subtitles and your place in it are gone for good.</string>
+    <string name="app_private_delete_subtitles">Subtitles with them</string>
+    <string name="app_private_delete_error">Could not delete. Open the private folder and try again.</string>
 
     <plurals name="app_videos">
         <item quantity="one">%d video</item>
@@ -463,6 +470,10 @@
     <plurals name="app_media_selected">
         <item quantity="one">%d selected</item>
         <item quantity="other">%d selected</item>
+    </plurals>
+    <plurals name="app_private_delete_title">
+        <item quantity="one">Delete %d video for good?</item>
+        <item quantity="other">Delete %d videos for good?</item>
     </plurals>
     <plurals name="app_delete_title">
         <item quantity="one">Delete %d video?</item>

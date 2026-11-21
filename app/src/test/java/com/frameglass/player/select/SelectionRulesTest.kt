@@ -10,6 +10,7 @@ import com.frameglass.data.api.TitleCard
 import com.frameglass.data.api.TitleKind
 import com.frameglass.data.api.WatchTarget
 import com.frameglass.player.select.SelectionAction.DELETE
+import com.frameglass.player.select.SelectionAction.DELETE_PRIVATE
 import com.frameglass.player.select.SelectionAction.FAVORITE_ADD
 import com.frameglass.player.select.SelectionAction.FAVORITE_REMOVE
 import com.frameglass.player.select.SelectionAction.HIDE
@@ -267,9 +268,29 @@ class SelectionRulesTest {
     }
 
     @Test
-    fun thePrivateFolderOnlyMovesOut() {
-        assertEquals(listOf(MOVE_OUT), offered(SelectionPlace.PRIVATE, secret))
-        assertEquals(listOf(MOVE_OUT), enabled(SelectionPlace.PRIVATE, secret))
+    fun thePrivateFolderMovesOutOrDeletesForGood() {
+        assertEquals(listOf(MOVE_OUT, DELETE_PRIVATE), offered(SelectionPlace.PRIVATE, secret))
+        assertEquals(listOf(MOVE_OUT, DELETE_PRIVATE), enabled(SelectionPlace.PRIVATE, secret))
+    }
+
+    @Test
+    fun thePrivateDeleteIsItsOwnActionAndNeverTheLibraryOne() {
+        // The library delete goes through Media Manager's sheet, which never sees private videos.
+        assertFalse(DELETE in offered(SelectionPlace.PRIVATE, secret))
+        for (place in SelectionPlace.entries.filter { it != SelectionPlace.PRIVATE }) {
+            assertFalse(DELETE_PRIVATE in offered(place, secret, film))
+        }
+        assertTrue(SelectionRules.destructive(DELETE))
+        assertTrue(SelectionRules.destructive(DELETE_PRIVATE))
+        assertFalse(SelectionRules.destructive(MOVE_OUT))
+    }
+
+    @Test
+    fun thePrivateDeleteSitsAtTheEndOfItsBar() {
+        val layout = SelectionRules.bar(SelectionRules.actions(SelectionPlace.PRIVATE, listOf(secret)))
+        assertEquals(listOf(MOVE_OUT), layout.shown.map { it.action })
+        assertEquals(listOf(DELETE_PRIVATE), layout.pinned.map { it.action })
+        assertTrue(layout.overflow.isEmpty())
     }
 
     @Test
@@ -311,7 +332,6 @@ class SelectionRulesTest {
         val private = SelectionRules.bar(SelectionRules.actions(SelectionPlace.PRIVATE, listOf(secret)))
         assertEquals(listOf(MOVE_OUT), private.shown.map { it.action })
         assertTrue(private.overflow.isEmpty())
-        assertTrue(private.pinned.isEmpty())
     }
 
     @Test

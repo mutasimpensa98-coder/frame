@@ -1,5 +1,7 @@
 # Next
 
+Updated 2026-11-21, after the delete inside the private folder was built on branch `views`: items 180 to 184 of section 2, and entries in sections 3 and 4. It is no longer a decision of section 5.
+
 Updated 2026-11-21, after the five view sizes were built on branch `views`, on top of `select`: items 168 to 179 of section 2, and new entries in sections 3, 4, 5 and 7.
 
 Updated 2026-11-21, after multi-select was built on branch `select` (owner request of 2026-11-21): items 152 to 167 of section 2, and new entries in sections 3, 4, 5 and 7. The lines below are the earlier updates.
@@ -263,10 +265,20 @@ Android 11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص 
 178. جرّب الأشكال الخمسة في الثيم الفاتح ومع لون ثاني، وكبّر الخط من إعدادات التلفون. هل كل شي مقروء وفي مكانه؟
 179. اعمل نسخة احتياطية بعد ما تختار أشكالك، وبعدها غيّر الأشكال ورجّع النسخة. هل الأشكال رجعت زي ما كانت وقت النسخة؟
 
+الحذف النهائي داخل المجلد الخاص (فرع `views`). جرّبه بفيديو ما يهمكش أبدًا، لأنه ما يرجعش:
+
+180. انقل فيديو تجربة للمجلد الخاص، واضغط عليه مطوّل. هل آخر سطر «حذف نهائي» وتحته «ما يرجعش»؟ اضغطه: هل طلعت ورقة عنوانها «حذف فيديو واحد نهائيًا؟» وفيها اسم الفيديو، والعدد، والحجم، وسطر أحمر «حذف نهائي — ما يرجعش.»، وزر «إلغاء» هو الزر الواضح والأحمر «حذف نهائي» جنبه؟
+181. اضغط «إلغاء»، ومرة ثانية افتح الورقة واسحبها لتحت، ومرة ثالثة اضغط زر الرجوع. هل في المرات الثلاث الفيديو بقى في مكانه ويشتغل عادي؟
+182. أكّد الحذف. هل الفيديو راح من المجلد الخاص، والعدد والحجم اللي فوق نقصوا، وطلعت رسالة فيها كم ملف انحذف والمساحة اللي تحررت؟ وارجع للمكتبة والبحث و«الإعدادات › المكتبة» (العناوين المخفية): هل ما فيش أي أثر لاسمه؟
+183. حدد فيديوين تجربة في المجلد الخاص («تحديد»). هل الشريط اللي تحت فيه «نقل خارج المجلد» و«حذف نهائي» بالأحمر في الآخر؟ اضغط «حذف نهائي»: هل الورقة فيها الاسمين والعدد 2؟ ألغِ: هل التحديد بقى؟ أكّد: هل الاثنين راحوا والتحديد سكّر؟
+184. شغّل فيديو تجربة من المجلد الخاص في نافذة صغيرة (زر الرئيسية وهو يشتغل)، وارجع للمجلد الخاص واحذفه نهائيًا. هل النافذة سكّرت وحدها والصوت وقف؟
+
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
 
+- **Delete inside the private folder (`views`).** It is for good, and nothing has run it. Watch that no video goes before the red button is pressed (item 181), that the folder's count and size fall at once (item 182), and that no trace of a deleted video's name stays in Library, Search or the hidden list. A card left behind that says «غير متوفر» means the file went and its row did not; deleting it again removes the row.
+- **Delete inside the private folder, during a scan.** The cleanup of a title left with no file waits for a running scan to end, so the sheet can show «جارٍ الحذف…» for as long as a search of the phone takes. The video itself is gone before that wait.
 - **View sizes, the looks (`views`).** Five looks times posters, frames and folders, drawn from numbers and the storyboard only. Watch for: a compact row taller or shorter than the reference (it should be near 52 dp), a small frame whose title crowds the picture, the large title of a 2-column poster cut at a large font, and the gap between the chips and the first row at each size; items 169 to 171 and 178 ask.
 - **View sizes, the change.** The grid keeps its state and its keys, so the first visible item should stay. A jump to the top, or a flash of the wrong kind of cell, means the lazy grid rebuilt; item 172 asks. Speed in the 4-column grid was not measured.
 - **View sizes, Folders.** They open as the compact list on every install, the owner's phone included, because nothing was stored for them before. A folder with a picture shows a folder icon in the compact row and its picture with a small folder badge in the grids; item 171 asks.
@@ -336,7 +348,7 @@ View sizes (`views`):
 
 Multi-select (`select`):
 
-- No delete inside the private folder: its bar only moves videos out. See section 5.
+- A delete inside the private folder is for good: there is no trash in app storage, and no undo.
 - «تحديد» is not in the long-press menu on Home or on the collection rail of Details. See section 5.
 - A selected folder is deleted and moved through Media Manager's entry for it, as its long-press menu does. A folder Media Manager does not list adds nothing, and the sheet then does not open.
 - The picks do not survive leaving the screen, a change of the Library filter, another season on Details, or the app being killed.
@@ -424,7 +436,6 @@ Shortcuts, widget, next episode, trailer and tonight's pick (this round, not see
 - **Folders open as the compact list (2026-11-21).** That is the reference the owner sent, and it replaces the larger list every install showed until now. The old row is the size «قائمة», one tap away. Keep compact as the default?
 
 - **«تحديد» on Home (2026-11-21).** It is not offered there, because the rows are horizontal previews; Library, Search and every "View all" page have it. The other way is to open Library in selection mode with that card picked. Item 166 asks.
-- **Delete inside the private folder (2026-11-21).** Not built. It would delete for good, with no trash, and needs its own confirmation because the sheet of Media Manager never sees private videos. Wanted?
 
 1. **Recently added on Home.** F-U5 lists Top rated, genre and collection only. With no key none of them can appear, so this round added Recently added as a fallback, used only when none of those rows qualifies. Keep it, or return to the brief's list?
 2. **Player sheets.** They are solid now, because `SurfaceView` gives Haze nothing to sample. Image 08 shows dimmed video behind the sheet. Keep solid, go back to a see-through tint, or try the `PixelCopy` backdrop of section 7.5?
