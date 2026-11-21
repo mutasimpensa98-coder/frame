@@ -4,7 +4,6 @@ import com.frameglass.data.api.EpisodeRow
 import com.frameglass.data.api.FileVersion
 import com.frameglass.data.api.FolderEntry
 import com.frameglass.data.api.MediaEntry
-import com.frameglass.data.api.MediaEntryKind
 import com.frameglass.data.api.TitleCard
 import com.frameglass.data.api.WatchTarget
 import com.frameglass.player.ui.CardMenuRules
@@ -249,7 +248,7 @@ internal object SelectionRules {
         }
     }.distinct()
 
-    /** Folders whose Media Manager entry must be looked up before a delete or a move. */
+    /** Folders whose Media Manager entries must be looked up before a delete or a move. */
     fun foldersOnStorage(items: Collection<SelectItem>): List<String> =
         items.filterIsInstance<SelectItem.Folder>().filter { it.onStorage }.map { it.path }.distinct()
 
@@ -259,8 +258,9 @@ internal object SelectionRules {
 
     /**
      * Everything the confirmation sheet is asked about, in pick order. [folders] are Media Manager's folder entries
-     * and [versions] the files of each picked episode by playable key. An item with nothing on storage, a folder
-     * Media Manager does not list and anything inside the private folder add no entry, so they are never touched.
+     * and [versions] the files of each picked episode by playable key. A picked folder stands for every entry at
+     * its path or under it, so a folder of folders counts all the videos inside. An item with nothing on storage,
+     * a folder with no video anywhere under it and anything inside the private folder add no entry.
      */
     fun deleteEntries(
         items: Collection<SelectItem>,
@@ -270,9 +270,7 @@ internal object SelectionRules {
         when (item) {
             is SelectItem.Title -> listOf(CardMenuRules.titleEntry(item.id, item.name))
             is SelectItem.File -> listOf(CardMenuRules.fileEntry(item.fileRowId, item.name))
-            is SelectItem.Folder -> listOfNotNull(
-                folders.firstOrNull { it.kind == MediaEntryKind.FOLDER && it.folderPath == item.path },
-            )
+            is SelectItem.Folder -> CardMenuRules.foldersUnder(item.path, folders)
             is SelectItem.Episode ->
                 CardMenuRules.episodeEntries(versions[item.playableKey].orEmpty(), item.title, item.label)
             is SelectItem.Private -> emptyList()
@@ -280,8 +278,9 @@ internal object SelectionRules {
     }.distinctBy { it.id }
 
     /**
-     * What a move into the private folder takes. [folderFiles] are the file rows inside each picked folder by path,
-     * and [versions] as for [deleteEntries]. Only files on storage go.
+     * What a move into the private folder takes. [folderFiles] are the file rows of each Media Manager folder by
+     * its path, and a picked folder takes those of every folder at its path or under it. [versions] as for
+     * [deleteEntries]. Only files on storage go.
      */
     fun moveIn(
         items: Collection<SelectItem>,
@@ -292,7 +291,8 @@ internal object SelectionRules {
         val rows = movable.flatMap { item ->
             when (item) {
                 is SelectItem.File -> listOf(item.fileRowId)
-                is SelectItem.Folder -> folderFiles[item.path].orEmpty()
+                is SelectItem.Folder ->
+                    folderFiles.filterKeys { CardMenuRules.isUnder(item.path, it) }.values.flatten()
                 is SelectItem.Episode ->
                     versions[item.playableKey].orEmpty().filter { it.available }.map { it.fileRowId }
                 else -> emptyList()

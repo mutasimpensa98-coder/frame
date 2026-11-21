@@ -18,7 +18,13 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +42,10 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.withContext
 
 private val SwatchShape = RoundedCornerShape(16.dp)
 private val PictureShape = RoundedCornerShape(12.dp)
@@ -80,6 +90,25 @@ fun FrameAccent.label(): String = stringResource(
 )
 
 /**
+ * The palette a swatch draws. A slider of the custom theme, or the colour field of the accent, hands it a new look
+ * at every step of a drag, and a palette costs several contrast searches. So only the first one is worked out where
+ * it is asked for. Every later one is built off the main thread, and while one is being built the looks that come
+ * in between are dropped: the picture goes straight to the newest, and the finger never waits for it.
+ */
+@Composable
+private fun rememberSwatchPalette(look: FrameLook): FramePalette {
+    val wanted = rememberUpdatedState(look)
+    var palette by remember { mutableStateOf(FramePalettes.of(look)) }
+    LaunchedEffect(Unit) {
+        snapshotFlow { wanted.value }
+            .drop(1)
+            .conflate()
+            .collect { next -> palette = withContext(Dispatchers.Default) { FramePalettes.of(next) } }
+    }
+    return palette
+}
+
+/**
  * A small picture of Home in [look], for the Appearance screen: a ready theme or a custom one, with the accent
  * it would get. It shows that look whatever the app is using now. [name] is what a screen reader says.
  */
@@ -101,9 +130,10 @@ fun ThemeSwatch(
         contentDescription = name
         this.selected = selected
     }
+    val palette = rememberSwatchPalette(look.copy(followSystem = false))
     val picture: @Composable () -> Unit = {
         Box(Modifier.border(RingWidth, ring, SwatchShape).padding(RingGap)) {
-            HomePicture(FramePalettes.of(look.copy(followSystem = false)))
+            HomePicture(palette)
             if (selected) {
                 Box(
                     modifier = Modifier

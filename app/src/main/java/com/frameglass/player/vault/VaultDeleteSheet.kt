@@ -34,6 +34,8 @@ import com.frameglass.player.R
 import com.frameglass.player.media.PlanFact
 import com.frameglass.player.model.VaultDeleteFlow
 import com.frameglass.player.model.VaultDeleteStage
+import com.frameglass.player.model.VaultSheetFace
+import com.frameglass.player.model.VaultSheetRules
 import com.frameglass.player.ui.DangerPill
 import com.frameglass.player.ui.fileSizeLabel
 import com.frameglass.player.ui.localNumber
@@ -52,6 +54,8 @@ internal fun VaultDeleteSheet() {
     val flow = rememberUiModel().vaultDeletes
     val sheet = rememberGlassSheetState()
     val stage = flow.stage
+    // What the flow last heard from the folder, which it hears even while the app is off the screen.
+    val unlocked = flow.unlocked
 
     LaunchedEffect(stage) {
         if (stage != null) sheet.open() else sheet.close()
@@ -61,17 +65,20 @@ internal fun VaultDeleteSheet() {
         if (!sheet.isOpen) flow.dismiss()
     }
 
-    // The sheet is still sliding away when the stage clears, so it keeps showing the last one.
+    // The sheet is still sliding away when the stage clears, so it keeps showing the last one. What it may show of
+    // it is decided again on every frame: once the folder locks, a plan and its names are not drawn at all, not
+    // even while the sheet slides away over the lock screen.
     var last by remember { mutableStateOf(stage) }
     if (stage != null) last = stage
     val shown = last
+    val face = VaultSheetRules.face(shown, unlocked)
 
-    GlassSheet(sheet, title = sheetTitle(shown)) {
-        when (shown) {
-            null -> Unit
-            VaultDeleteStage.Planning -> Skeleton(Modifier.fillMaxWidth().aspectRatio(PlanSkeletonRatio), FrameShapes.Poster)
-            is VaultDeleteStage.Ready -> PlanBody(shown.plan, flow)
-            is VaultDeleteStage.Running -> {
+    GlassSheet(sheet, title = sheetTitle(shown, face)) {
+        when (face) {
+            VaultSheetFace.NOTHING -> Unit
+            VaultSheetFace.PLANNING -> Skeleton(Modifier.fillMaxWidth().aspectRatio(PlanSkeletonRatio), FrameShapes.Poster)
+            VaultSheetFace.PLAN -> (shown as? VaultDeleteStage.Ready)?.let { PlanBody(it.plan, flow) }
+            VaultSheetFace.RUNNING, VaultSheetFace.RUNNING_QUIET -> {
                 Text(
                     text = stringResource(R.string.app_delete_running),
                     style = FrameType.Body,
@@ -80,18 +87,26 @@ internal fun VaultDeleteSheet() {
                 )
                 ActivityLine(Modifier.fillMaxWidth().padding(horizontal = FrameSpacing.S12))
             }
-            is VaultDeleteStage.Finished -> ResultBody(shown.result, flow)
+            VaultSheetFace.RESULT -> ResultBody((shown as? VaultDeleteStage.Finished)?.result, quiet = false, flow)
+            VaultSheetFace.RESULT_QUIET -> ResultBody(null, quiet = true, flow)
         }
     }
 }
 
+/** The count is in the title only while the folder is open. */
 @Composable
-private fun sheetTitle(stage: VaultDeleteStage?): String? = when (stage) {
-    is VaultDeleteStage.Ready -> pluralStringResource(R.plurals.app_private_delete_title, stage.plan.fileCount, stage.plan.fileCount)
-    is VaultDeleteStage.Running -> pluralStringResource(R.plurals.app_private_delete_title, stage.plan.fileCount, stage.plan.fileCount)
-    is VaultDeleteStage.Finished -> stringResource(R.string.app_delete_done_title)
-    VaultDeleteStage.Planning -> stringResource(R.string.app_private_delete)
-    null -> null
+private fun sheetTitle(stage: VaultDeleteStage?, face: VaultSheetFace): String? = when (face) {
+    VaultSheetFace.NOTHING -> null
+    VaultSheetFace.PLANNING, VaultSheetFace.RUNNING_QUIET -> stringResource(R.string.app_private_delete)
+    VaultSheetFace.PLAN, VaultSheetFace.RUNNING -> {
+        val count = when (stage) {
+            is VaultDeleteStage.Ready -> stage.plan.fileCount
+            is VaultDeleteStage.Running -> stage.plan.fileCount
+            else -> 0
+        }
+        pluralStringResource(R.plurals.app_private_delete_title, count, count)
+    }
+    VaultSheetFace.RESULT, VaultSheetFace.RESULT_QUIET -> stringResource(R.string.app_delete_done_title)
 }
 
 @Composable
@@ -163,14 +178,16 @@ private fun PlanBody(plan: VaultDeletePlan, flow: VaultDeleteFlow) {
     }
 }
 
+/** With [quiet], after the folder locked, the sheet says the delete ended and gives no number. */
 @Composable
-private fun ResultBody(result: VaultDeleteResult?, flow: VaultDeleteFlow) {
+private fun ResultBody(result: VaultDeleteResult?, quiet: Boolean, flow: VaultDeleteFlow) {
     val colors = FrameTheme.colors
     Column(
         modifier = Modifier.padding(horizontal = FrameSpacing.S12),
         verticalArrangement = Arrangement.spacedBy(FrameSpacing.S4),
     ) {
         when {
+            quiet -> Unit
             result == null -> Text(
                 text = stringResource(R.string.app_private_delete_error),
                 style = FrameType.Body.copy(fontWeight = FontWeight.W600),

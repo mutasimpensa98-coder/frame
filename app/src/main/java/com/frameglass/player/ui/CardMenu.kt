@@ -311,18 +311,19 @@ private fun PlaceActions(entry: FolderEntry, sheet: GlassSheetState, onSelect: (
     val media = LocalContext.current.frameServices.media
     val navigator = LocalNavigator.current
     val fileRow = entry.play?.fileRowId
-    val content by produceState<MediaEntry?>(null, entry.path) {
+    // A folder stands for every video under it, in folders of its own too. Empty when nothing there can go.
+    val content by produceState(emptyList<MediaEntry>(), entry.path) {
         value = when {
-            fileRow != null -> CardMenuRules.fileEntry(fileRow, entry.name)
-            entry.isDirectory -> media.entries(MediaGroup.FOLDERS).first().firstOrNull { it.folderPath == entry.path }
-            else -> null
+            fileRow != null -> listOf(CardMenuRules.fileEntry(fileRow, entry.name))
+            entry.isDirectory -> CardMenuRules.foldersUnder(entry.path, media.entries(MediaGroup.FOLDERS).first())
+            else -> emptyList()
         }
     }
     entry.play?.let { PopUpRow(it, sheet::close) }
     SelectRow(onSelect, sheet::close)
     ExcludeRow(if (entry.isDirectory) entry.path else entry.path.substringBeforeLast('/'), sheet)
     val found = content
-    if (found != null) {
+    if (found.isNotEmpty()) {
         GlassRow(
             text = stringResource(R.string.app_menu_private),
             icon = Icons.Rounded.Lock,
@@ -332,7 +333,7 @@ private fun PlaceActions(entry: FolderEntry, sheet: GlassSheetState, onSelect: (
                     val rows = if (fileRow != null) {
                         listOf(fileRow)
                     } else {
-                        media.children(found).first().mapNotNull { it.fileRowId }
+                        found.flatMap { folder -> media.children(folder).first().mapNotNull { it.fileRowId } }.distinct()
                     }
                     model.vault.moveIn(emptyList(), rows) { navigator.push(Route.PrivateFolder) }
                 }
@@ -343,7 +344,7 @@ private fun PlaceActions(entry: FolderEntry, sheet: GlassSheetState, onSelect: (
             icon = Icons.Rounded.DeleteOutline,
             onClick = {
                 sheet.close()
-                model.deletes.ask(listOf(found))
+                model.deletes.ask(found)
             },
         )
     }

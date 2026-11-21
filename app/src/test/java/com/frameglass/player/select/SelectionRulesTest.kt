@@ -409,10 +409,64 @@ class SelectionRulesTest {
     }
 
     @Test
-    fun aFolderMediaManagerDoesNotListAddsNothing() {
-        // The same path under another kind, such as a title filed there, is not the folder.
-        val others = listOf(mediaFolder(folder.path, MediaEntryKind.TITLE), mediaFolder("/storage/films"))
+    fun aFolderWithNoVideoUnderItAddsNothing() {
+        // The same path under another kind, such as a title filed there, is not the folder, and neither is the
+        // folder above it or a sibling whose name starts the same.
+        val others = listOf(
+            mediaFolder(folder.path, MediaEntryKind.TITLE),
+            mediaFolder("/storage/films"),
+            mediaFolder(folder.path + " old"),
+        )
         assertTrue(SelectionRules.deleteEntries(listOf(folder), others, emptyMap()).isEmpty())
+    }
+
+    @Test
+    fun aPickedFolderOfFoldersDeletesEveryVideoUnderIt() {
+        // Media Manager lists only folders that hold videos themselves. "films" holds none, its folders do.
+        val parent = SelectItem.Folder("/storage/films", "films", onStorage = true)
+        val listed = listOf(
+            mediaFolder("/storage/films/drama"),
+            mediaFolder("/storage/films/drama/extras"),
+            mediaFolder("/storage/films/comedy"),
+            mediaFolder("/storage/films old"),
+            mediaFolder("/storage/clips"),
+        )
+        val entries = SelectionRules.deleteEntries(listOf(parent), listed, emptyMap())
+        assertEquals(
+            listOf("/storage/films/drama", "/storage/films/drama/extras", "/storage/films/comedy"),
+            entries.map { it.folderPath },
+        )
+    }
+
+    @Test
+    fun aFolderPickedWithAFolderInsideItCountsNothingTwice() {
+        val parent = SelectItem.Folder("/storage/films", "films", onStorage = true)
+        val listed = listOf(mediaFolder("/storage/films/drama"), mediaFolder("/storage/films/comedy"))
+        val entries = SelectionRules.deleteEntries(listOf(folder, parent), listed, emptyMap())
+        assertEquals(listOf("/storage/films/drama", "/storage/films/comedy"), entries.map { it.folderPath })
+    }
+
+    @Test
+    fun aPickedFolderOfFoldersMovesEveryVideoUnderIt() {
+        val parent = SelectItem.Folder("/storage/films", "films", onStorage = true)
+        val move = SelectionRules.moveIn(
+            items = listOf(parent),
+            folderFiles = mapOf(
+                "/storage/films/drama" to listOf(60L, 61L),
+                "/storage/films/comedy" to listOf(70L),
+                "/storage/films old" to listOf(80L),
+                "/storage/clips" to listOf(90L),
+            ),
+            versions = emptyMap(),
+        )
+        assertEquals(listOf(60L, 61L, 70L), move.fileRowIds)
+        assertTrue(move.titleIds.isEmpty())
+    }
+
+    @Test
+    fun aFolderWithNothingUnderItMovesNothing() {
+        val move = SelectionRules.moveIn(listOf(folder), mapOf("/storage/clips" to listOf(90L)), emptyMap())
+        assertTrue(move.isEmpty)
     }
 
     @Test

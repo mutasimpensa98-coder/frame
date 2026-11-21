@@ -42,6 +42,18 @@ internal class DeleteFlow(private val services: FrameServices, private val scope
         plan(includeSidecars = false)
     }
 
+    /**
+     * What was picked holds no video to delete, such as an empty folder. The sheet opens on its "nothing was
+     * deleted" message, so a tap on Delete never passes without an answer.
+     */
+    fun nothing() {
+        if (stage is DeleteStage.Running) return
+        planning?.cancel()
+        entries = emptyList()
+        onDeleted = null
+        stage = DeleteStage.Finished(DeleteResult(0, 0, emptyList(), 0))
+    }
+
     fun includeSidecars(include: Boolean) = plan(include)
 
     private fun failed() = DeleteResult(0, 0, entries.map { it.name }, 0)

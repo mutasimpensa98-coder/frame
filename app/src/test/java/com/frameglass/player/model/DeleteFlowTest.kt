@@ -96,4 +96,30 @@ class DeleteFlowTest {
         flow.confirm()
         assertEquals(2, (flow.stage as DeleteStage.Finished).result.failed.size)
     }
+
+    @Test
+    fun aPickWithNothingToDeleteSaysSoAndPlansNothing() {
+        // An empty folder, or a folder whose videos are all gone: Delete still answers.
+        flow.nothing()
+        val result = (flow.stage as DeleteStage.Finished).result
+        assertEquals(0, result.trashed + result.deleted)
+        assertTrue(result.failed.isEmpty())
+        assertEquals(0, media.plans)
+        assertNull(media.deleted)
+        flow.confirm()
+        assertNull(media.deleted)
+        flow.dismiss()
+        assertNull(flow.stage)
+    }
+
+    @Test
+    fun nothingToDeleteNeverInterruptsARunningDelete() {
+        media.gate = CompletableDeferred()
+        flow.ask(two)
+        flow.confirm()
+        flow.nothing()
+        assertTrue(flow.stage is DeleteStage.Running)
+        media.gate!!.complete(Unit)
+        assertEquals(2, (flow.stage as DeleteStage.Finished).result.trashed)
+    }
 }

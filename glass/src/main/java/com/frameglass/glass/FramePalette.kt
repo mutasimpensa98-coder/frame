@@ -629,15 +629,19 @@ internal object FramePalettes {
     fun of(look: FrameLook): FramePalette {
         val key = key(look)
         val cache = if (key.custom == null && key.accentArgb == null) kept else passing
+        synchronized(this) { cache[key]?.let { return it } }
+        // Built outside the lock. A preview works its palette out on another thread while a slider is dragged, and
+        // that must never hold up the palette the screen itself asks for.
+        val spec = key.custom?.let(::customSpec) ?: specs[key.theme.ordinal]
+        val accent = when {
+            key.accentArgb != null -> Color(key.accentArgb).let { AccentTones(it, it) }
+            key.accent != null -> tones(key.accent)
+            else -> spec.accent
+        }
+        val built = build(spec, accent, key)
         synchronized(this) {
+            // Two threads may have built the same look. The first one stored stays the one instance of it.
             cache[key]?.let { return it }
-            val spec = key.custom?.let(::customSpec) ?: specs[key.theme.ordinal]
-            val accent = when {
-                key.accentArgb != null -> Color(key.accentArgb).let { AccentTones(it, it) }
-                key.accent != null -> tones(key.accent)
-                else -> spec.accent
-            }
-            val built = build(spec, accent, key)
             if (cache === passing && cache.size >= MaxPassing) cache.clear()
             cache[key] = built
             return built

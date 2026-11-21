@@ -87,6 +87,14 @@ class VaultFlowTest {
     }
 
     @Test
+    fun aPickWithNothingToMoveSaysSoAndMovesNothing() {
+        flow.nothingToMove()
+        assertEquals(MoveOutcome.Moved(0, out = false), flow.outcome)
+        assertTrue(vault.moved.isEmpty())
+        assertEquals(0, flow.runningMoves)
+    }
+
+    @Test
     fun leavingLocksAtOnceWhenSetToZero() {
         flow.pageLeft(0)
         assertEquals(1, vault.locks)

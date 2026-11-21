@@ -137,20 +137,72 @@ internal object VaultDeleteRules {
         listOf(row.storedName) + sidecars.map { it.storedName }
 
     /**
-     * Titles of the [removed] rows that are left with nothing: no other private row ([privateLeft]) and no file in
-     * the library ([publicFiles]). Such a title is forgotten whole. One that still has a file anywhere keeps its
-     * match, cover and progress, as after any delete.
+     * True only for a title that was never anything but private, and is now empty. "No file row" is not enough:
+     * removing or excluding a library folder deletes its file rows on purpose and keeps the title, its match and
+     * its progress, so the folder can come back to all of it. So anything the owner did with the title outside the
+     * private folder keeps it: progress on another episode, a favourite or watchlist mark, a match or a cover
+     * chosen by hand.
      */
-    fun orphanTitles(removed: List<VaultItem>, privateLeft: Map<Long, Int>, publicFiles: Map<Long, Int>): Set<Long> =
-        removed.mapNotNullTo(LinkedHashSet()) { it.file.titleId }
-            .filterTo(LinkedHashSet()) { (privateLeft[it] ?: 0) == 0 && (publicFiles[it] ?: 0) == 0 }
+    fun forgettable(traces: TitleTraces): Boolean =
+        traces.privateLeft == 0 && traces.libraryFiles == 0 && traces.otherProgress == 0 &&
+            !traces.favorite && !traces.onWatchlist && !traces.manualMatch && !traces.manualCover
 
     /**
-     * File ids of the [removed] rows whose own leftovers can go: the frame, the saved subtitles and the track
-     * choices. A copy of the same file that [staying] in the folder or the library still holds keeps them.
+     * The titles among [titleIds] that are forgotten whole after their private videos were deleted. One the app
+     * knows nothing about, because it is already gone, is left alone. Every other title stays as it is, and only
+     * what belonged to the deleted file goes: its progress went with its row, and [freeFileIds] names the rest.
      */
-    fun freeFileIds(removed: List<VaultItem>, staying: List<VaultItem>, publicFileIds: Set<String>): Set<String> {
-        val held = staying.mapTo(HashSet()) { it.file.fileId } + publicFileIds
-        return removed.mapTo(LinkedHashSet()) { it.file.fileId }.filterTo(LinkedHashSet()) { it !in held }
+    fun orphanTitles(titleIds: List<Long>, traces: Map<Long, TitleTraces>): Set<Long> =
+        titleIds.filterTo(LinkedHashSet()) { id -> traces[id]?.let(::forgettable) == true }
+
+    /**
+     * File ids among [removed] whose own leftovers can go: the frame, the saved subtitles and the track choices.
+     * One that a row still [held] in the folder or in the library has keeps them.
+     */
+    fun freeFileIds(removed: List<String>, held: Set<String>): Set<String> =
+        removed.filterTo(LinkedHashSet()) { it !in held }
+}
+
+/** What the app still holds for a title once a private video of it is deleted. */
+internal data class TitleTraces(
+    /** Other videos of it still in the private folder, in any state. */
+    val privateLeft: Int,
+    /** File rows of it in the library, on storage or not. */
+    val libraryFiles: Int,
+    /** Saved progress of its playables. The deleted video's own progress lived in its private row and is gone. */
+    val otherProgress: Int,
+    val favorite: Boolean,
+    val onWatchlist: Boolean,
+    val manualMatch: Boolean,
+    val manualCover: Boolean,
+)
+
+/** One deleted private video whose leftovers are still to be cleaned: its file id, and its title when it had one. */
+internal data class VaultLeftover(val fileId: String, val titleId: Long?)
+
+/**
+ * The list of deleted private videos whose cleanup has not finished, kept as plain lines in app storage: the title
+ * id, a tab, the file id. It names no file and no title. A delete adds a line before the row goes, and the cleanup
+ * takes the line away when it is done, so an app killed in between finishes the cleanup on its next start.
+ */
+internal object VaultCleanupJournal {
+    private const val SEPARATOR = '\t'
+
+    fun line(entry: VaultLeftover): String = "${entry.titleId ?: ""}$SEPARATOR${entry.fileId}"
+
+    /** Every whole line, once. A line cut short by a kill, or anything else unreadable, is skipped. */
+    fun parse(text: String): List<VaultLeftover> = text.lineSequence().mapNotNull { line ->
+        val at = line.indexOf(SEPARATOR)
+        if (at < 0) return@mapNotNull null
+        val fileId = line.substring(at + 1)
+        val title = line.substring(0, at)
+        val titleId = if (title.isEmpty()) null else title.toLongOrNull() ?: return@mapNotNull null
+        if (fileId.isEmpty()) null else VaultLeftover(fileId, titleId)
+    }.distinct().toList()
+
+    /** The journal with [done] taken out. Lines added while the cleanup ran stay. */
+    fun without(text: String, done: Collection<VaultLeftover>): String {
+        val finished = done.toSet()
+        return parse(text).filter { it !in finished }.joinToString("") { line(it) + "\n" }
     }
 }

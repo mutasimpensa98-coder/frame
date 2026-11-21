@@ -99,7 +99,11 @@ internal class FakeVault : PrivateVault, VaultDeleteSource {
     /** While set, delete() waits here, so a test can look at the stage in between. */
     var deleteGate: CompletableDeferred<Unit>? = null
 
+    /** While set, planDelete() waits here. */
+    var planGate: CompletableDeferred<Unit>? = null
+
     override suspend fun planDelete(titleIds: List<Long>): VaultDeletePlan {
+        planGate?.await()
         if (!current.value.unlocked) throw VaultClosedException()
         planned += titleIds
         return VaultDeletePlan(titleIds, titleIds.map { it * 10 }, titleIds.size, 0, 100L * titleIds.size, titleIds.map { "Video $it" })

@@ -102,6 +102,13 @@ internal class VaultFlow(private val services: FrameServices, private val scope:
         outcome = result.fold({ MoveOutcome.Moved(it, out) }, { MoveOutcome.Failed(out) })
     }
 
+    /** What was picked holds no video to move. The move sheet opens on its "nothing moved" message. */
+    fun nothingToMove() {
+        if (runningMoves > 0) return
+        movingOut = false
+        outcome = MoveOutcome.Moved(0, out = false)
+    }
+
     fun clearOutcome() {
         outcome = null
     }

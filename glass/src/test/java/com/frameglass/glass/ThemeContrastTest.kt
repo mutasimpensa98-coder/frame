@@ -662,4 +662,19 @@ class ThemeContrastTest {
 
         ThemeBridge.leave(dark)
     }
+
+    @Test
+    fun aLookAskedForOnSeveralThreadsAtOnceIsOnePalette() {
+        // A swatch works its palette out off the main thread while a slider is dragged, so two threads can ask
+        // for the same look at the same moment. Neither waits for the other, and both get the same instance.
+        val look = FrameLook(custom = CustomTheme(137f, 0.31f, 0.42f), accentArgb = 0xFF12AB34.toInt())
+        val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
+        try {
+            val built = (1..8).map { pool.submit<FramePalette> { FramePalettes.of(look) } }.map { it.get() }
+            built.forEach { assertSame(built.first(), it) }
+            assertSame(built.first(), FramePalettes.of(look))
+        } finally {
+            pool.shutdown()
+        }
+    }
 }

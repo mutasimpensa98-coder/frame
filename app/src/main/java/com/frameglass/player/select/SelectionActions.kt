@@ -6,7 +6,6 @@ import androidx.compose.ui.platform.LocalContext
 import com.frameglass.data.api.FileVersion
 import com.frameglass.data.api.FrameServices
 import com.frameglass.data.api.MediaEntry
-import com.frameglass.data.api.MediaEntryKind
 import com.frameglass.data.api.MediaGroup
 import com.frameglass.data.api.frameServices
 import com.frameglass.data.api.versions
@@ -14,6 +13,7 @@ import com.frameglass.player.model.UiModel
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Navigator
 import com.frameglass.player.nav.Route
+import com.frameglass.player.ui.CardMenuRules
 import com.frameglass.player.ui.rememberUiModel
 import kotlinx.coroutines.flow.first
 
@@ -60,18 +60,19 @@ private class SelectionRunner(
                 selection.clear()
                 model.launch { targets.forEach { library.setWatched(it, watched) } }
             }
-            SelectionAction.MOVE_TO_PRIVATE -> {
-                selection.clear()
-                model.launch {
-                    val folders = folderEntries(items)
-                    val inside = folders.mapNotNull { entry ->
-                        val path = entry.folderPath ?: return@mapNotNull null
-                        path to media.children(entry).first().mapNotNull { it.fileRowId }
-                    }.toMap()
-                    val move = SelectionRules.moveIn(items, inside, episodeFiles(items))
-                    if (!move.isEmpty) {
-                        model.vault.moveIn(move.titleIds, move.fileRowIds) { navigator.push(Route.PrivateFolder) }
-                    }
+            SelectionAction.MOVE_TO_PRIVATE -> model.launch {
+                val folders = folderEntries(items)
+                val inside = folders.mapNotNull { entry ->
+                    val path = entry.folderPath ?: return@mapNotNull null
+                    path to media.children(entry).first().mapNotNull { it.fileRowId }
+                }.toMap()
+                val move = SelectionRules.moveIn(items, inside, episodeFiles(items))
+                if (move.isEmpty) {
+                    // Nothing under the picks can move. The sheet says so, and the picks stay for another try.
+                    model.vault.nothingToMove()
+                } else {
+                    selection.clear()
+                    model.vault.moveIn(move.titleIds, move.fileRowIds) { navigator.push(Route.PrivateFolder) }
                 }
             }
             SelectionAction.MOVE_OUT -> {
@@ -85,7 +86,8 @@ private class SelectionRunner(
             // Never without the sheet: this only asks, and the sheet names the files before anything goes.
             SelectionAction.DELETE -> model.launch {
                 val entries = SelectionRules.deleteEntries(items, folderEntries(items), episodeFiles(items))
-                model.deletes.ask(entries, onDeleted = selection::clear)
+                // With nothing to delete the sheet says so instead of staying shut, and the picks stay.
+                if (entries.isEmpty()) model.deletes.nothing() else model.deletes.ask(entries, onDeleted = selection::clear)
             }
         }
     }
@@ -96,12 +98,15 @@ private class SelectionRunner(
         model.launch { ids.forEach { change(it) } }
     }
 
-    /** Media Manager's entry for each picked folder, which is what its delete and its file list are keyed on. */
+    /**
+     * Media Manager's entries for every picked folder: the folder itself when it holds videos, and every folder
+     * under it that does. Its delete and its file lists are keyed on these.
+     */
     private suspend fun folderEntries(items: List<SelectItem>): List<MediaEntry> {
-        val paths = SelectionRules.foldersOnStorage(items).toSet()
+        val paths = SelectionRules.foldersOnStorage(items)
         if (paths.isEmpty()) return emptyList()
         val folders = media.entries(MediaGroup.FOLDERS).first()
-        return folders.filter { it.kind == MediaEntryKind.FOLDER && it.folderPath in paths }
+        return paths.flatMap { CardMenuRules.foldersUnder(it, folders) }.distinctBy { it.id }
     }
 
     private suspend fun episodeFiles(items: List<SelectItem>): Map<String, List<FileVersion>> =

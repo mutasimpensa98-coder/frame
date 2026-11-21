@@ -96,32 +96,106 @@ class VaultDeleteRulesTest {
         assertEquals(listOf("stored4.bin"), VaultDeleteRules.storedFiles(clip, emptyList()))
     }
 
+    private val empty = TitleTraces(
+        privateLeft = 0, libraryFiles = 0, otherProgress = 0,
+        favorite = false, onWatchlist = false, manualMatch = false, manualCover = false,
+    )
+
     @Test
-    fun aTitleWithNothingLeftAnywhereIsForgotten() {
-        val orphans = VaultDeleteRules.orphanTitles(listOf(first, second, film), mapOf(5L to 0, 8L to 0), mapOf(5L to 0, 8L to 0))
-        assertEquals(setOf(5L, 8L), orphans)
+    fun aTitleThatWasOnlyEverPrivateIsForgottenOnceItIsEmpty() {
+        assertTrue(VaultDeleteRules.forgettable(empty))
+        assertEquals(setOf(5L, 8L), VaultDeleteRules.orphanTitles(listOf(5L, 8L), mapOf(5L to empty, 8L to empty)))
     }
 
     @Test
     fun aTitleWithAnotherPrivateVideoOrALibraryFileIsKept() {
         // One episode deleted, another still private.
-        assertTrue(VaultDeleteRules.orphanTitles(listOf(first), mapOf(5L to 1), mapOf(5L to 0)).isEmpty())
-        // The private copy deleted, a copy still in the library.
-        assertTrue(VaultDeleteRules.orphanTitles(listOf(film), mapOf(8L to 0), mapOf(8L to 2)).isEmpty())
+        assertFalse(VaultDeleteRules.forgettable(empty.copy(privateLeft = 1)))
+        // The private copy deleted, a copy still in the library, on storage or not.
+        assertFalse(VaultDeleteRules.forgettable(empty.copy(libraryFiles = 2)))
     }
 
     @Test
-    fun aClipWithNoTitleLeavesNoTitleToForget() {
-        assertTrue(VaultDeleteRules.orphanTitles(listOf(clip), emptyMap(), emptyMap()).isEmpty())
+    fun aSeriesWhoseLibraryFolderWasRemovedKeepsItsProgress() {
+        // The folder was removed or excluded, which deletes its file rows on purpose and keeps the title, so
+        // "no file row" alone must never forget it: the other episodes' progress is the promise.
+        val removedFolder = empty.copy(otherProgress = 7)
+        assertFalse(VaultDeleteRules.forgettable(removedFolder))
+        assertTrue(VaultDeleteRules.orphanTitles(listOf(5L), mapOf(5L to removedFolder)).isEmpty())
+    }
+
+    @Test
+    fun anythingTheOwnerChoseForTheTitleKeepsIt() {
+        assertFalse(VaultDeleteRules.forgettable(empty.copy(favorite = true)))
+        assertFalse(VaultDeleteRules.forgettable(empty.copy(onWatchlist = true)))
+        assertFalse(VaultDeleteRules.forgettable(empty.copy(manualMatch = true)))
+        assertFalse(VaultDeleteRules.forgettable(empty.copy(manualCover = true)))
+    }
+
+    @Test
+    fun onlyTheEmptyTitlesOfAMixedDeleteAreForgotten() {
+        val traces = mapOf(5L to empty.copy(otherProgress = 1), 8L to empty)
+        assertEquals(setOf(8L), VaultDeleteRules.orphanTitles(listOf(5L, 8L), traces))
+    }
+
+    @Test
+    fun aTitleThatIsAlreadyGoneIsLeftAlone() {
+        assertTrue(VaultDeleteRules.orphanTitles(listOf(5L), emptyMap()).isEmpty())
+        assertTrue(VaultDeleteRules.orphanTitles(emptyList(), mapOf(5L to empty)).isEmpty())
     }
 
     @Test
     fun theLeftoversOfAFileGoUnlessACopyOfItStays() {
-        val twin = stored(7, file(17, "t:8", titleId = 8).copy(fileId = film.file.fileId))
-        assertEquals(setOf("id13", "id14"), VaultDeleteRules.freeFileIds(listOf(film, clip), listOf(first), emptySet()))
-        // The same file is still in the folder under another row.
-        assertEquals(setOf("id14"), VaultDeleteRules.freeFileIds(listOf(film, clip), listOf(twin), emptySet()))
-        // The same file is still in the library.
-        assertEquals(setOf("id13"), VaultDeleteRules.freeFileIds(listOf(film, clip), emptyList(), setOf("id14")))
+        assertEquals(setOf("id13", "id14"), VaultDeleteRules.freeFileIds(listOf("id13", "id14"), setOf("id11")))
+        // The same file is still in the folder or in the library under another row.
+        assertEquals(setOf("id14"), VaultDeleteRules.freeFileIds(listOf("id13", "id14"), setOf("id13")))
+        assertTrue(VaultDeleteRules.freeFileIds(listOf("id13"), setOf("id13")).isEmpty())
+        assertTrue(VaultDeleteRules.freeFileIds(emptyList(), emptySet()).isEmpty())
+    }
+
+    // The journal that lets a cleanup cut off by a kill finish on the next start.
+
+    private val filmLeft = VaultLeftover("id13", 8)
+    private val clipLeft = VaultLeftover("id14", null)
+
+    @Test
+    fun aJournalLineReadsBackWithAndWithoutATitle() {
+        val text = VaultCleanupJournal.line(filmLeft) + "\n" + VaultCleanupJournal.line(clipLeft) + "\n"
+        assertEquals(listOf(filmLeft, clipLeft), VaultCleanupJournal.parse(text))
+    }
+
+    @Test
+    fun theJournalNamesNoFileAndNoTitle() {
+        assertEquals("8\tid13", VaultCleanupJournal.line(filmLeft))
+        assertEquals("\tid14", VaultCleanupJournal.line(clipLeft))
+    }
+
+    @Test
+    fun aLineCutShortByAKillIsSkippedAndTheRestStillRead() {
+        val text = "8\tid13\nnot a line\nx\tid9\n7\t\n\tid14\n8"
+        assertEquals(listOf(filmLeft, clipLeft), VaultCleanupJournal.parse(text))
+        assertTrue(VaultCleanupJournal.parse("").isEmpty())
+    }
+
+    @Test
+    fun theSameVideoNotedTwiceIsCleanedOnce() {
+        val line = VaultCleanupJournal.line(filmLeft) + "\n"
+        assertEquals(listOf(filmLeft), VaultCleanupJournal.parse(line + line))
+    }
+
+    @Test
+    fun aFinishedCleanupLeavesOnlyWhatWasAddedMeanwhile() {
+        val late = VaultLeftover("id20", 5)
+        val text = listOf(filmLeft, clipLeft, late).joinToString("") { VaultCleanupJournal.line(it) + "\n" }
+        val left = VaultCleanupJournal.without(text, listOf(filmLeft, clipLeft))
+        assertEquals(listOf(late), VaultCleanupJournal.parse(left))
+        assertEquals("", VaultCleanupJournal.without(text, listOf(filmLeft, clipLeft, late)))
+    }
+
+    @Test
+    fun runningTheCleanupAgainFindsNothingMoreToDo() {
+        // After a first run the file is no longer free to clean and the title is gone: the rules name nothing.
+        assertTrue(VaultDeleteRules.freeFileIds(listOf("id13"), setOf("id13")).isEmpty())
+        assertTrue(VaultDeleteRules.orphanTitles(listOf(8L), emptyMap()).isEmpty())
     }
 }

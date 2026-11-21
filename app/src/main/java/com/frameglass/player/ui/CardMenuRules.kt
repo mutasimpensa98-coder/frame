@@ -49,6 +49,21 @@ internal object CardMenuRules {
         )
     }
 
+    /** True when [path] is [root] itself or anything inside it. A sibling whose name only starts the same is not. */
+    fun isUnder(root: String, path: String?): Boolean {
+        if (path == null) return false
+        val top = root.trimEnd('/')
+        return top.isNotEmpty() && (path.trimEnd('/') == top || path.startsWith("$top/"))
+    }
+
+    /**
+     * What a folder holds for a delete or a move: every Media Manager folder entry at [path] or under it.
+     * Media Manager lists only folders that hold videos directly, so a folder of folders has no entry of its own,
+     * and asking for its own entry alone would find nothing to delete in a folder full of videos.
+     */
+    fun foldersUnder(path: String, folders: List<MediaEntry>): List<MediaEntry> =
+        folders.filter { it.kind == MediaEntryKind.FOLDER && isUnder(path, it.folderPath) }
+
     /** Every file of a title that is on storage now, for the confirmation sheet. */
     fun titleEntry(titleId: Long, name: String) = MediaEntry(
         id = "title|$titleId",

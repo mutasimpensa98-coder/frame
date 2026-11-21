@@ -6,7 +6,10 @@ import com.frameglass.data.api.HeroItem
 import com.frameglass.data.api.MediaEntryKind
 import com.frameglass.data.api.PlayRef
 import com.frameglass.data.api.TitleKind
+import com.frameglass.data.api.MediaEntry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -184,5 +187,63 @@ class CardMenuRulesTest {
         assertEquals(DeleteWording.PLAIN, rows.delete)
         assertEquals(null, rows.episode)
         assertEquals(play, rows.popUp)
+    }
+
+    // A folder stands for every video under it.
+
+    private fun folderEntry(path: String, kind: MediaEntryKind = MediaEntryKind.FOLDER) = MediaEntry(
+        id = "$kind|$path", kind = kind, name = path.substringAfterLast('/'), detail = path, sizeBytes = 10, fileCount = 1,
+        durationMs = null, width = null, height = null, coverPath = null, titleId = null, folderPath = path, fileRowId = null,
+    )
+
+    private val listed = listOf(
+        folderEntry("/storage/shows/harbour/season 1"),
+        folderEntry("/storage/shows/harbour/season 2"),
+        folderEntry("/storage/shows/harbour 2"),
+        folderEntry("/storage/shows"),
+        folderEntry("/storage/clips"),
+    )
+
+    private fun under(path: String) = CardMenuRules.foldersUnder(path, listed).map { it.folderPath }
+
+    @Test
+    fun aFolderOfFoldersTakesEveryFolderUnderIt() {
+        // Media Manager lists only folders that hold videos themselves, so "harbour" has no entry of its own.
+        assertEquals(
+            listOf("/storage/shows/harbour/season 1", "/storage/shows/harbour/season 2"),
+            under("/storage/shows/harbour"),
+        )
+    }
+
+    @Test
+    fun aFolderWithVideosTakesItselfAndWhatIsUnderIt() {
+        assertEquals(
+            listOf(
+                "/storage/shows/harbour/season 1",
+                "/storage/shows/harbour/season 2",
+                "/storage/shows/harbour 2",
+                "/storage/shows",
+            ),
+            under("/storage/shows"),
+        )
+        assertEquals(listOf("/storage/clips"), under("/storage/clips"))
+    }
+
+    @Test
+    fun aSiblingWhoseNameOnlyStartsTheSameIsNotInside() {
+        assertFalse(CardMenuRules.isUnder("/storage/shows/harbour", "/storage/shows/harbour 2"))
+        assertFalse(CardMenuRules.isUnder("/storage/shows/harbour", "/storage/shows"))
+        assertTrue(CardMenuRules.isUnder("/storage/shows/harbour", "/storage/shows/harbour"))
+        assertTrue(CardMenuRules.isUnder("/storage/shows/harbour/", "/storage/shows/harbour/season 1"))
+        assertFalse(CardMenuRules.isUnder("/storage/shows", null))
+        assertFalse(CardMenuRules.isUnder("", "/storage/shows"))
+    }
+
+    @Test
+    fun aFolderWithNoVideoAnywhereUnderItTakesNothing() {
+        assertTrue(under("/storage/empty").isEmpty())
+        // The same path under another kind, such as a title filed there, is not a folder.
+        val title = listOf(folderEntry("/storage/shows/harbour", MediaEntryKind.TITLE))
+        assertTrue(CardMenuRules.foldersUnder("/storage/shows/harbour", title).isEmpty())
     }
 }

@@ -42,8 +42,11 @@ import com.frameglass.data.logic.ResumeLogic
 import com.frameglass.data.logic.SegmentRules
 import com.frameglass.data.logic.SidecarClaim
 import com.frameglass.data.logic.SidecarMatcher
+import com.frameglass.data.logic.TitleTraces
 import com.frameglass.data.logic.VaultCards
+import com.frameglass.data.logic.VaultCleanupJournal
 import com.frameglass.data.logic.VaultDeleteRules
+import com.frameglass.data.logic.VaultLeftover
 import com.frameglass.data.logic.VaultNames
 import com.frameglass.data.logic.VaultRecovery
 import com.frameglass.data.logic.VaultRefs
@@ -129,6 +132,14 @@ internal class PrivateVaultImpl(
     private val unlocked = MutableStateFlow(false)
     private val moving = MutableStateFlow<VaultProgress?>(null)
     private val moves = Mutex()
+
+    /** Deleted private videos whose leftovers are still to be cleaned. Outside the folder, so no listing meets it. */
+    private val journal: File get() = File(context.filesDir, CLEANUP_JOURNAL)
+    private val journalLock = Any()
+    private val cleaning = Mutex()
+
+    @Volatile
+    private var cleanupChecked = false
 
     @Volatile
     private var recovered = false
@@ -246,7 +257,8 @@ internal class PrivateVaultImpl(
     /**
      * For good: app storage has no trash. It outlives the screen that confirmed it and waits for a running move.
      * Each video goes before its rows, so a stop in between leaves a card that says its file is missing, never a
-     * hidden file nobody can find or delete.
+     * hidden file nobody can find or delete. It answers as soon as the videos and their rows are gone; what the app
+     * kept beside them is cleaned afterwards ([cleanUp]), and a scan in progress cannot hold the answer back.
      */
     override suspend fun delete(plan: VaultDeletePlan): VaultDeleteResult {
         if (!unlocked.value) throw VaultClosedException()
@@ -257,6 +269,7 @@ internal class PrivateVaultImpl(
 
     private suspend fun deleteStored(plan: VaultDeletePlan): VaultDeleteResult {
         val removed = ArrayList<VaultItem>()
+        val leftovers = ArrayList<VaultLeftover>()
         val paths = HashSet<String>()
         var failed = 0
         var freed = 0L
@@ -270,6 +283,10 @@ internal class PrivateVaultImpl(
                 continue
             }
             files.drop(1).forEach { it.delete() }
+            // Written before the row goes, so a kill right after it still leaves the cleanup something to go by.
+            val leftover = VaultLeftover(row.file.fileId, row.file.titleId)
+            noteLeftover(leftover)
+            leftovers += leftover
             db.withTransaction {
                 dao.deleteSidecars(row.id)
                 dao.delete(row.id)
@@ -281,48 +298,83 @@ internal class PrivateVaultImpl(
         if (removed.isNotEmpty()) {
             // First, so a player still showing one of them closes before anything else is cleaned up under it.
             deleted.add(DeletedFiles(emptySet(), paths))
-            forgetLeftovers(removed)
+            // Not awaited: the answer does not wait for a scan to end. With no scan walking, so a walk cannot file
+            // a new video under a title while it is being forgotten.
+            scope.launch(Dispatchers.IO) { scanner.exclusive { cleanUp(leftovers) } }
         }
         return VaultDeleteResult(removed.size, failed, freed)
     }
 
-    /** What the app kept beside the files: nothing of a deleted private video may stay to be shown or backed up. */
-    private suspend fun forgetLeftovers(removed: List<VaultItem>) {
+    /** A journal that cannot be written must not stop a delete the owner confirmed: this run cleans from memory. */
+    private fun noteLeftover(entry: VaultLeftover) {
         try {
-            val staying = dao.stored() + dao.unfinished()
-            val public = removed.flatMapTo(HashSet()) { row -> scan.byFileId(row.file.fileId).map { it.fileId } }
-            for (fileId in VaultDeleteRules.freeFileIds(removed, staying, public)) {
-                db.watch().deleteFilePrefs(fileId)
-                images.frameFile(fileId).delete()
-                sidecarLabels.folderOf(fileId).deleteRecursively()
-            }
-            // With no scan running, so a walk cannot file a new video under a title while it is being forgotten.
-            scanner.exclusive {
-                val ids = removed.mapNotNull { it.file.titleId }.distinct()
-                val privateLeft = ids.associateWith { dao.countOfTitle(it) }
-                val publicFiles = ids.associateWith { scan.filesOfTitle(it).size }
-                VaultDeleteRules.orphanTitles(removed, privateLeft, publicFiles).forEach { forgetTitle(it) }
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            // The videos are gone, which is what was asked. A leftover row names no file that still exists.
-            Log.w(TAG, "vault cleanup failed: ${e.javaClass.simpleName}")
+            synchronized(journalLock) { journal.appendText(VaultCleanupJournal.line(entry) + "\n") }
+        } catch (e: IOException) {
+            Log.w(TAG, "vault journal failed: ${e.javaClass.simpleName}")
         }
     }
 
     /**
-     * A title whose last file was private and is now deleted. A title with a file in the library keeps everything,
-     * as after a delete from Media Manager; this one has nothing to come back to, and its name alone would tell
-     * what the private folder held, in the hidden list or in a backup.
+     * What the app kept beside deleted private videos: everything in the journal, and [also] what the delete that
+     * calls this has just removed. Call it with no scan walking: inside [Scanner.exclusive], or from [recover],
+     * which a scan runs before its walk. Every step looks at what is there now, so running it twice, or after an
+     * app that was killed half way, changes nothing more.
+     */
+    private suspend fun cleanUp(also: List<VaultLeftover> = emptyList()) = cleaning.withLock {
+        try {
+            val noted = synchronized(journalLock) {
+                if (journal.isFile) VaultCleanupJournal.parse(journal.readText()) else emptyList()
+            }
+            val pending = (noted + also).distinct()
+            if (pending.isEmpty()) return@withLock
+            val fileIds = pending.map { it.fileId }.distinct()
+            val held = (dao.stored() + dao.unfinished()).mapTo(HashSet()) { it.file.fileId }
+            fileIds.filterTo(held) { scan.byFileId(it).isNotEmpty() }
+            for (fileId in VaultDeleteRules.freeFileIds(fileIds, held)) {
+                db.watch().deleteFilePrefs(fileId)
+                images.frameFile(fileId).delete()
+                sidecarLabels.folderOf(fileId).deleteRecursively()
+            }
+            val ids = pending.mapNotNull { it.titleId }.distinct()
+            val traces = ids.mapNotNull { id -> titles.title(id)?.let { id to tracesOf(it) } }.toMap()
+            VaultDeleteRules.orphanTitles(ids, traces).forEach { forgetTitle(it) }
+            synchronized(journalLock) {
+                val left = if (journal.isFile) VaultCleanupJournal.without(journal.readText(), pending) else ""
+                if (left.isEmpty()) journal.delete() else journal.writeText(left)
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // The videos are gone, which is what was asked. The journal stays, so the next start tries again.
+            Log.w(TAG, "vault cleanup failed: ${e.javaClass.simpleName}")
+        }
+    }
+
+    private suspend fun tracesOf(title: Title) = TitleTraces(
+        privateLeft = dao.countOfTitle(title.id),
+        libraryFiles = scan.filesOfTitle(title.id).size,
+        otherProgress = db.watch().ofTitle(title.id).size,
+        favorite = title.favorite,
+        onWatchlist = title.watchlistAt != null,
+        manualMatch = title.manualMatch,
+        manualCover = title.manualCover,
+    )
+
+    /**
+     * A title that was never anything but private, and is now empty ([VaultDeleteRules.forgettable]). It has
+     * nothing to come back to, and its name alone would tell what the private folder held, in the hidden list or
+     * in a backup. A title the owner used in the library keeps everything, as after a delete from Media Manager
+     * or the removal of a folder.
      */
     private suspend fun forgetTitle(id: Long) {
-        val title = titles.title(id) ?: return
         val watch = db.watch()
         val meta = db.meta()
+        var cover: String? = null
         val gone = db.withTransaction {
-            if (dao.countOfTitle(id) > 0 || scan.filesOfTitle(id).isNotEmpty()) return@withTransaction false
-            watch.ofTitle(id).forEach { watch.delete(it.playableKey) }
+            // Read again inside the transaction: nothing may have changed since the list was made.
+            val title = titles.title(id) ?: return@withTransaction false
+            if (!VaultDeleteRules.forgettable(tracesOf(title))) return@withTransaction false
+            cover = title.coverPath.takeIf { title.manualCover }
             watch.deleteSeriesPrefs(id)
             watch.deleteLogOfTitle(id)
             meta.deleteSegments(id)
@@ -338,8 +390,7 @@ internal class PrivateVaultImpl(
         }
         if (!gone) return
         images.deleteTitleDir(id)
-        // Only pictures the app made or copied in for this title. A frame of a library file is that file's own.
-        if (title.manualCover) images.delete(title.coverPath)
+        images.delete(cover)
     }
 
     /** A move outlives the screen that started it, which only watches [progress]. */
@@ -662,6 +713,12 @@ internal class PrivateVaultImpl(
      * for the next scan rather than wait on a lock the move may need back.
      */
     suspend fun recover() {
+        // A delete whose cleanup was cut off by a kill finishes here, once per start. A scan calls this before its
+        // walk and already holds the scan lock, so the cleanup takes none.
+        if (!cleanupChecked) {
+            cleanupChecked = true
+            cleanUp()
+        }
         if (recovered || !moves.tryLock()) return
         try {
             val paths = volumes.pathMap()
@@ -817,6 +874,7 @@ internal class PrivateVaultImpl(
         const val TAG = "FrameData"
         const val FOLDER = "vault"
         const val PART = ".part"
+        const val CLEANUP_JOURNAL = "vault-cleanup.txt"
         const val TEMP_PREFIX = ".frameglass-"
         const val TEMP_EXTENSION = "tmp"
         const val FALLBACK_FOLDER = "Movies/Frame"
