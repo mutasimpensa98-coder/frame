@@ -64,6 +64,18 @@ internal object CardMenuRules {
     fun foldersUnder(path: String, folders: List<MediaEntry>): List<MediaEntry> =
         folders.filter { it.kind == MediaEntryKind.FOLDER && isUnder(path, it.folderPath) }
 
+    /**
+     * What a folder row holds for a delete or a move. A row of the flat list ([direct]) stands for the videos
+     * directly in its folder, so it takes the one Media Manager entry at [path] and leaves the folders inside it
+     * alone: they have rows of their own, and the count on this row never included them. A folder of the tree
+     * takes everything under it, as [foldersUnder] says.
+     */
+    fun folderContent(path: String, direct: Boolean, folders: List<MediaEntry>): List<MediaEntry> {
+        if (!direct) return foldersUnder(path, folders)
+        val own = path.trimEnd('/')
+        return folders.filter { it.kind == MediaEntryKind.FOLDER && own.isNotEmpty() && it.folderPath?.trimEnd('/') == own }
+    }
+
     /** Every file of a title that is on storage now, for the confirmation sheet. */
     fun titleEntry(titleId: Long, name: String) = MediaEntry(
         id = "title|$titleId",

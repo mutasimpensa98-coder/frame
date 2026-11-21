@@ -233,7 +233,7 @@ internal fun FrameRoot(link: Route? = null, onLinkOpened: () -> Unit = {}) {
                             entry<Route.Person> { PersonScreen(it.personId) }
                             entry<Route.Genre> { GenreScreen(it.name) }
                             entry<Route.Row> { RowScreen(it.kind, it.label) }
-                            entry<Route.Folder> { FolderScreen(it.path) }
+                            entry<Route.Folder> { FolderScreen(it.path, it.direct) }
                             entry<Route.MediaManager> { MediaManagerScreen() }
                             entry<Route.MediaItems> { MediaItemsScreen(it) }
                             entry<Route.PrivateFolder> { PrivateFolderScreen() }

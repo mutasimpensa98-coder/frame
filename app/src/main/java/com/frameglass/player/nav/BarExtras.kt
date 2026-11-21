@@ -50,6 +50,20 @@ internal fun BarExtrasSlot() {
     extras.content()
 }
 
+/**
+ * For a top bar with no room for one more button, such as Library's with its four: it says the bar shows the
+ * extras in its own way, as a row of its menu, and returns whether there is anything to show.
+ */
+@Composable
+internal fun barExtrasInMenu(): Boolean {
+    val extras = LocalBarExtras.current ?: return false
+    DisposableEffect(extras) {
+        extras.attach()
+        onDispose { extras.detach() }
+    }
+    return true
+}
+
 /** Opens Settings as a page of its own, for a bar that has no Settings tab. */
 @Composable
 internal fun SettingsGearButton(modifier: Modifier = Modifier) {

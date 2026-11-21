@@ -7,6 +7,7 @@ import com.frameglass.data.api.ApiKeyKind
 import com.frameglass.data.api.CastMember
 import com.frameglass.data.api.EpisodeRow
 import com.frameglass.data.api.FileVersion
+import com.frameglass.data.api.FolderSort
 import com.frameglass.data.api.FolderView
 import com.frameglass.data.api.HomeFeed
 import com.frameglass.data.api.HomeRowKind
@@ -48,6 +49,7 @@ import com.frameglass.data.logic.AutoReach
 import com.frameglass.data.logic.Clock
 import com.frameglass.data.logic.EpisodeRows
 import com.frameglass.data.logic.FileFactsBuilder
+import com.frameglass.data.logic.FlatFolders
 import com.frameglass.data.logic.FolderBuilder
 import com.frameglass.data.logic.HomeBuilder
 import com.frameglass.data.logic.Labels
@@ -154,6 +156,19 @@ internal class LibraryRepositoryImpl(
         view { TitleLists.library(it, filter, sort) }
 
     override fun folder(path: String?): Flow<FolderView> = view { FolderBuilder.build(path, it) }
+
+    override fun flatFolders(sort: FolderSort): Flow<FolderView> = view { FlatFolders.build(it, sort) }
+
+    override fun folderVideos(path: String): Flow<FolderView> = view { FlatFolders.videos(path, it) }
+
+    /** Names are matched in the form the title search uses, so Arabic spellings and case fold the same way. */
+    override fun searchFolders(query: String, under: String?, deep: Boolean): Flow<FolderView> {
+        val words = searchKey(query).split(' ').filter { it.isNotEmpty() }
+        if (words.isEmpty()) return flowOf(FolderView(under, null, emptyList()))
+        return view { FlatFolders.search(it, words, under, deep, ::searchKey) }
+    }
+
+    private fun searchKey(text: String): String = SearchText.clean(Keys.normalize(text))
 
     override fun title(id: Long): Flow<TitleDetail?> = view { detail(id, it) }
 

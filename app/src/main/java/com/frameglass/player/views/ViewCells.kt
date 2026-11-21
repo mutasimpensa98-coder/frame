@@ -335,8 +335,15 @@ internal fun LazyGridScope.titleItems(titles: List<TitleCard>, source: String, s
 }
 
 @Composable
-private fun folderFacts(entry: FolderEntry): String =
+private fun folderCount(entry: FolderEntry): String =
     pluralStringResource(R.plurals.app_videos, entry.videoCount, entry.videoCount)
+
+/**
+ * The dimmed line of a folder: how many videos it holds, after the parent path of a folder whose name another
+ * folder of the flat list shares, so the two can be told apart (owner request of 2026-11-22).
+ */
+@Composable
+internal fun folderFacts(entry: FolderEntry): String = metaLine(listOfNotNull(entry.hint, folderCount(entry)))
 
 /** A folder or a video of a folder as the compact row of the owner's reference: tile, name, count and a size chip. */
 @Composable
@@ -440,9 +447,21 @@ private fun FolderCard(entry: FolderEntry, density: CardDensity, face: CellFace,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+            // A small card says the name alone, so two folders of one name still need the line that tells them apart.
+            val hint = entry.hint
+            if (!face.facts && face.name && hint != null) {
+                Text(
+                    text = bidiIsolate(hint),
+                    style = FrameType.Caption,
+                    color = colors.secondaryContent,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
             if (face.facts) {
                 val facts = listOfNotNull(
-                    folderFacts(entry).takeIf { entry.isDirectory },
+                    entry.hint.takeIf { entry.isDirectory },
+                    folderCount(entry).takeIf { entry.isDirectory },
                     fileSizeLabel(entry.sizeBytes),
                 )
                 Text(

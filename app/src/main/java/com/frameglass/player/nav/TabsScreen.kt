@@ -53,6 +53,7 @@ import com.frameglass.glass.isGlassOverlayOpen
 import com.frameglass.glass.rememberEffectsLevel
 import com.frameglass.player.R
 import com.frameglass.player.home.HomeScreen
+import com.frameglass.player.library.FoldersScreen
 import com.frameglass.player.library.LibraryScreen
 import com.frameglass.player.search.SearchScreen
 import com.frameglass.player.select.LocalSelectionChrome
@@ -97,15 +98,18 @@ internal val BarSection.icon: ImageVector
         BarSection.SETTINGS -> Icons.Rounded.Settings
     }
 
-/** The page of one section. [open] shows another section: its tab where it has one, else a page of its own. */
+/**
+ * The page of one section. [open] shows another section: its tab where it has one, else a page of its own. With
+ * [asPage] the section is itself such a page, and Settings, Library and Folders carry a back arrow.
+ */
 @Composable
-private fun SectionContent(section: BarSection, open: (BarSection) -> Unit) {
+private fun SectionContent(section: BarSection, asPage: Boolean = false, open: (BarSection) -> Unit) {
     when (section) {
         BarSection.HOME -> HomeScreen(onOpenLibrary = { open(BarSection.LIBRARY) })
-        BarSection.FOLDERS -> FoldersTabHost()
-        BarSection.LIBRARY -> LibraryScreen()
+        BarSection.FOLDERS -> if (asPage) FoldersScreen(asPage = true) else FoldersTabHost()
+        BarSection.LIBRARY -> LibraryScreen(asPage)
         BarSection.SEARCH -> SearchScreen()
-        BarSection.SETTINGS -> SettingsScreen()
+        BarSection.SETTINGS -> SettingsScreen(asPage)
     }
 }
 
@@ -114,11 +118,7 @@ private fun SectionContent(section: BarSection, open: (BarSection) -> Unit) {
 internal fun SectionPage(section: BarSection) {
     val navigator = LocalNavigator.current
     Box(Modifier.fillMaxSize().background(FrameColors.Canvas)) {
-        if (section == BarSection.SETTINGS) {
-            SettingsScreen(asPage = true)
-        } else {
-            SectionContent(section) { navigator.push(Route.Section(it)) }
-        }
+        SectionContent(section, asPage = true) { navigator.push(Route.Section(it)) }
     }
 }
 
@@ -147,7 +147,7 @@ internal fun TabsScreen(sections: List<BarSection>, selected: BarSection, onSele
     // section in view is the caller's to keep.
     val pager = remember(sections) { PagerState(currentPage = selectedIndex) { sections.size } }
     val fling by rememberUpdatedState(PagerDefaults.flingBehavior(pager))
-    val locked by rememberUpdatedState(TabSwipeRules.locked(chrome.active, isGlassOverlayOpen(), swipeLock.locked))
+    val locked by rememberUpdatedState(TabSwipeRules.locked(chrome.active, isGlassOverlayOpen(), swipeLock.held))
     val rtl by rememberUpdatedState(LocalLayoutDirection.current == LayoutDirection.Rtl)
     val arbiter = remember(pager, scope) { TabSwipeArbiter(pager, scope, { locked }, { rtl }, { fling }) }
     // True while the pages follow the bar or a link, and the pill leads them with its own spring.
@@ -245,8 +245,16 @@ internal fun TabsScreen(sections: List<BarSection>, selected: BarSection, onSele
                 saved.SaveableStateProvider(section.id) {
                     Box(Modifier.fillMaxSize()) {
                         val pageExtras = extras.takeIf { page == 0 }
-                        CompositionLocalProvider(LocalBarExtras provides pageExtras) { SectionContent(section, open) }
-                        if (pageExtras != null && !chrome.active) UnhostedExtras(pageExtras)
+                        CompositionLocalProvider(
+                            LocalBarExtras provides pageExtras,
+                            // Back belongs to the tab in view, also while a neighbour is on screen during a swipe.
+                            LocalTabInView provides (page == selectedIndex),
+                        ) {
+                            SectionContent(section, open = open)
+                        }
+                        // A tab in a mode of its own, selecting or searching, has swapped its top bar for the
+                        // mode's, and shows no gear until it is out of it.
+                        if (pageExtras != null && !chrome.active && !swipeLock.held) UnhostedExtras(pageExtras)
                     }
                 }
             }

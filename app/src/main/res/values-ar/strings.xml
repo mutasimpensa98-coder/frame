@@ -109,6 +109,23 @@
     <string name="app_search_nothing">لا توجد نتائج</string>
     <string name="app_search_people">الأشخاص</string>
     <string name="app_search_titles">العناوين</string>
+    <string name="app_search_close">إغلاق البحث</string>
+    <string name="app_library_search">بحث في المكتبة</string>
+    <string name="app_folders_title">المجلدات</string>
+    <string name="app_folders_search">بحث في المجلدات</string>
+    <string name="app_folders_search_title">ابحث في مجلداتك</string>
+    <string name="app_folders_search_hint">أسماء المجلدات والفيديوهات</string>
+    <string name="app_folder_sort_size">الحجم</string>
+    <string name="app_folder_sort_count">عدد الفيديوهات</string>
+    <string name="app_folder_sort_newest">الأحدث</string>
+    <string name="app_library_section_layout">شكل المكتبة</string>
+    <string name="app_folders_view">عرض المجلدات</string>
+    <string name="app_folders_view_hint">طريقة عرض المجلدات في المكتبة وفي شاشة المجلدات.</string>
+    <string name="app_folders_view_flat">كل المجلدات مرة واحدة</string>
+    <string name="app_folders_view_tree">مجلد داخل مجلد</string>
+    <string name="app_chips_reset">إرجاع الترتيب</string>
+    <string name="app_chips_reset_hint">ترجع التصنيفات اللي فوق في المكتبة لترتيبها الأول. ولتحريك تصنيف: اضغط عليه مطوّلًا ثم اسحبه لمكانه.</string>
+    <string name="app_chips_order_default">الافتراضي</string>
 
     <string name="app_settings_library">المكتبة</string>
     <string name="app_settings_playback">التشغيل</string>
@@ -226,9 +243,9 @@
     <string name="app_bar_sections">الأقسام</string>
     <string name="app_bar_home_hint">ما تكمل مشاهدته وصفوف عناوينك</string>
     <string name="app_bar_folders_hint">فيديوهاتك حسب المجلد</string>
-    <string name="app_bar_library_hint">كل العناوين مع التصفية والترتيب</string>
+    <string name="app_bar_library_hint">كل العناوين مع البحث والتصفية</string>
     <string name="app_bar_search_hint">البحث في تبويب مستقل</string>
-    <string name="app_bar_settings_hint">عند إيقافه يظهر زر ترس في أول قسم يفتح الإعدادات</string>
+    <string name="app_bar_settings_hint">عند إيقافه تُفتح الإعدادات من أعلى أول قسم</string>
     <string name="app_bar_last">لا بد أن يبقى قسم واحد على الأقل</string>
     <string name="app_bar_note">التغييرات تُطبَّق فورًا. إذا بقي قسم واحد يختفي الشريط.</string>
     <string name="app_bar_preview">معاينة الشريط</string>

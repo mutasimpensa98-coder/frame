@@ -186,8 +186,9 @@ fun FilterChips(
     }
 }
 
+/** One chip of [FilterChips] and of [ReorderableFilterChips]. [modifier] lands on the node that is clicked. */
 @Composable
-private fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
+internal fun FilterChip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val colors = FrameTheme.colors
     val fill by animateColorAsState(
         if (selected) colors.accent.copy(alpha = ChipSelectedFill) else colors.elevated,
@@ -206,7 +207,7 @@ private fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
     )
     PressableGlass(
         onClick = onClick,
-        modifier = Modifier.semantics { this.selected = selected },
+        modifier = modifier.semantics { this.selected = selected },
         shape = FrameShapes.Chip,
         role = Role.Tab,
         highlight = false,

@@ -10,6 +10,10 @@ The requests of the last two rounds are built and listed in `STATUS.md` and `NEX
 
 2026-11-21: a private folder shortcut at the top left of Home. Built on branch `views`, not merged, not on the phone. See `STATUS.md`, "This round: private folder shortcut on Home".
 
+2026-11-22: «جعل ميزة البحث في قسم الlibrary»; «في قسم الfolders في المكتبة اجعله يظهر جميع المجلدات التي تحتوي على الفيديوات دفعة واحدة وليس مجلد داخل مجلد (خلي خيار في الاعدادات اقدر اتحكم فيه بيه)»; «في قسم المكتبة اريد ان اضبط التصنيفات اللي فوق عبر الضغط المطول والسحب لأي مكان اريده لتصنيف معين». Built on branch `library`, merged into `tabs` the same day, not on the phone. See `STATUS.md`, "This round: search in Library, flat folders, chip order".
+
+2026-11-22: «سحب الbar الرئيسية بين الايقونات بطريقة سلسة بأصبع واحد»; «الانتقال بين الصفحات الرئيسية بمجرد السحب من وسط الشاشة بسلاسة ديناميكية»; and the sections of the bar as a choice, with Folders in the place of Search. Built on branch `tabs`, with `library` merged into it, not on the phone. See `STATUS.md`, "This round: tabs".
+
 Found on the phone on 2026-11-07:
 
 - Files pushed by adb have no MediaStore row, so delete calls them permanent. Check the trash path on a real camera or download clip.

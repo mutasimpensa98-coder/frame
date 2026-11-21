@@ -1,6 +1,10 @@
 # Next
 
-Updated 2026-11-22, after the tabs were reworked on branch `tabs` (waiver of 2026-11-22): items 203 to 217 of section 2, and entries in sections 3, 4, 5 and 7. Nothing of it has been seen on a phone, and it is not merged.
+Updated 2026-11-22, after branch `library` was merged into branch `tabs`: the checks of `library` keep items 203 to 228 of section 2, and the checks of `tabs` are now items 229 to 243. Nothing of either has been seen on a phone.
+
+Updated 2026-11-22, after the tabs were reworked on branch `tabs` (waiver of 2026-11-22): items 229 to 243 of section 2 since the merge, and entries in sections 3, 4, 5 and 7. Nothing of it has been seen on a phone.
+
+Updated 2026-11-22, after search in Library, the flat list of folders, the Folders screen and the drag order of the chips were built on branch `library` (waiver of 2026-11-22): items 203 to 228 of section 2, and entries in sections 3, 4, 5 and 7. Branch `tabs` adds its own checks, which the merge numbered 229 to 243.
 
 Updated 2026-11-21, after branch `views` (with `select`) was merged into branch `themes`. The checks of `views` keep items 152 to 185 of section 2, and the themes checks are now items 186 to 202. Nothing of either branch has been seen on a phone.
 
@@ -305,33 +309,80 @@ Android 11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص 
 201. في الإعدادات: هل مربعات الأيقونات الملوّنة واضحة في كل ثيم؟ في بعض الثيمات يطلع لها إطار رفيع: هل شكله مقبول؟ وشارة التقييم لسه زرقاء لـ ⁦TMDB⁩ وصفراء لـ ⁦IMDb⁩؟
 202. اعمل نسخة احتياطية وانت على ثيم مخصّص ولون من «أي لون»، غيّر الثيم، ثم استرجع النسخة. هل رجع نفس الثيم ونفس اللون؟ ولو عندك نسخة من قبل التحديث: هل استرجاعها يرجّع الشكل اللي كان فيها؟
 
-الشريط الرئيسي والسحب بين الصفحات (فرع `tabs`). بعد التحديث الشريط يولّي: الرئيسية، المجلدات، المكتبة، الإعدادات. «البحث» طلع من الشريط وتقدر ترجّعه من الإعدادات:
+البحث داخل المكتبة (فرع `library`، ما انجرّبش على تلفون):
 
-203. حط إصبعك على الشريط السفلي واسحب من أيقونة لأيقونة بدون ما ترفعه. هل الحبة تمشي مع إصبعك بسلاسة من أول لمسة، ولون الأيقونة والاسم يتبدّل معاها وهي تعدّي فوقهم؟ وهل تتمدّد شوية لما تسحب بسرعة؟
-204. وانت تسحب على الشريط: هل تحس بنقرة خفيفة كل ما تقرب الحبة من قسم جديد؟ هل النقرات مناسبة ولا كثيرة؟ ارفع إصبعك في النص بين قسمين: هل اختار الأقرب وفتح صفحته؟
-205. اضغط ضغطة عادية على أيقونة. هل لسه تفتح القسم زي قبل؟ القسم اللي جنبك يدخل بانزلاق، والبعيد يدخل بتلاشي سريع ثم انزلاق قصير: هل الحركتين مقبولات؟
-206. اسحب من وسط الشاشة يمين ويسار في الرئيسية والمكتبة والإعدادات. هل الصفحة تمشي مع إصبعك والحبة في الشريط تمشي معاها؟ هل فيه تقطيع أول ما تبدأ السحب، خصوصًا وانت داخل على المكتبة؟
-207. في الرئيسية اسحب على الصورة الكبيرة فوق. هل تتبدّل الصور بس والقسم يبقى؟ ولما توصل لآخر صورة وتكمل السحب في نفس الاتجاه: ينقلك للقسم اللي بعده. هل هذا مريح ولا تبيه يوقف عند آخر صورة؟
-208. في صفوف الرئيسية وشريط الفلاتر في المكتبة: اسحب الصف وارميه بسرعة لآخره. هل بقيت في نفس القسم؟ ولو الصف واقف أصلًا في آخره وسحبت زيادة: ينقلك للقسم المجاور. هل هذا اللي تتوقعه؟
-209. حوّل اللغة للعربي. هل الرئيسية صارت على اليمين في الشريط، والسحب على الشريط وبين الصفحات ماشي في الاتجاه الطبيعي؟
-210. في المكتبة ادخل وضع التحديد، أو افتح قائمة بضغطة طويلة. هل السحب بين الأقسام واقف لين تطلع؟ وبعد ما تطلع: هل رجع يشتغل؟
-211. قسم «المجلدات» الجديد: هل يعرض مجلداتك ويفتحها، وزر تغيير العرض والضغطة الطويلة يشتغلوا فيه؟ هذا شكل مؤقت لين يندمج فرع المكتبة.
-212. الإعدادات، ثم «أقسام الشريط»: طفّي وشغّل الأقسام وشوف الشريط اللي تحت. هل يقصر ويطول بحركة ناعمة بدون قفزة، والحبة تبقى على قسمها؟ ومع قسمين أو ثلاثة: هل صار كبسولة أقصر في النص وشكله كامل مش ناقص؟
-213. شغّل الأقسام الخمسة كلها. هل كل الأسماء مقروءة كاملة بالعربي والإنجليزي؟ لو الأسماء صغرت أو اختفت وبقيت الأيقونات بس، قول أي لغة وأي حجم خط.
-214. جرّب تطفّي آخر قسم محتوى باقي. هل مفتاحه واقف ومكتوب تحته «لا بد أن يبقى قسم واحد على الأقل»؟
-215. طفّي «الإعدادات» من الشريط وارجع للرئيسية. هل ظهر زر ترس جنب «+» فوق، ويفتح الإعدادات بسهم رجوع؟ ولو أول قسم عندك المكتبة أو البحث: الترس يطلع مؤقتًا عايم فوق الشريط. هل هو واضح وما يغطّيش شي مهم؟
-216. خلّي قسم واحد بس. هل الشريط اختفى والقائمة نزلت لآخر الشاشة؟ وزر الرجوع: من أي قسم غير الأول يرجّعك للأول، ومن الأول يطلع من التطبيق؟
-217. شغّل توفير الطاقة وجرّب: هل الحبة تبقى تحت إصبعك بالضبط بدون ارتداد، والضغط على أيقونة يبدّل الصفحة بتلاشي بس؟ وبعدها اعمل نسخة احتياطية، غيّر الأقسام، واسترجع النسخة: هل رجعت أقسامك؟
+203. المكتبة: هل فيه زر بحث (عدسة) فوق، قبل زر شكل العرض؟ اضغطه: هل الشريط اللي فوق تحوّل لخانة بحث، والكيبورد طلع وحده، والتصنيفات والقائمة اختفوا وطلعت «ابحث في مكتبتك»؟ وهل الأزرار الأربعة اللي فوق مش زاحمين عنوان «المكتبة»، خصوصًا لو خط التلفون كبير؟
+204. اكتب أول حروف فيلم عندك. هل النتائج تطلع مع كل حرف بدون تأخير، وفيها العناوين والأشخاص والأنواع زي تبويب البحث بالضبط؟ وهل زر × يمسح الكتابة؟
+205. اقفل البحث مرة بالسهم اللي جنب الخانة ومرة بزر الرجوع. هل رجعت المكتبة على نفس التصنيف ونفس المكان اللي كنت نازل له في القائمة؟ وهل لازم ضغطة رجوع ثانية عشان ترجع للرئيسية؟
+206. في نتائج البحث: هل زر شكل العرض يطلع جنب الخانة لما تظهر عناوين، والنتائج بنفس شكل المكتبة؟ اضغط مطوّل على نتيجة واختر «تحديد»: هل التحديد والشريط اللي تحت يشتغلوا؟ ولما تسكّر التحديد: هل رجعت خانة البحث وكلامك لسه فيها؟
+207. افتح فيلم من النتائج وارجع. هل البحث لسه مفتوح بنفس الكلمة والنتائج، والكيبورد ما غطّاش عليها؟
+208. اكتب كلمة ما لهاش نتيجة: هل طلعت «لا توجد نتائج»؟ امسحها واكتب حرف ثاني: هل الجملة هذي ما لمعتش لحظة قبل ما تطلع النتائج؟
+
+المجلدات دفعة واحدة (فرع `library`):
+
+209. المكتبة › «مجلدات» بعد التحديث: هل طلعت كل المجلدات اللي فيها فيديوهات في قائمة وحدة (⁦Camera⁩، ⁦Download⁩، …)، كل مجلد تحته عدد فيديوهاته ورقعة الحجم، وما فيش مجلد داخل مجلد؟ وهل قريبة من الصورة اللي بعتها؟
+210. اضغط على مجلد. هل فتح على فيديوهاته بس، بدون مجلدات جواه؟ وهل العدد اللي كان مكتوب عليه هو عدد اللي ظهر؟
+211. لو عندك مجلدين بنفس الاسم: هل في السطر الباهت تحت كل واحد مكانه (المجلد اللي فوقه) قبل عدد الفيديوهات، وتقدر تفرّق بينهم؟ وبالعربي: هل المسار مقروء وما انقلبش ترتيبه؟
+212. زر الترتيب فوق القائمة: جرّب «الاسم» و«الحجم» و«عدد الفيديوهات» و«الأحدث». هل كل ترتيب صحيح؟ «الأحدث» معناه المجلد اللي فيه آخر فيديو تصوّر أو تنزّل: هل هذا اللي تتوقعه؟
+213. جرّب الأشكال الخمسة من زر شكل العرض على القائمة الجديدة. هل كلها مرتبة والسطر الباهت ما يتقصّش بشكل يضيّع المعنى؟
+214. الإعدادات › المكتبة › «شكل المكتبة» › «عرض المجلدات»: اختر «مجلد داخل مجلد». هل رجعت المجلدات زي قبل التحديث؟ وبعدها رجّعها «كل المجلدات مرة واحدة».
+215. بمجلد تجربة جواه مجلد ثاني، وفي الاثنين فيديوهات ما تهمكش: حدد المجلد الخارجي من القائمة واضغط «حذف». هل ورقة التأكيد فيها فيديوهات المجلد الخارجي بس، والمجلد اللي جواه مش محسوب؟ ونفس الشي مع «نقل إلى المجلد الخاص».
+216. اضغط مطوّل على مجلد › «استبعاد المجلد»: المتوقع إنه يستبعد المجلد وكل اللي جواه، حتى المجلدات اللي لها سطر لحالها في القائمة. هل هذا يناسبك؟ رجّعه من الإعدادات › المكتبة › «المجلدات المستبعدة».
+217. افتح مجلد من «مجلدات»: هل فيه زر بحث فوق جنب زر العرض؟ اكتب جزء من اسم فيديو فيه: هل لقاه؟ واكتب كلمتين مش ورا بعض من الاسم: هل لقاه برضه؟
+
+ترتيب التصنيفات بالسحب (فرع `library`):
+
+218. المكتبة: اضغط مطوّل على تصنيف من اللي فوق، مثلاً «مجلدات». هل اهتز التلفون، والتصنيف كبر شوية وطلع له ظل؟ اسحبه يمين ويسار: هل يمشي مع إصبعك بالضبط والباقي يوسّعوا له بنعومة، وما فيش تصنيفين يتبادلوا مكانهم رايح جاي؟
+219. اسحبه لحافة الشاشة وخلّي إصبعك واقف: هل الصف يتحرك وحده لين توصل لأول أو آخر تصنيف؟ اتركه: هل نزل في مكانه الجديد بنعومة؟
+220. ضغطة قصيرة على تصنيف: هل لسه تختاره عادي؟ وسحب الصف بدون ضغط مطوّل: هل لسه يمرّر التصنيفات؟ واضغط مطوّل واترك بدون ما تسحب: هل ما تغيّرش التصنيف المختار؟
+221. والتصنيف مرفوع بإصبعك: هل الصفحة ما تتحركش لفوق وتحت، وسحب التحديث ما يشتغلش؟
+222. اقفل التطبيق من التطبيقات الأخيرة وافتحه. هل الترتيب محفوظ، والمكتبة فتحت على أول تصنيف في ترتيبك؟ جرّبها و«مجلدات» أول تصنيف.
+223. بالعربي: هل التصنيفات تبدأ من اليمين، والتصنيف المرفوع يمشي مع الإصبع في نفس الاتجاه؟
+224. حط «حابب نشوفه» أو «أنمي» في مكان معيّن، وبعدها فضّي القائمة لين يختفي التصنيف، ورجّع له عنوان. هل رجع في نفس المكان اللي حطيته فيه؟
+225. الإعدادات › المكتبة › «شكل المكتبة» › «إرجاع الترتيب»: هل رجّع التصنيفات لترتيبها الأول؟ وهل مكتوب جنبه «الافتراضي» لما ما يكونش فيه شي يترجّع؟
+226. اعمل نسخة احتياطية بعد ما ترتّب التصنيفات وتختار «مجلد داخل مجلد»، غيّر الاثنين، ثم استرجع النسخة. هل رجعوا زي ما كانوا وقت النسخة؟
+
+شاشة المجلدات كتبويب (بعد دمج فرع `tabs` مع فرع `library`):
+
+227. تبويب «المجلدات»: هل عنوانه «المجلدات» وفيه زر البحث وزر شكل العرض، ويعرض نفس قائمة «مجلدات» اللي في المكتبة، وبنفس اختيارك في «عرض المجلدات»؟ افتح مجلد: هل شريط التبويبات بقى تحت، وفيه سهم رجوع فوق، وزر الرجوع يرجّعك لقائمة المجلدات على نفس المكان قبل ما يطلع من التبويب؟
+228. في تبويب «المجلدات» اضغط البحث واكتب جزء من اسم مجلد أو فيديو. هل النتائج فيها المجلدات أول وبعدها الفيديوهات؟ وهل «تحديد» والضغط المطوّل يشتغلوا على النتائج؟ ولما ترفع تصنيف في المكتبة بإصبعك: هل السحب بين التبويبات واقف لين تتركه؟
+
+الشريط الرئيسي والسحب بين الصفحات (فرع `tabs`، بعد دمجه مع فرع `library`). بعد التحديث الشريط يولّي: الرئيسية، المجلدات، المكتبة، الإعدادات. «البحث» طلع من الشريط، وتلقاه في زر البحث فوق في المكتبة، وتقدر ترجّع تبويبه من الإعدادات:
+
+229. حط إصبعك على الشريط السفلي واسحب من أيقونة لأيقونة بدون ما ترفعه. هل الحبة تمشي مع إصبعك بسلاسة من أول لمسة، ولون الأيقونة والاسم يتبدّل معاها وهي تعدّي فوقهم؟ وهل تتمدّد شوية لما تسحب بسرعة؟
+230. وانت تسحب على الشريط: هل تحس بنقرة خفيفة كل ما تقرب الحبة من قسم جديد؟ هل النقرات مناسبة ولا كثيرة؟ ارفع إصبعك في النص بين قسمين: هل اختار الأقرب وفتح صفحته؟
+231. اضغط ضغطة عادية على أيقونة. هل لسه تفتح القسم زي قبل؟ القسم اللي جنبك يدخل بانزلاق، والبعيد يدخل بتلاشي سريع ثم انزلاق قصير: هل الحركتين مقبولات؟
+232. اسحب من وسط الشاشة يمين ويسار في الرئيسية والمجلدات والمكتبة والإعدادات. هل الصفحة تمشي مع إصبعك والحبة في الشريط تمشي معاها؟ هل فيه تقطيع أول ما تبدأ السحب، خصوصًا وانت داخل على المكتبة؟ ولما ترجع للمكتبة: هل لقيتها على نفس التصنيف ونفس مكان التمرير؟
+233. في الرئيسية اسحب على الصورة الكبيرة فوق. هل تتبدّل الصور بس والقسم يبقى؟ ولما توصل لآخر صورة وتكمل السحب في نفس الاتجاه: ينقلك للقسم اللي بعده. هل هذا مريح ولا تبيه يوقف عند آخر صورة؟
+234. في صفوف الرئيسية وصف التصنيفات في المكتبة: اسحب الصف وارميه بسرعة لآخره. هل بقيت في نفس القسم؟ ولو الصف واقف أصلًا في آخره وسحبت زيادة: ينقلك للقسم المجاور. هل هذا اللي تتوقعه؟
+235. حوّل اللغة للعربي. هل الرئيسية صارت على اليمين في الشريط، والسحب على الشريط وبين الصفحات ماشي في الاتجاه الطبيعي؟
+236. في المكتبة ادخل وضع التحديد، أو افتح البحث، أو افتح قائمة بضغطة طويلة. هل السحب بين الأقسام واقف لين تطلع؟ وبعد ما تطلع: هل رجع يشتغل؟ ووانت رافع تصنيف بضغطة مطوّلة وتسحبه: هل الصفحة ثابتة وما تنتقلش لقسم ثاني؟
+237. تبويب «المجلدات»: افتح مجلد، واسحب لقسم ثاني وارجع. هل لسه داخل نفس المجلد؟ وزر الرجوع وانت داخل المجلد: هل يطلّعك من المجلد أولًا، وبعدها يرجّعك لأول قسم؟ ولو فتحت البحث في المكتبة: هل الرجوع يقفل البحث قبل أي شي؟
+238. الإعدادات، ثم «أقسام الشريط»: طفّي وشغّل الأقسام وشوف الشريط اللي تحت. هل يقصر ويطول بحركة ناعمة بدون قفزة، والحبة تبقى على قسمها؟ ومع قسمين أو ثلاثة: هل صار كبسولة أقصر في النص وشكله كامل مش ناقص؟
+239. شغّل الأقسام الخمسة كلها. هل كل الأسماء مقروءة كاملة بالعربي والإنجليزي؟ لو الأسماء صغرت أو اختفت وبقيت الأيقونات بس، قول أي لغة وأي حجم خط. وتبويب «البحث» وزر البحث في المكتبة: هل الاثنين يشتغلوا؟
+240. جرّب تطفّي آخر قسم محتوى باقي. هل مفتاحه واقف ومكتوب تحته «لا بد أن يبقى قسم واحد على الأقل»؟
+241. طفّي «الإعدادات» من الشريط وارجع للرئيسية. هل ظهر زر ترس جنب «+» فوق، ويفتح الإعدادات بسهم رجوع؟ ولو أول قسم عندك المجلدات أو البحث: هل الترس مع الأزرار فوق؟ ولو أول قسم المكتبة: الإعدادات تلقاها سطر في قائمة النقاط الثلاث، لأن الشريط فوق فيه أربعة أزرار. هل هذا واضح ولا تبيه زر خامس؟
+242. خلّي قسم واحد بس. هل الشريط اختفى والقائمة نزلت لآخر الشاشة؟ وزر الرجوع: من أي قسم غير الأول يرجّعك للأول، ومن الأول يطلع من التطبيق؟ وطفّي «المكتبة» وافتحها من زر «افتح المكتبة» لو ظهر في الرئيسية: هل فتحت كصفحة فيها سهم رجوع؟
+243. شغّل توفير الطاقة وجرّب: هل الحبة تبقى تحت إصبعك بالضبط بدون ارتداد، والضغط على أيقونة يبدّل الصفحة بتلاشي بس؟ وبعدها اعمل نسخة احتياطية، غيّر الأقسام، واسترجع النسخة: هل رجعت أقسامك؟
 
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
 
-- **Tabs, the handed-over drag (`tabs`).** A drag that begins on a row, the chip line or the hero already at its end moves the pages through a path of its own (`TabSwipeArbiter`): the row reports what it could not use, the pager takes it, and on release the arbiter runs the pager's fling with the finger's speed. Watch for pages left between two tabs for a moment (a guard brings them to rest after 150 ms), for a flick that snaps back although it was fast, and for a row that will not scroll back until the pages are whole again, which is intended (items 207 and 208).
-- **Tabs, the first frame of a swipe.** Only the page in view is composed while the tabs rest. The neighbour is composed when the swipe begins, so the first swipe toward Library or Home may drop frames (item 206). Keeping both neighbours composed would cure it and would let Home's hero advance unseen; that is one constant, `PagesKeptBeyondView`.
+- **Tabs, the handed-over drag (`tabs`).** A drag that begins on a row, the chip line or the hero already at its end moves the pages through a path of its own (`TabSwipeArbiter`): the row reports what it could not use, the pager takes it, and on release the arbiter runs the pager's fling with the finger's speed. Watch for pages left between two tabs for a moment (a guard brings them to rest after 150 ms), for a flick that snaps back although it was fast, and for a row that will not scroll back until the pages are whole again, which is intended (items 233 and 234).
+- **Tabs, the first frame of a swipe.** Only the page in view is composed while the tabs rest. The neighbour is composed when the swipe begins, so the first swipe toward Library or Home may drop frames (item 232). Keeping both neighbours composed would cure it and would let Home's hero advance unseen; that is one constant, `PagesKeptBeyondView`.
 - **Tabs, three blurred layers.** While two pages slide, two top bars and the tab bar want blur at once, which is the cap. A selection bar or a control over art on top of that falls back to tint and rim for the length of the swipe.
-- **Tabs, the pill and its ticks.** One tick each time the pill, under a finger or a swipe, passes 8% of a slot beyond the midpoint between two tabs. Across the whole bar that is three or four ticks (item 204).
+- **Tabs, the pill and its ticks.** One tick each time the pill, under a finger or a swipe, passes 8% of a slot beyond the midpoint between two tabs. Across the whole bar that is three or four ticks (item 230).
 - **Tabs, a fling inside a row** is stopped where the row ends, as in any pager. The stretch a row shows at its end is gone inside the tabs.
+- **Tabs with Library, the chip drag (merged).** A lifted chip consumes its moves before the pager sees them and holds the lock. Watch for a page that starts to slide in the instant between the long press and the lift, and for the tabs staying locked after a drop: leaving the tab frees the lock (item 236).
+- **Tabs with Library, Back (merged).** Inside the Folders tab Back steps out of an opened folder first, and an open search closes before that. A page that is on screen only while a swipe passes takes no Back. Watch for Back jumping to the first tab from inside a folder (item 237).
+- **Tabs with Library, search and the keyboard (merged).** While a search is open in a tab's bar the tabs do not swipe. A tap on the bar still leaves the tab, the keyboard should go down with it, and the search should be as it was on return.
+- **Search in Library (`library`).** The bar is swapped for the search field in one frame, and the grid of Library leaves the screen while the results show. Watch for: the keyboard not coming up by itself, or coming up again over the results after a page opened from one; the list of Library back at the top instead of where it was; Back leaving the tab while the search is open; and the title «المكتبة» cut by the four buttons at a large font. Items 203 to 208 ask.
+- **The flat list of folders (`library`).** Every install opens Folders flat after the update, the owner's too. Watch the count and size of a folder that also holds folders: they are its own videos only, and the page it opens must show the same number (item 210). The second line shows only for a name that repeats; a long path is cut at its start with «…/» (item 211).
+- **Delete and move from a flat row (`library`).** A row takes the videos directly in its folder and nothing under it. The confirmation sheet is the place to see it: its count must be the row's count (item 215). Excluding is different on purpose and takes everything under the folder (item 216).
+- **Dragging a chip (`library`).** The gesture was written from the rules and has never run. Watch for: a long press that also opens something or picks the chip; a chip that jumps when lifted, or that sits off the finger after the row scrolled; two chips of very different widths trading back and forth; the page scrolling or refreshing under a lifted chip; the row not scrolling when the chip is held at an edge; and, in Arabic, a chip moving against the finger. Items 218 to 223 ask. If a chip ever stays lifted, leaving the tab and coming back resets the row.
+- **Library opening on the first chip (`library`).** With Anime or Watchlist first in the order, Library shows its skeleton until their lists load, then opens there. Watch for a flash of another filter, or a skeleton that stays (item 222).
+- **The Folders screen (`library` with `tabs`).** It has never been composed. Since the merge it is the Folders tab. Watch Back inside an opened folder (it must step out, not jump to Home), the scroll place of the list after stepping back, and the tab bar staying visible; items 227, 228 and 237.
 - **Themes, every screen (`themes`).** The tests cover the tokens, not the screens. A screen that lays its own colour over a surface, or a fade tuned for near-black, shows only on the phone: Details and the hero are the likely places (item 190), then sheets and menus on Midnight and Paper (item 188).
 - **Themes, the fade.** A theme change hands a new palette to the whole tree on each frame for 200 ms. Watch for a stutter on Appearance, and for a surface that jumps at the first frame while the rest fades: rims, shadows and system bar icons take the new kind at once.
 - **Themes, the player behind a light app.** The player is dark and the app may be light or coloured in one process. `ThemeBridge` already handled dark over light; a custom palette is new to it. Watch for a frame of the wrong colours when leaving the player or picture-in-picture (item 200).
@@ -402,14 +453,24 @@ From this round's three requests, read in the code and never run:
 
 ## 4. Known limits in this build
 
-Tabs (`tabs`, not seen on any phone). `WAIVERS.md`, "2026-11-22: Tabs: drag, swipe, Folders tab, hideable sections":
-- The Folders tab is a stand-in (`nav/FoldersTabHost.kt`) until branch `library` is merged.
-- With Search off, which is the default, nothing on this branch opens Search: the search inside Library is on branch `library`. Turning the Search section on gives the old tab back.
-- The gear that stands in for Settings has a place in the top bar of Home and of the Folders stand-in only. On Library or Search as the first tab it floats above the bar at the end side until their top bars call `BarExtrasSlot()`.
-- Library opened as a page of its own, from Home while Library has no tab, has no back arrow in its top bar. Back leaves it.
+Tabs (`tabs` with `library` merged, not seen on any phone). `WAIVERS.md`, "2026-11-22: Tabs: drag, swipe, Folders tab, hideable sections":
+- On Library as the first tab, with Settings off the bar, Settings is a row of the ⋮ menu and not a button: the bar already holds four.
+- Library opened as a page of its own, from Home while Library has no tab, has a back arrow and no "+".
+- The tabs do not swipe while a search is open in a tab's bar. The bar itself still changes the tab.
 - A tap on the bar while a swipe is still settling waits for the settle, then moves the pages.
 - The bar's change of width is animated, and is seen only on the page «أقسام الشريط»: the tabs themselves are not on screen while a switch moves.
-- A tab that leaves the bar forgets its scroll position and typed search.
+- A tab that leaves the bar forgets its scroll position, its opened folder and its typed search.
+
+Search in Library, flat folders and chip order (`library`, not seen on any phone). `WAIVERS.md`, "2026-11-22: Search in Library, flat folders, chip order":
+
+- The search button of Library always searches titles, people and genres, on the Folders chip too. Folder and video names are searched from the Folders screen and from a folder page.
+- A folder search matches names only, not paths: the word must be in the folder's own name or in the file's name. It lists at most 200 folders and 200 videos.
+- The flat list sorts by name, size, number of videos or newest for the session only. The tree has no sort.
+- Two folders of one name are told apart by a line that only they have. A folder whose name is unique shows no path anywhere but in its long-press menu's exclude row.
+- Excluding a folder from a row of the flat list excludes the folders inside it too, although they have rows of their own.
+- A new chip order is saved when the chip is dropped. A drag that is cut off, as by a call, saves nothing.
+- A screen reader moves a chip one place at a time through two custom actions; there is no drag for it.
+- The order of the chips does not change the order of the tabs, and the Folders tab has no + button (F-U11).
 
 Themes (`themes`, not seen on any phone). `WAIVERS.md`, "2026-11-21: More themes and custom colours":
 
@@ -517,9 +578,11 @@ Shortcuts, widget, next episode, trailer and tonight's pick (this round, not see
 
 ## 5. Decisions for the owner
 
-- **A drag past the end of the hero or of a row changes the tab (2026-11-22).** It is the rule the swipe was specified with: a scroller already at its end hands the drag to the pages. On Home the hero on its last picture is the place it will be met most. Keep it, or let a drag that starts on any scroller stay inside the tab? Item 207 asks.
-- **A far tab cuts in behind a fade (2026-11-22).** A tap on a tab that is not next to the one in view fades for a moment, then slides in from one tab away, so the tabs between are never drawn. The other way is to slide across all of them, which draws each for a few frames. Item 205 asks.
-- **The floating gear (2026-11-22).** It is only for a first tab whose top bar has no place for it yet, and goes when Library and Search take it after the merge. Item 215 asks whether it is acceptable until then.
+- **A drag past the end of the hero or of a row changes the tab (2026-11-22).** It is the rule the swipe was specified with: a scroller already at its end hands the drag to the pages. On Home the hero on its last picture is the place it will be met most. Keep it, or let a drag that starts on any scroller stay inside the tab? Item 233 asks.
+- **A far tab cuts in behind a fade (2026-11-22).** A tap on a tab that is not next to the one in view fades for a moment, then slides in from one tab away, so the tabs between are never drawn. The other way is to slide across all of them, which draws each for a few frames. Item 231 asks.
+- **Settings as a row of Library's menu (2026-11-22).** With Settings off the bar and Library the first tab, the gear would be a fifth button and would cut the title, so it is the row «الإعدادات» of the ⋮ menu there. A button, with the title smaller, is the other way. Item 241 asks.
+- **No swipe while a search is open (2026-11-22).** An open search is treated as a mode of its tab, like selection, so the keyboard and the results stay put under a sideways drag. The other way is to let the swipe leave the tab with the search still open behind it. Item 236 asks.
+- **Folders as one flat list (2026-11-22).** Six readings of the request wait for a yes or a no. (1) «الأحدث» sorts a folder by the file time of its newest video, not by when the app first saw it. (2) Folders had no sort at all; the flat list got the dropdown of Library with name, size, number of videos and newest. Keep it? (3) The parent path shows only under a name that repeats, as the request says; every other row has the count and the size alone. (4) Library's search button always searches titles, and folder names are searched from the Folders screen and inside a folder. (5) «استبعاد المجلد» on a row still takes everything under that folder, while delete and move take the row's own videos; item 216 asks. (6) Library opens on the first chip of the owner's order, where it always opened on «الكل».
 
 - **Folders open as the compact list (2026-11-21).** That is the reference the owner sent, and it replaces the larger list every install showed until now. The old row is the size «قائمة», one tap away. Keep compact as the default?
 
@@ -552,14 +615,16 @@ Gate 0 does not block app work under the waiver, but it still has to pass. Done 
 
 ## 7. Build next, in order
 
-Also before the list: **Tabs (`tabs`) and Library (`library`)**, both cut from `main` at `e20bfe5` and built side by side. Merge points, all marked in the code:
-- `nav/FoldersTabHost.kt`: replace the body with `FoldersScreen()` (comment `MERGE`), and keep `BarExtrasSlot()` first among that screen's top bar actions.
-- `LocalBarExtras`: call `BarExtrasSlot()` first in the `actions` of Library's `TopGlassBar` and at the end of Search's field row. Until then the gear floats (`UnhostedExtras` in `TabsScreen.kt`), and that fallback can stay as a guard.
-- `LocalTabSwipeLock` (`nav/TabSwipeLock.kt`): the chip reorder sets `locked` while a chip is dragged and clears it when the drag ends or is cancelled. It is null on a Library opened as a page.
-- `AppSettings`, `SettingsPrefs` and `BackupSettings`: the block "Bar sections" sits after "View sizes" at the end of each, with `readBar`, `writeBar`, `withBar` and `barOf`. The one-line chains (`read`, `toAppSettings`, `from`) are where both branches wrote, and each takes both calls.
-- `FrameSizes.TabBarClearance` is now a composable read. A use outside composition, such as inside a `LazyListScope` block, does not compile: read it before the list.
-- `LibraryScreen()` has no `navigation` slot, so Library pushed as a page (`Route.Section`) has no back arrow. A parameter for it is a small change in that file.
-Then write `docs/RELEASE-NOTES.md` in Arabic and send items 203 to 217 of section 2.
+Also before the list: **Tabs (`tabs`) with Library (`library`) merged**, both cut from `main` at `e20bfe5`. The merge is on `tabs`. What it did, for whoever reads the two branches later:
+- `nav/FoldersTabHost.kt` calls `FoldersScreen()`; the stand-in is gone.
+- The gear of `LocalBarExtras` has a place on every first tab: `BarExtrasSlot()` in Home, in `FoldersScreen` and `FolderPage`, and beside the field of `SearchScreen`; a row of `LibraryMenu` through `barExtrasInMenu()`.
+- `LocalTabSwipeLock` is set by `LibraryChips` and obeyed by the pager; `HoldTabSwipe` in `SearchBack` holds the tabs while a search is open; `LocalTabInView` keeps Back with the tab in view.
+- `AppSettings`, `SettingsPrefs` and `BackupSettings` hold both blocks, "Bar sections" and "Library layout", and each chain makes both calls.
+- `LibraryScreen(asPage)` and `FoldersScreen(asPage)` carry a back arrow when opened through `Route.Section`.
+- `FrameSizes.TabBarClearance` is a composable read; every use in the merged tree is inside composition.
+Next: review, merge into `main`, write `docs/RELEASE-NOTES.md` in Arabic, ship as usual, and send items 203 to 243 of section 2.
+
+Also before the list: **Search in Library, flat folders and chip order (`library`)**, cut from `main` at `e20bfe5`, to be merged with branch `tabs` of the same day. Both add to `AppSettings`, `SettingsStore` and `BackupSettings`: this branch's two fields sit in a block marked "Library layout" at the end of each, read and written by `readLibraryLayout`, `writeLibraryLayout`, `withLibraryLayout` and `libraryLayoutOf`; the conflicts are the last line of each list and the one line of `SettingsPrefs.read` and of `BackupSettings.toAppSettings`, and both blocks stay. `nav/TabSwipeLock.kt` exists on both branches with the same two declarations; take either. `TabsScreen.kt`, `GlassBars.kt` and `SettingsScreen.kt` are untouched here. The merge did what this asked: `FoldersScreen()` is in the tab, its `BackHandler` counts only while its tab is the one in view (`LocalTabInView`), the owner checks of `tabs` were renumbered to 229 to 243, and `:parser:test` was run on the merged tree.
 
 Also before the list: **View sizes (`views`)**, cut from `select`, so it merges after it. Branch `themes` adds fields to `AppSettings`, `SettingsStore` and `BackupSettings` too; the ones of this branch sit in marked blocks at the end of each, and are read and written by functions of their own (`readViews`, `writeViews`, `withViews`, `viewsOf`). The two were merged on `themes` on 2026-11-21: the blocks are whole, and in `SettingsStore` they now live in the pure `SettingsPrefs` beside the theme keys. Send items 168 to 179 of section 2.
 

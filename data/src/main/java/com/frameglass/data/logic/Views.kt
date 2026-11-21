@@ -21,6 +21,7 @@ import com.frameglass.data.api.TitleKind
 import com.frameglass.data.db.EpisodeLite
 import com.frameglass.data.db.MediaFile
 import com.frameglass.data.db.RootFolder
+import com.frameglass.data.db.Volume
 import java.time.Instant
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
@@ -421,7 +422,7 @@ internal object FolderBuilder {
 
     private fun cover(f: MediaFile, s: Snapshot): String? = f.framePath ?: f.titleId?.let { s.infos[it]?.cover }
 
-    private fun folderEntry(path: String, name: String, files: List<MediaFile>, s: Snapshot) = FolderEntry(
+    fun folderEntry(path: String, name: String, files: List<MediaFile>, s: Snapshot) = FolderEntry(
         path = path,
         name = name,
         isDirectory = true,
@@ -435,7 +436,7 @@ internal object FolderBuilder {
         play = null,
     )
 
-    private fun fileEntry(path: String, f: MediaFile, s: Snapshot) = FolderEntry(
+    fun fileEntry(path: String, f: MediaFile, s: Snapshot) = FolderEntry(
         path = path,
         name = f.relPath.substringAfterLast('/'),
         isDirectory = false,
@@ -468,12 +469,17 @@ internal object FolderBuilder {
         return FolderView(null, null, entries)
     }
 
+    /** The volume [path] sits on and its path inside that volume, or null when no known volume holds it. */
+    fun locate(path: String, s: Snapshot): Pair<Volume, String>? {
+        val volume = s.volumes.firstOrNull { v -> v.lastPath != null && (path == v.lastPath || path.startsWith(v.lastPath + "/")) }
+            ?: return null
+        return volume to path.removePrefix(volume.lastPath!!).removePrefix("/")
+    }
+
     fun build(path: String?, s: Snapshot): FolderView {
         if (path == null) return if (s.settings.scanWholePhone) volumeRoots(s) else addedFolders(s)
         val name = path.substringAfterLast('/')
-        val volume = s.volumes.firstOrNull { v -> v.lastPath != null && (path == v.lastPath || path.startsWith(v.lastPath + "/")) }
-            ?: return FolderView(path, name, emptyList())
-        val rel = path.removePrefix(volume.lastPath!!).removePrefix("/")
+        val (volume, rel) = locate(path, s) ?: return FolderView(path, name, emptyList())
         val prefix = if (rel.isEmpty()) "" else "$rel/"
         val folders = LinkedHashMap<String, MutableList<MediaFile>>()
         val files = ArrayList<MediaFile>()

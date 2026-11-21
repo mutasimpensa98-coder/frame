@@ -4,6 +4,8 @@ import com.frameglass.data.api.AccentColor
 import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.AutoSubtitleMode
 import com.frameglass.data.api.BarSections
+import com.frameglass.data.api.ChipOrder
+import com.frameglass.data.api.FoldersMode
 import com.frameglass.data.api.MatchState
 import com.frameglass.data.api.SegmentKind
 import com.frameglass.data.api.ThemeId
@@ -96,10 +98,30 @@ internal data class BackupSettings(
      */
     val barSections: String? = null,
     // ---- End of bar sections. ----
+    // ---- Library layout (owner requests of 2026-11-22). Keep this block whole. ----
+    /**
+     * A FoldersMode name, and the LibraryFilter names of the chip order. Null in a backup written before them, and
+     * when the owner never chose: both keep what the phone holds. So does a name this build does not know.
+     */
+    val foldersMode: String? = null,
+    val libraryChips: List<String>? = null,
+    // ---- End of library layout. ----
 ) {
     /** [current] is what the phone holds now, for the fields an older backup does not have. */
     fun toAppSettings(fontExists: Boolean, current: AppSettings) =
-        withBar(withViews(base(fontExists, current), current), current)
+        withLibraryLayout(withBar(withViews(base(fontExists, current), current), current), current)
+
+    // ---- Library layout (owner requests of 2026-11-22): restored and saved apart from the lists below. ----
+    private fun withLibraryLayout(restored: AppSettings, current: AppSettings): AppSettings = restored.copy(
+        foldersMode = FoldersMode.parse(foldersMode) ?: current.foldersMode,
+        libraryChips = ChipOrder.fromNames(libraryChips) ?: current.libraryChips,
+    )
+
+    private fun libraryLayoutOf(s: AppSettings) = copy(
+        foldersMode = s.foldersMode?.name,
+        libraryChips = s.libraryChips?.takeIf { it.isNotEmpty() }?.let(ChipOrder::names),
+    )
+    // ---- End of library layout. ----
 
     // ---- View sizes (owner request of 2026-11-21): restored and saved apart from the lists below. ----
     private fun savedView(place: ViewPlace): String? = when (place) {
@@ -181,7 +203,7 @@ internal data class BackupSettings(
             s.sendFileHash, s.vaultLockSeconds, s.cinemaMode, s.tmdbEnabled, s.imdbEnabled, s.autoSubtitles.name,
             s.hideUnseenStills, s.theme.name, s.followSystem, s.customHue, s.customShade, s.customSurface,
             s.customAccent,
-        ).viewsOf(s).barOf(s)
+        ).viewsOf(s).barOf(s).libraryLayoutOf(s)
     }
 }
 
