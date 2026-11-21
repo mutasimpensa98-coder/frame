@@ -1,8 +1,6 @@
 package com.frameglass.player.library
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -13,6 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.frameglass.data.api.HomeRowKind
 import com.frameglass.data.api.TitleCard
+import com.frameglass.data.api.ViewPlace
 import com.frameglass.data.api.frameServices
 import com.frameglass.glass.FrameColors
 import com.frameglass.glass.FrameSizes
@@ -20,26 +19,53 @@ import com.frameglass.glass.FrameSpacing
 import com.frameglass.glass.TopGlassBar
 import com.frameglass.glass.glassScrolled
 import com.frameglass.player.R
+import com.frameglass.player.select.SelectItem
+import com.frameglass.player.select.SelectionPlace
+import com.frameglass.player.select.SelectionScaffold
+import com.frameglass.player.select.SelectionState
+import com.frameglass.player.select.clearance
+import com.frameglass.player.select.selectItem
 import com.frameglass.player.ui.TitleGrid
 import com.frameglass.player.ui.navigationInset
 import com.frameglass.player.ui.statusInset
+import com.frameglass.player.views.ViewButton
+import com.frameglass.player.views.rememberViewSize
 
 @Composable
-private fun TitleListScreen(title: String, titles: List<TitleCard>, source: String, frames: Boolean = false) {
+private fun TitleListScreen(
+    title: String,
+    titles: List<TitleCard>,
+    source: String,
+    frames: Boolean = false,
+    place: SelectionPlace = SelectionPlace.TITLES,
+) {
     val grid = rememberLazyGridState()
-    Box(Modifier.fillMaxSize().background(FrameColors.Canvas)) {
+    val selection = remember { SelectionState<SelectItem> { it.key } }
+    val listed = remember(titles) { titles.map { it.selectItem() } }
+    val size = rememberViewSize(ViewPlace.LISTS)
+    SelectionScaffold(
+        selection = selection,
+        place = place,
+        listed = listed,
+        modifier = Modifier.background(FrameColors.Canvas),
+        selectingActions = { ViewButton(ViewPlace.LISTS) },
+        topBar = {
+            TopGlassBar(
+                title = title,
+                scrolled = { grid.glassScrolled() },
+                navigation = { BackButton() },
+                actions = { ViewButton(ViewPlace.LISTS) },
+            )
+        },
+    ) {
         TitleGrid(
             titles = titles,
             source = source,
             state = grid,
             top = statusInset() + FrameSizes.TopBarHeight,
-            bottom = navigationInset() + FrameSpacing.S24,
+            bottom = navigationInset() + selection.clearance(FrameSpacing.S24),
             frames = frames,
-        )
-        TopGlassBar(
-            title = title,
-            scrolled = { grid.glassScrolled() },
-            navigation = { BackButton() },
+            size = size,
         )
     }
 }
@@ -65,5 +91,12 @@ internal fun RowScreen(kind: HomeRowKind, label: String?) {
         HomeRowKind.RECENT -> stringResource(R.string.app_sort_recent)
         HomeRowKind.WATCHLIST -> stringResource(R.string.app_filter_watchlist)
     }
-    TitleListScreen(title, titles, "row:$kind:$label", frames = kind == HomeRowKind.VIDEOS)
+    TitleListScreen(
+        title = title,
+        titles = titles,
+        source = "row:$kind:$label",
+        frames = kind == HomeRowKind.VIDEOS,
+        // The whole of the watchlist row is the watchlist, so its bar takes titles off it.
+        place = if (kind == HomeRowKind.WATCHLIST) SelectionPlace.WATCHLIST else SelectionPlace.TITLES,
+    )
 }

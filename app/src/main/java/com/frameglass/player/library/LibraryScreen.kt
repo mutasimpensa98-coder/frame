@@ -1,18 +1,13 @@
 package com.frameglass.player.library
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.grid.LazyGridScope
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ViewList
 import androidx.compose.material.icons.rounded.BarChart
-import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.runtime.Composable
@@ -25,9 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.frameglass.data.api.FolderEntry
 import com.frameglass.data.api.LibraryFilter
 import com.frameglass.data.api.LibrarySort
+import com.frameglass.data.api.ViewPlace
+import com.frameglass.data.api.ViewSize
 import com.frameglass.glass.FilterChips
 import com.frameglass.glass.FrameSizes
 import com.frameglass.glass.FrameSpacing
@@ -47,21 +43,28 @@ import com.frameglass.player.folders.AddFolderButton
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Route
 import com.frameglass.player.quick.TonightSheet
-import com.frameglass.player.ui.GridColumnGap
-import com.frameglass.player.ui.GridLineGap
+import com.frameglass.player.select.SelectItem
+import com.frameglass.player.select.SelectionPlace
+import com.frameglass.player.select.SelectionScaffold
+import com.frameglass.player.select.SelectionState
+import com.frameglass.player.select.clearance
+import com.frameglass.player.select.selectItem
 import com.frameglass.player.ui.GridMessage
 import com.frameglass.player.ui.RefreshBox
 import com.frameglass.player.ui.bleed
 import com.frameglass.player.ui.fullLine
-import com.frameglass.player.ui.gridPadding
-import com.frameglass.player.ui.libraryColumns
 import com.frameglass.player.ui.navigationInset
 import com.frameglass.player.ui.rememberUiModel
 import com.frameglass.player.ui.statusInset
-import com.frameglass.player.ui.titleItems
+import com.frameglass.player.views.ViewButton
+import com.frameglass.player.views.rememberViewSize
+import com.frameglass.player.views.ViewGrid
+import com.frameglass.player.views.folderItems
+import com.frameglass.player.views.titleItems
 
 private const val SkeletonCount = 9
 private val ListSkeletonHeight = 96.dp
+private val CompactSkeletonHeight = 42.dp
 private val SortOrder = listOf(LibrarySort.RECENT, LibrarySort.NAME, LibrarySort.RATING)
 
 /** F-U2 and F-U3: chips, a sort dropdown and a 3-column grid, or 2 columns of 16:9 frames for Videos. */
@@ -78,7 +81,24 @@ internal fun LibraryScreen() {
     val grid = rememberLazyGridState()
     val tonight = rememberGlassSheetState()
     val folders = query.filter == LibraryFilter.FOLDERS
-    val frames = query.filter == LibraryFilter.VIDEOS && !query.asList
+    val selection = remember { SelectionState<SelectItem> { it.key } }
+    // What "Select all" picks: the rows of Folders, or every title of the filter in view.
+    val listed = remember(folders, titles, root) {
+        if (folders) root?.entries?.mapNotNull { it.selectItem() } else titles?.map { it.selectItem() }
+    }
+    val place = when (query.filter) {
+        LibraryFilter.FOLDERS -> SelectionPlace.FOLDERS
+        LibraryFilter.FAVORITES -> SelectionPlace.FAVORITES
+        LibraryFilter.WATCHLIST -> SelectionPlace.WATCHLIST
+        else -> SelectionPlace.TITLES
+    }
+    // Picks belong to the filter they were made in.
+    LaunchedEffect(query.filter) { selection.clear() }
+    // Folders keep a size of their own, because a list of places is not read like a wall of posters.
+    val viewPlace = if (folders) ViewPlace.FOLDERS else ViewPlace.LIBRARY
+    val size = rememberViewSize(viewPlace)
+    // Videos and folders show 16:9 frames; every other filter shows posters.
+    val frames = folders || query.filter == LibraryFilter.VIDEOS
 
     val filters = buildList {
         add(LibraryFilter.ALL)
@@ -116,21 +136,29 @@ internal fun LibraryScreen() {
         stringResource(R.string.app_sort_name),
         stringResource(R.string.app_sort_rating),
     )
-    val asList = query.asList || folders
     val top = statusInset() + FrameSizes.TopBarHeight
-    val bottom = navigationInset() + FrameSizes.TabBarClearance
+    val bottom = navigationInset() + selection.clearance(FrameSizes.TabBarClearance)
 
-    Box(Modifier.fillMaxSize()) {
+    SelectionScaffold(
+        selection = selection,
+        place = place,
+        listed = listed,
+        selectingActions = { ViewButton(viewPlace) },
+        topBar = {
+            TopGlassBar(
+                title = stringResource(R.string.app_tab_library),
+                scrolled = { grid.glassScrolled() },
+                actions = {
+                    ViewButton(viewPlace)
+                    LibraryMenu(tonight)
+                    AddFolderButton()
+                },
+            )
+        },
+    ) {
         RefreshBox(indicatorTop = top, Modifier.fillMaxSize()) {
             GlassSource(Modifier.fillMaxSize()) {
-                LazyVerticalGrid(
-                    columns = libraryColumns(asList, frames),
-                    state = grid,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = gridPadding(top, bottom),
-                    horizontalArrangement = Arrangement.spacedBy(GridColumnGap),
-                    verticalArrangement = Arrangement.spacedBy(GridLineGap),
-                ) {
+                ViewGrid(size, frames, grid, top, bottom) {
                     fullLine("chips") {
                         FilterChips(
                             labels = labels,
@@ -154,12 +182,13 @@ internal fun LibraryScreen() {
                             if (root != null && entries.isEmpty()) {
                                 fullLine("empty") { GridMessage(stringResource(R.string.app_library_no_folders)) }
                             }
-                            folderLines(entries) { navigator.push(Route.Folder(it.path)) }
+                            folderItems(entries, size) { navigator.push(Route.Folder(it.path)) }
                         }
                         titles == null -> repeat(SkeletonCount) { index ->
-                            item(key = "skeleton$index") {
+                            item(key = "skeleton$index", contentType = "skeleton") {
                                 val shape = when {
-                                    query.asList -> Modifier.height(ListSkeletonHeight)
+                                    size == ViewSize.COMPACT_LIST -> Modifier.height(CompactSkeletonHeight)
+                                    size == ViewSize.LIST -> Modifier.height(ListSkeletonHeight)
                                     frames -> Modifier.aspectRatio(FrameSizes.LandscapeRatio)
                                     else -> Modifier.aspectRatio(FrameSizes.PosterRatio)
                                 }
@@ -181,28 +210,11 @@ internal fun LibraryScreen() {
                                 )
                             }
                         }
-                        else -> titleItems(titles.orEmpty(), "library", query.asList, frames)
+                        else -> titleItems(titles.orEmpty(), "library", size, frames)
                     }
                 }
             }
         }
-        TopGlassBar(
-            title = stringResource(R.string.app_tab_library),
-            scrolled = { grid.glassScrolled() },
-            actions = {
-                if (!folders) {
-                    GlassIconButton(
-                        icon = if (query.asList) Icons.Rounded.GridView else Icons.AutoMirrored.Rounded.ViewList,
-                        contentDescription = stringResource(
-                            if (query.asList) R.string.app_view_grid else R.string.app_view_list,
-                        ),
-                        onClick = { model.changeQuery { it.copy(asList = !it.asList) } },
-                    )
-                }
-                LibraryMenu(tonight)
-                AddFolderButton()
-            },
-        )
     }
     TonightSheet(tonight)
 }
@@ -234,24 +246,6 @@ private fun LibraryMenu(tonight: GlassSheetState) {
                 onClick = {
                     open = false
                     navigator.push(Route.Stats)
-                },
-            )
-        }
-    }
-}
-
-/** Lines of a folder listing, shared by the Folders chip and the folder screen. */
-internal fun LazyGridScope.folderLines(
-    entries: List<FolderEntry>,
-    openFolder: (FolderEntry) -> Unit,
-) {
-    entries.forEach { entry ->
-        fullLine(entry.path) {
-            val navigator = LocalNavigator.current
-            FolderRow(
-                entry = entry,
-                onClick = {
-                    if (entry.isDirectory) openFolder(entry) else entry.play?.let(navigator::play)
                 },
             )
         }

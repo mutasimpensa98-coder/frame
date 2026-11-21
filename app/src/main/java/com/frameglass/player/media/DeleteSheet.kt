@@ -207,8 +207,9 @@ private fun PlanBody(plan: DeletePlan, flow: DeleteFlow, confirmable: Boolean) {
     }
 }
 
+/** One fact of a delete, label and value. The confirmation of the private folder lists its facts the same way. */
 @Composable
-private fun PlanFact(label: String, value: String) {
+internal fun PlanFact(label: String, value: String) {
     Row(horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S12)) {
         Text(
             text = label,

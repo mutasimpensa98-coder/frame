@@ -22,6 +22,9 @@ internal enum class GlassText {
     /** Main text and icons, as on the bars. */
     Content,
 
+    /** Main text, and labels in the error colour beside it, as on a bar of actions. */
+    Danger,
+
     /** Secondary text straight on the glass. */
     Secondary,
 
@@ -54,6 +57,15 @@ private val TabBarRecipe = GlassRecipe(
     baseTint = 0.40f,
     shadow = Shadow(radius = 24.dp, color = Color.Black, offset = DpOffset(0.dp, 8.dp), alpha = 0.40f),
     refraction = true,
+    sampled = true,
+)
+private val ActionBarRecipe = GlassRecipe(
+    priority = 2,
+    blur = 24.dp,
+    baseTint = 0.40f,
+    shadow = Shadow(radius = 24.dp, color = Color.Black, offset = DpOffset(0.dp, 8.dp), alpha = 0.40f),
+    refraction = true,
+    text = GlassText.Danger,
     sampled = true,
 )
 private val TopBarRecipe = GlassRecipe(
@@ -130,6 +142,17 @@ private val LightTabBarRecipe = GlassRecipe(
     refraction = true,
     worstLevel = DarkestLevel,
 )
+private val LightActionBarRecipe = GlassRecipe(
+    priority = 2,
+    blur = 24.dp,
+    baseTint = LightBarTint,
+    rimTop = LightRimTop,
+    rimBottom = LightRimBottom,
+    shadow = LightBarShadow,
+    refraction = true,
+    text = GlassText.Danger,
+    worstLevel = DarkestLevel,
+)
 private val LightTopBarRecipe = GlassRecipe(
     priority = 3,
     blur = 24.dp,
@@ -185,6 +208,7 @@ private val LightBadgeRecipe = GlassRecipe(
 
 internal fun GlassKind.recipe(light: Boolean): GlassRecipe = when (this) {
     GlassKind.TabBar -> if (light) LightTabBarRecipe else TabBarRecipe
+    GlassKind.ActionBar -> if (light) LightActionBarRecipe else ActionBarRecipe
     GlassKind.TopBar -> if (light) LightTopBarRecipe else TopBarRecipe
     GlassKind.Sheet -> if (light) LightSheetRecipe else SheetRecipe
     GlassKind.Menu -> if (light) LightMenuRecipe else MenuRecipe

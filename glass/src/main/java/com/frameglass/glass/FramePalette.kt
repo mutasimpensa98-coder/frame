@@ -185,6 +185,7 @@ class FramePalette internal constructor(
     /** The level of the glass tint, which is [canvas], for the contrast rule. */
     internal val glassLevel: Float,
     private val contentLimit: Float,
+    private val dangerLimit: Float,
     private val secondaryLimit: Float,
     private val rowLimit: Float,
     /** The look this palette draws, to find the same theme with another accent. */
@@ -193,6 +194,7 @@ class FramePalette internal constructor(
     /** The backdrop level glass must hold for [text] to read: a ceiling on a dark theme, a floor on a light one. */
     internal fun glassLimit(text: GlassText): Float = when (text) {
         GlassText.Content -> contentLimit
+        GlassText.Danger -> dangerLimit
         GlassText.Secondary -> secondaryLimit
         GlassText.Rows -> rowLimit
     }
@@ -228,6 +230,7 @@ class FramePalette internal constructor(
         pressStrength = lerp(pressStrength, to.pressStrength, fraction),
         glassLevel = to.glassLevel,
         contentLimit = to.contentLimit,
+        dangerLimit = to.dangerLimit,
         secondaryLimit = to.secondaryLimit,
         rowLimit = to.rowLimit,
         look = to.look,
@@ -478,15 +481,6 @@ internal object FramePalettes {
         val ink = spec.ink
         val rowFill = ink.copy(alpha = if (light) 0.05f else 0.06f)
 
-        // 70% where that reads, and stronger where it would drop under the contrast rule: on a surface, or on a
-        // row of a sheet that has turned solid.
-        val row = rowFill.compositeOver(spec.canvas)
-        var soft = SecondaryAlpha
-        while (soft < 1f && !(surfaces + row).all { GlassContrast.reads(content.copy(alpha = soft), it) }) {
-            soft += SecondaryAlphaStep
-        }
-        val secondary = content.copy(alpha = soft.coerceAtMost(1f))
-
         fun readsAsText(color: Color) = surfaces.all { GlassContrast.reads(color, it) }
         // Chips sit on the canvas and on raised surfaces, washed with their own colour.
         fun readsOnChips(color: Color) = listOf(spec.canvas, spec.elevated).all {
@@ -499,6 +493,17 @@ internal object FramePalettes {
             else -> accent.dark
         }
         val tone = ThemeMath.fit(wanted, content) { readsAsText(it) && readsOnChips(it) }
+
+        // Secondary text is 70% where that reads, and stronger where it would drop under the contrast rule: on a
+        // surface, on a row of a sheet that has turned solid, or on a list row picked in selection mode, which is
+        // the canvas under a wash of the accent.
+        val sheetRow = rowFill.compositeOver(spec.canvas)
+        val pickedRow = tone.copy(alpha = ChipFill).compositeOver(spec.canvas)
+        var soft = SecondaryAlpha
+        while (soft < 1f && !(surfaces + sheetRow + pickedRow).all { GlassContrast.reads(content.copy(alpha = soft), it) }) {
+            soft += SecondaryAlphaStep
+        }
+        val secondary = content.copy(alpha = soft.coerceAtMost(1f))
         val mediaTone = ThemeMath.fit(accent.dark, Color.White) { GlassContrast.reads(it, ArtScrim) }
         // A pill is a shape, not text, so it keeps the colour as it was picked wherever that shape shows on every
         // surface. A colour too close to them takes the tone that reads.
@@ -511,6 +516,9 @@ internal object FramePalettes {
         val onFill = GlassContrast.readableOn(fill)
         val error = ThemeMath.fit(if (light) LightError else DarkError, content, holds = ::readsAsText)
         val warning = ThemeMath.fit(if (light) LightWarning else DarkWarning, content, holds = ::readsAsText)
+        val contentLimit = GlassContrast.limit(content, spec.canvas, light)
+        // The error colour is softer than the text, so a bar that carries it must hold the stricter of the two.
+        val errorLimit = GlassContrast.limit(error, spec.canvas, light)
 
         return FramePalette(
             isLight = light,
@@ -545,7 +553,8 @@ internal object FramePalettes {
             pressInk = ink,
             pressStrength = if (light) 0.10f else 0.22f,
             glassLevel = GlassContrast.tintLevel(spec.canvas),
-            contentLimit = GlassContrast.limit(content, spec.canvas, light),
+            contentLimit = contentLimit,
+            dangerLimit = if (light) max(contentLimit, errorLimit) else min(contentLimit, errorLimit),
             secondaryLimit = GlassContrast.limit(secondary, spec.canvas, light),
             rowLimit = GlassContrast.limit(secondary, spec.canvas, light, rowFill),
             look = look,

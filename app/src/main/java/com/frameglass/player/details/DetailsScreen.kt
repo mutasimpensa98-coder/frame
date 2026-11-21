@@ -128,6 +128,13 @@ import com.frameglass.player.library.BackButton
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Route
 import com.frameglass.player.nav.sharedArt
+import com.frameglass.player.select.NoSelection
+import com.frameglass.player.select.SelectItem
+import com.frameglass.player.select.SelectionPlace
+import com.frameglass.player.select.SelectionScaffold
+import com.frameglass.player.select.SelectionState
+import com.frameglass.player.select.clearance
+import com.frameglass.player.select.selectItem
 import com.frameglass.player.ui.ArtUnderStatusBar
 import com.frameglass.player.ui.TitleMark
 import com.frameglass.player.ui.TitlePoster
@@ -256,6 +263,10 @@ internal fun DetailsScreen(route: Route.Details) {
     val rows by produceState(emptyList<EpisodeRow>(), route.titleId, season) {
         if (season != null) library.episodes(route.titleId, season).collect { value = it }
     }
+    // Episodes are what this page lets the owner pick. The season in view is the list, so another season starts anew.
+    val selection = remember { SelectionState<SelectItem> { it.key } }
+    val seriesName = current?.name.orEmpty()
+    val listed = remember(rows, seriesName) { rows.mapNotNull { it.selectItem(seriesName) } }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(FrameColors.Canvas)) {
         val artHeight = maxHeight * ArtShare
@@ -274,93 +285,108 @@ internal fun DetailsScreen(route: Route.Details) {
         }
         // The icons turn with the glass: light ones over the art, the theme's once the bar has come in.
         val overArt by remember(scrolled, collapsePx) { derivedStateOf { scrolled() < collapsePx / 2f } }
-        ArtUnderStatusBar(overArt)
-        GlassSource(Modifier.fillMaxSize()) {
-            LazyColumn(
-                state = list,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = navigationInset() + FrameSpacing.S32),
-            ) {
-                item(key = "art") {
-                    ArtHeader(
-                        route = route,
-                        detail = current,
-                        height = artHeight,
-                        posterHeight = posterHeight,
-                        modifier = Modifier.onSizeChanged { headerPx = it.height.toFloat() },
-                    )
-                }
-                if (current != null) {
-                    item(key = "actions") {
-                        ActionRow(current, library, fixMatch, remove, versions)
+        // The selection bar is whole glass over the art, so the status bar icons follow the theme under it.
+        ArtUnderStatusBar(overArt && !selection.active)
+        SelectionScaffold(
+            selection = selection,
+            place = SelectionPlace.EPISODES,
+            listed = listed,
+            topBar = {
+                TopGlassBar(
+                    title = current?.name.orEmpty(),
+                    scrolled = scrolled,
+                    navigation = { BackButton() },
+                    titleOnScroll = true,
+                )
+            },
+        ) {
+            GlassSource(Modifier.fillMaxSize()) {
+                LazyColumn(
+                    state = list,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = navigationInset() + selection.clearance(FrameSpacing.S32)),
+                ) {
+                    item(key = "art") {
+                        ArtHeader(
+                            route = route,
+                            detail = current,
+                            height = artHeight,
+                            posterHeight = posterHeight,
+                            modifier = Modifier.onSizeChanged { headerPx = it.height.toFloat() },
+                        )
                     }
-                    item(key = "facts") { Facts(current) }
-                    if (current.matchState == MatchState.NEEDS_CHOICE) {
-                        item(key = "needsChoice") {
-                            OutlinePill(
-                                text = stringResource(R.string.app_pick_match),
-                                onClick = fixMatch::open,
-                                modifier = Modifier
-                                    .padding(horizontal = SideMargin)
-                                    .padding(top = BlockGap)
-                                    .fillMaxWidth(),
-                            )
+                    if (current != null) {
+                        item(key = "actions") {
+                            ActionRow(current, library, fixMatch, remove, versions)
                         }
-                    }
-                    if (current.cast.isNotEmpty()) {
-                        item(key = "cast") {
-                            if (castAsNames(current.cast)) CastNames(current) else CastRow(current)
-                        }
-                    }
-                    if (current.files.isNotEmpty()) {
-                        val open = fileOpen ?: (current.littleMetadata() && current.files.size <= OpenFileCount)
-                        item(key = "fileHeader") {
-                            FileHeader(current.files, open, onToggle = { fileOpen = !open })
-                        }
-                        if (open) {
-                            items(current.files, key = { "file${it.fileRowId}" }, contentType = { "file" }) { file ->
-                                FileCard(file, showName = current.files.size > 1)
+                        item(key = "facts") { Facts(current) }
+                        if (current.matchState == MatchState.NEEDS_CHOICE) {
+                            item(key = "needsChoice") {
+                                OutlinePill(
+                                    text = stringResource(R.string.app_pick_match),
+                                    onClick = fixMatch::open,
+                                    modifier = Modifier
+                                        .padding(horizontal = SideMargin)
+                                        .padding(top = BlockGap)
+                                        .fillMaxWidth(),
+                                )
                             }
                         }
-                    }
-                    if (season != null) {
-                        item(key = "seasons") {
-                            SeasonHeader(current, season, rows, onPick = { picked = it })
+                        if (current.cast.isNotEmpty()) {
+                            item(key = "cast") {
+                                if (castAsNames(current.cast)) CastNames(current) else CastRow(current)
+                            }
                         }
-                        // Two unavailable files can share a number and title, so the position keeps keys unique.
-                        itemsIndexed(
-                            items = rows,
-                            key = { index, row -> "$index:${row.play?.playableKey}:${row.number}" },
-                            contentType = { _, _ -> "episode" },
-                        ) { _, row ->
-                            EpisodeListRow(
-                                row = row,
-                                poster = current.coverPath,
-                                onLongPress = {
-                                    pickedEpisode = row
-                                    episodeSheet.open()
-                                },
-                            )
+                        if (current.files.isNotEmpty()) {
+                            val open = fileOpen ?: (current.littleMetadata() && current.files.size <= OpenFileCount)
+                            item(key = "fileHeader") {
+                                FileHeader(current.files, open, onToggle = { fileOpen = !open })
+                            }
+                            if (open) {
+                                items(current.files, key = { "file${it.fileRowId}" }, contentType = { "file" }) { file ->
+                                    FileCard(file, showName = current.files.size > 1)
+                                }
+                            }
                         }
-                    }
-                    if (current.collection.isNotEmpty()) {
-                        item(key = "collection") { CollectionRow(current) }
+                        if (season != null) {
+                            item(key = "seasons") {
+                                SeasonHeader(current, season, rows, onPick = { picked = it })
+                            }
+                            // Two unavailable files can share a number and title, so the position keeps keys unique.
+                            itemsIndexed(
+                                items = rows,
+                                key = { index, row -> "$index:${row.play?.playableKey}:${row.number}" },
+                                contentType = { _, _ -> "episode" },
+                            ) { _, row ->
+                                EpisodeListRow(
+                                    row = row,
+                                    poster = current.coverPath,
+                                    select = row.selectItem(current.name),
+                                    onLongPress = {
+                                        // While selecting, the press that ends on the row picks it. No sheet.
+                                        if (!selection.active) {
+                                            pickedEpisode = row
+                                            episodeSheet.open()
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                        if (current.collection.isNotEmpty()) {
+                            // A row of related titles is a preview, like a row on Home: its cards open only.
+                            item(key = "collection") { NoSelection { CollectionRow(current) } }
+                        }
                     }
                 }
             }
         }
-        TopGlassBar(
-            title = current?.name.orEmpty(),
-            scrolled = scrolled,
-            navigation = { BackButton() },
-            titleOnScroll = true,
-        )
     }
     if (current != null) {
         FixMatchSheet(fixMatch, current.id, current.name)
         RemoveSheet(remove, current.id, onRemoved = navigator::back)
         current.play?.playableKey?.let { VersionSheet(versions, it) }
-        EpisodeSheet(episodeSheet, pickedEpisode)
+        val pick = pickedEpisode?.selectItem(current.name)
+        EpisodeSheet(episodeSheet, pickedEpisode, onSelect = pick?.let { item -> { selection.start(item) } })
     }
 }
 

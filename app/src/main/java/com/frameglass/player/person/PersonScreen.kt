@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,6 +23,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.frameglass.data.api.PersonView
+import com.frameglass.data.api.ViewPlace
 import com.frameglass.data.api.frameServices
 import com.frameglass.glass.CoverImage
 import com.frameglass.glass.FrameColors
@@ -34,10 +34,18 @@ import com.frameglass.glass.TopGlassBar
 import com.frameglass.glass.glassScrolled
 import com.frameglass.player.R
 import com.frameglass.player.library.BackButton
+import com.frameglass.player.select.SelectItem
+import com.frameglass.player.select.SelectionPlace
+import com.frameglass.player.select.SelectionScaffold
+import com.frameglass.player.select.SelectionState
+import com.frameglass.player.select.clearance
+import com.frameglass.player.select.selectItem
 import com.frameglass.player.ui.TitleGrid
 import com.frameglass.player.ui.fullLine
 import com.frameglass.player.ui.navigationInset
 import com.frameglass.player.ui.statusInset
+import com.frameglass.player.views.ViewButton
+import com.frameglass.player.views.rememberViewSize
 
 private val PhotoSize = 112.dp
 
@@ -48,14 +56,32 @@ internal fun PersonScreen(personId: Long) {
     val person by remember(personId) { library.person(personId) }.collectAsStateWithLifecycle(null as PersonView?)
     val grid = rememberLazyGridState()
     val current = person
+    val selection = remember { SelectionState<SelectItem> { it.key } }
+    val listed = remember(current) { current?.titles?.map { it.selectItem() } }
+    val size = rememberViewSize(ViewPlace.LISTS)
 
-    Box(Modifier.fillMaxSize().background(FrameColors.Canvas)) {
+    SelectionScaffold(
+        selection = selection,
+        place = SelectionPlace.TITLES,
+        listed = listed,
+        modifier = Modifier.background(FrameColors.Canvas),
+        selectingActions = { ViewButton(ViewPlace.LISTS) },
+        topBar = {
+            TopGlassBar(
+                title = current?.name.orEmpty(),
+                scrolled = { grid.glassScrolled() },
+                navigation = { BackButton() },
+                actions = { ViewButton(ViewPlace.LISTS) },
+            )
+        },
+    ) {
         TitleGrid(
             titles = current?.titles.orEmpty(),
             source = "person:$personId",
             state = grid,
             top = statusInset() + FrameSizes.TopBarHeight,
-            bottom = navigationInset() + FrameSpacing.S24,
+            bottom = navigationInset() + selection.clearance(FrameSpacing.S24),
+            size = size,
             header = {
                 if (current != null) {
                     fullLine("person") {
@@ -89,11 +115,6 @@ internal fun PersonScreen(personId: Long) {
                     }
                 }
             },
-        )
-        TopGlassBar(
-            title = current?.name.orEmpty(),
-            scrolled = { grid.glassScrolled() },
-            navigation = { BackButton() },
         )
     }
 }

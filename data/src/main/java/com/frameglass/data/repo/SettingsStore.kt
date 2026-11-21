@@ -18,6 +18,10 @@ import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.AutoSubtitleMode
 import com.frameglass.data.api.CustomThemeDefaults
 import com.frameglass.data.api.SettingsRepository
+import com.frameglass.data.api.ViewPlace
+import com.frameglass.data.api.ViewSize
+import com.frameglass.data.api.storedViewSize
+import com.frameglass.data.api.withViewSize
 import com.frameglass.data.logic.CustomThemeValues
 import com.frameglass.data.logic.ServiceUse
 import com.frameglass.data.logic.ThemeMigration
@@ -82,11 +86,40 @@ private object Prefs {
     val clipPassDone = booleanPreferencesKey("internal.clipPassDone")
     val animePassDone = booleanPreferencesKey("internal.animePassDone")
     val imdbPausedUntil = longPreferencesKey("internal.imdbPausedUntil")
+
+    // ---- View sizes (owner request of 2026-11-21). Keep this block last and whole. ----
+    /** One key per place, absent until the owner picks a size there. */
+    fun view(place: ViewPlace) = stringPreferencesKey(ViewKeys.of(place))
+    // ---- End of view sizes. ----
+}
+
+/** The preference names of the view sizes. A name never changes once a build has shipped with it. */
+internal object ViewKeys {
+    fun of(place: ViewPlace): String = when (place) {
+        ViewPlace.LIBRARY -> "viewLibrary"
+        ViewPlace.FOLDERS -> "viewFolders"
+        ViewPlace.PRIVATE -> "viewPrivate"
+        ViewPlace.LISTS -> "viewLists"
+    }
 }
 
 /** How AppSettings is laid out in the preferences file. Pure, so a round trip is tested without a phone. */
 internal object SettingsPrefs {
-    fun read(p: Preferences): AppSettings {
+    fun read(p: Preferences): AppSettings = readViews(p, readBase(p))
+
+    // ---- View sizes (owner request of 2026-11-21): read and written apart from the lists below. ----
+    private fun readViews(p: Preferences, s: AppSettings): AppSettings =
+        ViewPlace.entries.fold(s) { settings, place -> settings.withViewSize(place, ViewSize.parse(p[Prefs.view(place)])) }
+
+    private fun writeViews(p: MutablePreferences, s: AppSettings) {
+        for (place in ViewPlace.entries) {
+            val size = s.storedViewSize(place)
+            if (size == null) p.remove(Prefs.view(place)) else p[Prefs.view(place)] = size.name
+        }
+    }
+    // ---- End of view sizes. ----
+
+    private fun readBase(p: Preferences): AppSettings {
         val d = AppSettings()
         // No theme key means the file was last written before the ready themes, or never: the old choice is migrated.
         val stored = p[Prefs.theme]
@@ -169,6 +202,7 @@ internal object SettingsPrefs {
         p[Prefs.onboarding] = s.onboardingDone
         p[Prefs.tmdbEnabled] = s.tmdbEnabled
         p[Prefs.imdbEnabled] = s.imdbEnabled
+        writeViews(p, s)
     }
 }
 

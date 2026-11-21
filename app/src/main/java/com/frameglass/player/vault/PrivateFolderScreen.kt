@@ -17,12 +17,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Fingerprint
@@ -54,6 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.frameglass.data.api.TitleCard
 import com.frameglass.data.api.VaultProgress
 import com.frameglass.data.api.VaultState
+import com.frameglass.data.api.ViewPlace
 import com.frameglass.data.api.frameServices
 import com.frameglass.data.api.privatePlayRef
 import com.frameglass.glass.FrameColors
@@ -67,7 +67,6 @@ import com.frameglass.glass.GlassSheet
 import com.frameglass.glass.GlassSheetState
 import com.frameglass.glass.GlassSource
 import com.frameglass.glass.OutlinePill
-import com.frameglass.glass.PosterCard
 import com.frameglass.glass.TopGlassBar
 import com.frameglass.glass.WhitePill
 import com.frameglass.glass.bidiIsolate
@@ -77,23 +76,31 @@ import com.frameglass.player.R
 import com.frameglass.player.library.BackButton
 import com.frameglass.player.model.VaultFlow
 import com.frameglass.player.nav.LocalNavigator
+import com.frameglass.player.select.SelectItem
+import com.frameglass.player.select.SelectionPlace
+import com.frameglass.player.select.SelectionScaffold
+import com.frameglass.player.select.SelectionState
+import com.frameglass.player.select.clearance
+import com.frameglass.player.select.privateSelectItem
 import com.frameglass.player.settings.ChoiceRow
 import com.frameglass.player.settings.SettingRow
 import com.frameglass.player.settings.SettingsDivider
 import com.frameglass.player.settings.SettingsSection
 import com.frameglass.player.settings.ToggleRow
 import com.frameglass.player.ui.FrameTextField
-import com.frameglass.player.ui.GridColumnGap
-import com.frameglass.player.ui.GridLineGap
+import com.frameglass.player.ui.SelectRow
 import com.frameglass.player.ui.fileSizeLabel
 import com.frameglass.player.ui.fullLine
-import com.frameglass.player.ui.gridPadding
-import com.frameglass.player.ui.libraryColumns
-import com.frameglass.player.ui.longPress
 import com.frameglass.player.ui.metaLine
 import com.frameglass.player.ui.navigationInset
 import com.frameglass.player.ui.rememberUiModel
 import com.frameglass.player.ui.statusInset
+import com.frameglass.player.views.CellHooks
+import com.frameglass.player.views.LocalFullLinePad
+import com.frameglass.player.views.ViewButton
+import com.frameglass.player.views.rememberViewSize
+import com.frameglass.player.views.ViewGrid
+import com.frameglass.player.views.titleCells
 import kotlinx.coroutines.launch
 
 private const val MinPassword = 4
@@ -437,21 +444,38 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
     val progress by remember(vault) { vault.progress }.collectAsStateWithLifecycle(null as VaultProgress?)
     val grid = rememberLazyGridState()
     val itemSheet = rememberGlassSheetState()
+    val vaultDeletes = rememberUiModel().vaultDeletes
     var picked by remember { mutableStateOf<TitleCard?>(null) }
+    // The folder's own selection: its bar only moves videos out. Nothing here reaches the library's actions.
+    val selection = remember { SelectionState<SelectItem> { it.key } }
+    val listed = remember(items) { items.map { it.privateSelectItem() } }
     val top = statusInset() + FrameSizes.TopBarHeight
-    val bottom = navigationInset() + FrameSpacing.S32
-    val moreLabel = stringResource(R.string.app_more)
+    val bottom = navigationInset() + selection.clearance(FrameSpacing.S32)
+    val size = rememberViewSize(ViewPlace.PRIVATE)
 
-    Box(Modifier.fillMaxSize()) {
+    SelectionScaffold(
+        selection = selection,
+        place = SelectionPlace.PRIVATE,
+        listed = listed,
+        selectingActions = { ViewButton(ViewPlace.PRIVATE) },
+        topBar = {
+            TopGlassBar(
+                title = stringResource(R.string.app_settings_private),
+                scrolled = { grid.glassScrolled() },
+                navigation = { BackButton() },
+                actions = {
+                    ViewButton(ViewPlace.PRIVATE)
+                    GlassIconButton(
+                        icon = Icons.Rounded.Lock,
+                        contentDescription = stringResource(R.string.app_private_lock_now),
+                        onClick = onLock,
+                    )
+                },
+            )
+        },
+    ) {
         GlassSource(Modifier.fillMaxSize()) {
-            LazyVerticalGrid(
-                columns = libraryColumns(asList = false),
-                state = grid,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = gridPadding(top, bottom),
-                horizontalArrangement = Arrangement.spacedBy(GridColumnGap),
-                verticalArrangement = Arrangement.spacedBy(GridLineGap),
-            ) {
+            ViewGrid(size, frames = false, grid, top, bottom) {
                 fullLine("summary") {
                     Text(
                         text = metaLine(
@@ -465,19 +489,21 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
                     )
                 }
                 progress?.let { now -> fullLine("moving") { MoveProgress(now) } }
-                items(items, key = { it.id }, contentType = { "poster" }) { card ->
-                    PosterCard(
-                        title = card.name,
-                        coverPath = card.coverPath,
+                // The same five looks as Library. Here a tap plays, and the sheet of the folder is the only menu.
+                titleCells(items, size, frames = false) { card ->
+                    CellHooks(
+                        item = card.privateSelectItem(),
+                        artKey = null,
                         onClick = { navigator.play(card.privatePlayRef()) },
-                        modifier = Modifier.longPress(moreLabel) {
-                            picked = card
-                            itemSheet.open()
+                        // While selecting, a press picks the card, so the sheet stays away.
+                        onLongPress = if (selection.active) {
+                            null
+                        } else {
+                            {
+                                picked = card
+                                itemSheet.open()
+                            }
                         },
-                        year = card.year,
-                        progress = card.progress,
-                        watched = card.watched,
-                        unavailable = card.unavailable,
                     )
                 }
                 fullLine("hint") {
@@ -485,23 +511,13 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
                         text = stringResource(if (items.isEmpty()) R.string.app_private_empty else R.string.app_private_hint),
                         style = FrameType.Body,
                         color = FrameColors.SecondaryText,
+                        // The line gap of a compact list is too tight for a note under the last row.
+                        modifier = Modifier.padding(top = LocalFullLinePad.current),
                     )
                 }
                 fullLine("security") { SecuritySection(state) }
             }
         }
-        TopGlassBar(
-            title = stringResource(R.string.app_settings_private),
-            scrolled = { grid.glassScrolled() },
-            navigation = { BackButton() },
-            actions = {
-                GlassIconButton(
-                    icon = Icons.Rounded.Lock,
-                    contentDescription = stringResource(R.string.app_private_lock_now),
-                    onClick = onLock,
-                )
-            },
-        )
     }
     GlassSheet(itemSheet, title = picked?.name) {
         val card = picked
@@ -514,6 +530,7 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
                     navigator.play(card.privatePlayRef())
                 },
             )
+            SelectRow({ selection.start(card.privateSelectItem()) }, itemSheet::close)
             GlassRow(
                 text = stringResource(R.string.app_private_move_out),
                 supporting = stringResource(R.string.app_private_move_out_hint),
@@ -521,6 +538,16 @@ private fun OpenFolder(state: VaultState, flow: VaultFlow, onLock: () -> Unit) {
                 onClick = {
                     itemSheet.close()
                     flow.moveOut(card.id)
+                },
+            )
+            // Only opens the confirmation, which says it is for good and asks before anything goes.
+            GlassRow(
+                text = stringResource(R.string.app_private_delete),
+                supporting = stringResource(R.string.app_private_delete_row_hint),
+                icon = Icons.Rounded.DeleteForever,
+                onClick = {
+                    itemSheet.close()
+                    vaultDeletes.ask(listOf(card.id))
                 },
             )
         }

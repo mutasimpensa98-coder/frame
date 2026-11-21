@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -35,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.frameglass.data.api.FolderEntry
 import com.frameglass.data.api.FolderView
+import com.frameglass.data.api.ViewPlace
 import com.frameglass.data.api.frameServices
 import com.frameglass.glass.CoverImage
 import com.frameglass.glass.FrameColors
@@ -52,18 +52,28 @@ import com.frameglass.glass.glassScrolled
 import com.frameglass.player.R
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.Route
+import com.frameglass.player.select.SelectItem
+import com.frameglass.player.select.SelectionLook
+import com.frameglass.player.select.SelectionPlace
+import com.frameglass.player.select.SelectionScaffold
+import com.frameglass.player.select.SelectionState
+import com.frameglass.player.select.clearance
+import com.frameglass.player.select.selectItem
+import com.frameglass.player.select.selectableItem
+import com.frameglass.player.select.selectionMark
 import com.frameglass.player.ui.CardTarget
 import com.frameglass.player.ui.FactChip
-import com.frameglass.player.ui.GridLineGap
 import com.frameglass.player.ui.GridMessage
-import com.frameglass.player.ui.LocalCardMenu
+import com.frameglass.player.ui.cardMenuPress
 import com.frameglass.player.ui.RefreshBox
 import com.frameglass.player.ui.fileSizeLabel
 import com.frameglass.player.ui.fullLine
-import com.frameglass.player.ui.gridPadding
-import com.frameglass.player.ui.libraryColumns
 import com.frameglass.player.ui.navigationInset
 import com.frameglass.player.ui.statusInset
+import com.frameglass.player.views.ViewButton
+import com.frameglass.player.views.rememberViewSize
+import com.frameglass.player.views.ViewGrid
+import com.frameglass.player.views.folderItems
 
 private val ThumbnailWidth = 112.dp
 private const val UnavailableAlpha = 0.45f
@@ -72,13 +82,13 @@ private const val UnavailableAlpha = 0.45f
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun FolderRow(entry: FolderEntry, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val menu = LocalCardMenu.current
+    val item = entry.selectItem()
     PressableGlass(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().selectableItem(item, SelectionLook.Row),
         shape = FrameShapes.Poster,
         enabled = entry.isDirectory || entry.play != null,
-        onLongClick = menu?.let { { it.open(CardTarget.Place(entry)) } },
+        onLongClick = cardMenuPress(item) { CardTarget.Place(entry) },
         highlight = false,
     ) {
         Row(
@@ -88,6 +98,7 @@ internal fun FolderRow(entry: FolderEntry, onClick: () -> Unit, modifier: Modifi
         ) {
             Box(
                 Modifier
+                    .selectionMark(item)
                     .width(ThumbnailWidth)
                     .aspectRatio(FrameSizes.LandscapeRatio)
                     .clip(FrameShapes.Poster)
@@ -139,32 +150,38 @@ internal fun FolderScreen(path: String) {
     val navigator = LocalNavigator.current
     val view by remember(path) { library.folder(path) }.collectAsStateWithLifecycle(null as FolderView?)
     val grid = rememberLazyGridState()
+    val selection = remember { SelectionState<SelectItem> { it.key } }
+    val listed = remember(view) { view?.entries?.mapNotNull { it.selectItem() } }
+    val size = rememberViewSize(ViewPlace.FOLDERS)
     val top = statusInset() + FrameSizes.TopBarHeight
-    val bottom = navigationInset() + FrameSpacing.S24
+    val bottom = navigationInset() + selection.clearance(FrameSpacing.S24)
 
-    Box(Modifier.fillMaxSize().background(FrameColors.Canvas)) {
+    SelectionScaffold(
+        selection = selection,
+        place = SelectionPlace.FOLDERS,
+        listed = listed,
+        modifier = Modifier.background(FrameColors.Canvas),
+        selectingActions = { ViewButton(ViewPlace.FOLDERS) },
+        topBar = {
+            TopGlassBar(
+                title = view?.name ?: path.substringAfterLast('/'),
+                scrolled = { grid.glassScrolled() },
+                navigation = { BackButton() },
+                actions = { ViewButton(ViewPlace.FOLDERS) },
+            )
+        },
+    ) {
         RefreshBox(indicatorTop = top, Modifier.fillMaxSize()) {
             GlassSource(Modifier.fillMaxSize()) {
-                LazyVerticalGrid(
-                    columns = libraryColumns(asList = true),
-                    state = grid,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = gridPadding(top, bottom),
-                    verticalArrangement = Arrangement.spacedBy(GridLineGap),
-                ) {
+                ViewGrid(size, frames = true, grid, top, bottom) {
                     val entries = view?.entries.orEmpty()
                     if (view != null && entries.isEmpty()) {
                         fullLine("empty") { GridMessage(stringResource(R.string.app_folder_empty)) }
                     }
-                    folderLines(entries) { navigator.push(Route.Folder(it.path)) }
+                    folderItems(entries, size) { navigator.push(Route.Folder(it.path)) }
                 }
             }
         }
-        TopGlassBar(
-            title = view?.name ?: path.substringAfterLast('/'),
-            scrolled = { grid.glassScrolled() },
-            navigation = { BackButton() },
-        )
     }
 }
 

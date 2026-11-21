@@ -65,6 +65,7 @@ import com.frameglass.player.stats.StatsScreen
 import com.frameglass.player.tour.TourFlow
 import com.frameglass.player.tour.TourScreen
 import com.frameglass.player.vault.PrivateFolderScreen
+import com.frameglass.player.vault.VaultDeleteSheet
 import com.frameglass.playerui.PlayerRoute
 
 /** Moves between screens. One instance per activity. */
@@ -228,6 +229,7 @@ internal fun FrameRoot(link: Route? = null, onLinkOpened: () -> Unit = {}) {
                 }
                 DeleteSheet()
                 MoveSheet()
+                VaultDeleteSheet()
             }
         }
     }

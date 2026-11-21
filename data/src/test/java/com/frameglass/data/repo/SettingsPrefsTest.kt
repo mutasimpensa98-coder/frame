@@ -8,6 +8,10 @@ import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.AutoSubtitleMode
 import com.frameglass.data.api.CustomThemeDefaults
 import com.frameglass.data.api.ThemeId
+import com.frameglass.data.api.ViewPlace
+import com.frameglass.data.api.ViewSize
+import com.frameglass.data.api.storedViewSize
+import com.frameglass.data.api.withViewSize
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -68,10 +72,59 @@ class SettingsPrefsTest {
             onboardingDone = true,
             tmdbEnabled = false,
             imdbEnabled = false,
+            viewLibrary = ViewSize.SMALL_GRID,
+            viewFolders = ViewSize.LARGE_GRID,
+            viewPrivate = ViewSize.COMPACT_LIST,
+            viewLists = ViewSize.LIST,
         )
         val file = mutablePreferencesOf()
         SettingsPrefs.write(file, chosen)
         assertEquals(chosen, SettingsPrefs.read(file))
+    }
+
+    @Test
+    fun everyViewSizeOfEveryPlaceRoundTrips() {
+        for (place in ViewPlace.entries) {
+            for (size in ViewSize.entries) {
+                val chosen = AppSettings().withViewSize(place, size)
+                val file = mutablePreferencesOf()
+                SettingsPrefs.write(file, chosen)
+                assertEquals(chosen, SettingsPrefs.read(file))
+                // One key for the place that was chosen, and none for the others.
+                for (other in ViewPlace.entries) {
+                    assertEquals(other == place, file.contains(stringPreferencesKey(ViewKeys.of(other))))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun aViewSizeThatWasClearedLeavesNoKeyBehind() {
+        val file = mutablePreferencesOf()
+        val chosen = AppSettings().withViewSize(ViewPlace.FOLDERS, ViewSize.LIST)
+        SettingsPrefs.write(file, chosen)
+        SettingsPrefs.write(file, chosen.withViewSize(ViewPlace.FOLDERS, null))
+        assertFalse(file.contains(stringPreferencesKey(ViewKeys.of(ViewPlace.FOLDERS))))
+        assertEquals(AppSettings(), SettingsPrefs.read(file))
+    }
+
+    @Test
+    fun aViewSizeThisBuildDoesNotKnowIsNoChoiceAndTheLookIsKept() {
+        val file = mutablePreferencesOf()
+        SettingsPrefs.write(file, AppSettings(theme = ThemeId.COFFEE, viewLibrary = ViewSize.LIST))
+        file[stringPreferencesKey(ViewKeys.of(ViewPlace.LIBRARY))] = "HUGE_GRID"
+        val read = SettingsPrefs.read(file)
+        assertNull(read.storedViewSize(ViewPlace.LIBRARY))
+        assertEquals(ThemeId.COFFEE, read.theme)
+    }
+
+    @Test
+    fun anUpdateFromBeforeBothKeepsTheOldLookAndChoosesNoViewSize() {
+        // The two settings of 2026-11-21 meet in one file: the old look migrates, and no place has a size yet.
+        val read = SettingsPrefs.read(oldFile("LIGHT", "BLUE"))
+        assertEquals(ThemeId.LIGHT, read.theme)
+        assertEquals(AccentColor.BLUE, read.accent)
+        for (place in ViewPlace.entries) assertNull(read.storedViewSize(place))
     }
 
     @Test

@@ -53,6 +53,7 @@ import com.frameglass.player.model.Identifier
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.ui.FrameTextField
 import com.frameglass.player.ui.PopUpRow
+import com.frameglass.player.ui.SelectRow
 import com.frameglass.player.ui.fileSizeLabel
 import com.frameglass.player.ui.kindLabel
 import com.frameglass.player.ui.localNumber
@@ -241,15 +242,19 @@ private fun versionLabel(file: FileVersion): String = metaLine(
     ),
 )
 
-/** Long press on an episode: play it in a pop-up, mark it, or open one of its other files. */
+/**
+ * Long press on an episode: play it in a pop-up, start picking episodes with this one, mark it, or open one of its
+ * other files. [onSelect] starts selection mode with [row] picked.
+ */
 @Composable
-internal fun EpisodeSheet(state: GlassSheetState, row: EpisodeRow?) {
+internal fun EpisodeSheet(state: GlassSheetState, row: EpisodeRow?, onSelect: (() -> Unit)?) {
     val library = LocalContext.current.frameServices.library
     val scope = rememberCoroutineScope()
     val key = row?.play?.playableKey
     GlassSheet(state, title = row?.let { it.label.ifEmpty { it.title } }) {
         if (row != null && key != null) {
             row.play?.let { PopUpRow(it, state::close) }
+            SelectRow(onSelect, state::close)
             GlassRow(
                 text = stringResource(if (row.watched) R.string.app_mark_unwatched else R.string.app_mark_watched),
                 onClick = {

@@ -86,3 +86,4 @@ Other values added:
 | Theme change | 200 ms, the tint animation | Every colour fades from the old theme to the new one |
 | Coloured tint margin | 3 levels | The contrast limit of a tint that is not pure grey |
 | Tile rim | 1 dp, the outline colour | A Settings icon tile closer than 2.5:1 to the card under it |
+| Action bar recipe | The tab bar's, with the limit of the error colour | The bar of selection mode and of Media Manager, whose delete labels are in the error colour. Sampled on dark themes; on Black it is the tab bar up to backdrop level 51 |

@@ -57,6 +57,12 @@ enum class GlassKind {
     /** The floating tab bar. */
     TabBar,
 
+    /**
+     * A floating bar of actions, such as the one of selection mode. It is the tab bar, held dense enough for a
+     * label in the error colour too, which needs a calmer backdrop than plain text does.
+     */
+    ActionBar,
+
     /** The top bar. */
     TopBar,
 

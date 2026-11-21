@@ -177,6 +177,29 @@ The owner asked for three small things. None needs a permission, a dependency, a
 - A pop-up over Home lets the owner delete the very video that is playing. The delete is the same confirmed one. When it takes the file, playback stops, the pop-up or the player closes, no position is saved for that file, and it is no longer the last thing played.
 - The player window is open to other apps for "Open with" (section 4.10). The pop-up request counts only when this app made it; the same intent from another app plays in the full window.
 
+## 2026-11-21: View sizes
+
+The owner asked for several more ways to show lists, videos and folders, from small to larger, behind the view button, in the private folder too («إضافة عدة أشكال أخرى لعرض القوائم والفيديوات والمجلدات (من صغير للأكبر) عند الضغط على تغيير العرض»), with a compact folder list as the reference for the smallest, and approved the storyboard of five sizes. This changes the brief as follows:
+
+- F-U3 "a grid and list toggle": the button opens a sheet of five sizes instead: compact list, list, small grid, medium grid, large grid. Its icon is the size in use. The default of Library stays the 3-column poster grid. The same button is on the folder pages, the row, genre and person pages, beside the search field while titles are listed, and in the private folder.
+- F-U3 is silent on Folders, which were one list. They now open as the compact list, the look of the owner's reference, until a size is chosen there.
+- F-U4 "2:3 posters with title and year below, a small glass rating badge": holds for the medium grid. The small grid shows the poster alone, with no title, year or rating badge; its progress line and watched mark stay. A small 16:9 frame keeps its title on the picture. The large grid has a larger title and the year with the first genre under it. The two lists are rows, not posters.
+- The choice is kept per place (Library, Folders, the private folder, the list pages with Search) in the settings and in the backup. A place with nothing stored shows its default, so an older install and an older backup keep the look they had.
+
+It needs no permission, dependency, network host or schema change. Media Manager keeps its own list.
+
+## 2026-11-21: Delete inside the private folder
+
+The owner asked for a delete inside the private folder. This extends the waiver "2026-11-07: Private folder", which only moved videos in and out, and the waiver "2026-11-07: Media Manager and file deletion" as follows:
+
+- A private video can be deleted from its long-press sheet, and several from the selection bar. Only while the folder is unlocked, as for moving out.
+- The delete is permanent. Private videos live in app storage, which has no trash, so nothing can be brought back.
+- It never runs without a confirmation, and it has one of its own, because the confirmation of Media Manager never sees private videos. That sheet says in the error colour that the delete is for good («حذف نهائي — ما يرجعش»), names the video when it is one, gives the count and the total size, and its strong button is Cancel. Back, the scrim and a drag cancel too.
+- What goes: the video, the subtitles that moved in with it, its rows and its saved progress; then what the app kept beside them for that file (its frame, subtitles saved for it, its track choices). A title left with no file anywhere, private or in the library, is forgotten whole, with its match, cover and episode list, so its name cannot show in the hidden list or enter a backup. A title that still has a file keeps everything.
+- A private video that is playing closes when it is deleted, as a library video does.
+
+It needs no permission, dependency, network host or schema change.
+
 ## 2026-11-21: More themes and custom colours
 
 The owner asked for more themes and for colours of their own, and approved a storyboard for it (`D:\FrameGlass\storyboards\views-themes\board.png`, sections 2 and 3). This extends "2026-11-07: Themes and colours". What that waiver kept still holds: the default is the dark look, and the player stays dark in every theme. So do the feature tour and the widget, as their own waivers say.
@@ -185,6 +208,7 @@ The owner asked for more themes and for colours of their own, and approved a sto
 - **A custom theme.** Three sliders: background hue, darkness from pure black to light, and how far cards and bars sit from the background. Everything else is derived, and text turns light or dark by itself. The darkness slider steps over the mid tones between CIE lightness 36 and 58, because there neither white nor black text keeps 4.5:1 on a selected chip. Near that step the rule costs colour: accents turn pale or very dark, secondary text grows as strong as main text, and glass turns nearly opaque.
 - **Accents.** The six of 2026-11-07, pink and cyan, "any colour" from a hue and saturation field drawn in the app, and the theme's own colour, such as blue on Midnight. A colour holds on every theme. The theme moves a colour toward its text colour until it reads as text, so "any colour" is the owner's hue, not always the exact shade.
 - **Follow the phone** is a switch now, not a third theme. The side that matches the chosen theme shows it, and the other side shows Black or Light.
+- **Section 7.3, a seventh glass kind.** The bar of actions of selection mode draws its delete labels in the error colour, which needs a calmer backdrop than plain text. It is the tab bar's recipe held to that colour's limit (`GlassKind.ActionBar`), so over the plain canvas it is the tab bar, and over bright art it turns denser than the tab bar would. On a light theme it is denser always, because light glass holds its worst case.
 - **Section 7.3, the contrast rule.** The rule is unchanged: `a = max(baseAlpha, (B - L) / (B - T))`. Its numbers, 118 and 87 with tint level 13, are those of Black. Every theme now takes `T` from its own canvas and `L` from its own text, measured the same way, and a coloured tint keeps its limit 3 levels to the safe side. The tint of every glass surface is the theme's canvas, so a navy theme has navy glass.
 - **The update keeps the look.** The old dark becomes Black, the old light becomes Light, and "follow the phone" stays on between those two. The old white accent becomes "the theme's own", which is white on Black and near-black on Light, and a chosen colour stays. A backup written before this restores the same way.
 - **Android 11 and 12** get these themes as flat tint and rim, as the waiver of 2026-11-19 says, and a sheet there is the plain canvas of the theme.

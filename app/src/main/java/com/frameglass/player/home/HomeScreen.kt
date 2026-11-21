@@ -24,6 +24,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,6 +59,7 @@ import com.frameglass.glass.FrameSpacing
 import com.frameglass.glass.FrameType
 import com.frameglass.glass.GlassKind
 import com.frameglass.glass.GlassSource
+import com.frameglass.glass.GlassIconButton
 import com.frameglass.glass.GlassSurface
 import com.frameglass.glass.LandscapeCard
 import com.frameglass.glass.SectionHeader
@@ -94,6 +97,9 @@ private val HeaderLineHeight = 3.dp
 private val ScanLineWidth = 160.dp
 private val ScanChipMaxWidth = 240.dp
 
+// A glass button and the margins on both of its sides, at the top end.
+private val EndButtonSpace = FrameSpacing.S12 + FrameSpacing.S48 + FrameSpacing.S12
+
 // A routine scan runs on every app open and ends within DoD-10's 3 s, so a full Home stays silent for it.
 private const val QuietScanMillis = 4_000L
 
@@ -123,17 +129,27 @@ internal fun HomeScreen(onOpenLibrary: () -> Unit) {
             HomeView.LibraryOnly -> HomeInLibrary(scan, onOpenLibrary)
             HomeView.Feed -> current?.let { HomeList(it, maxWidth * ContinueCardShare, maxHeight * HeroShare) }
         }
-        AnimatedVisibility(
-            // The empty and Library-only views show the search in their own message.
-            visible = (view == HomeView.Feed || view == HomeView.NoCinemaTitles) && scan.running && longScan,
+        // The private folder at the top start and "Add a place" at the top end keep opposite corners in both
+        // directions. The count of a long scan sits beside the lock, where it used to sit alone.
+        Row(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .statusBarsPadding()
-                .padding(FrameSpacing.S12),
-            enter = fadeIn(FrameMotion.effects()),
-            exit = fadeOut(FrameMotion.effects()),
+                // The end side stays clear of "Add a place", so a long count is cut short before it reaches it.
+                .padding(start = FrameSpacing.S12, top = FrameSpacing.S12, bottom = FrameSpacing.S12, end = EndButtonSpace),
+            horizontalArrangement = Arrangement.spacedBy(FrameSpacing.S8),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            ScanChip(scan.found)
+            PrivateFolderButton()
+            AnimatedVisibility(
+                // The empty and Library-only views show the search in their own message.
+                visible = (view == HomeView.Feed || view == HomeView.NoCinemaTitles) && scan.running && longScan,
+                modifier = Modifier.weight(1f, fill = false),
+                enter = fadeIn(FrameMotion.effects()),
+                exit = fadeOut(FrameMotion.effects()),
+            ) {
+                ScanChip(scan.found)
+            }
         }
         AddFolderButton(
             Modifier
@@ -142,6 +158,22 @@ internal fun HomeScreen(onOpenLibrary: () -> Unit) {
                 .padding(FrameSpacing.S12),
         )
     }
+}
+
+/**
+ * The shortcut to the private folder (owner request of 2026-11-21): the same glass button as "Add a place", at the
+ * other top corner. It only opens the page, which asks for the fingerprint or the password, or starts the setup
+ * when no password exists. It carries no badge and no count: a locked folder says nothing about what it holds.
+ */
+@Composable
+private fun PrivateFolderButton(modifier: Modifier = Modifier) {
+    val navigator = LocalNavigator.current
+    GlassIconButton(
+        icon = Icons.Rounded.Lock,
+        contentDescription = stringResource(R.string.app_settings_private),
+        onClick = { navigator.push(Route.PrivateFolder) },
+        modifier = modifier,
+    )
 }
 
 @Composable

@@ -66,6 +66,22 @@ private const val ActivitySegment = 0.3f
 private const val ActivityRest = 0.65f
 private val PosterLineScrim = Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f)))
 private val CardTitle = FrameType.Body.copy(fontWeight = FontWeight.W600)
+private val SmallCardTitle = FrameType.Caption.copy(fontWeight = FontWeight.W600)
+
+/**
+ * How much a [PosterCard] or a [LandscapeCard] says, for the view sizes of a grid. The picture, its progress line
+ * and its watched mark are the same in all three.
+ */
+enum class CardDensity {
+    /** Four posters or three frames to a line: no rating badge. A poster shows no text; a frame keeps a small title. */
+    Small,
+
+    /** The card as it has always been. */
+    Medium,
+
+    /** Two posters or one frame to a line: a larger title, and a line of facts where one is given. */
+    Large,
+}
 
 // Strong enough that the white and 70% white lines hold 4.5:1 over a pure white still. These marks
 // sit on art, so they keep this look in both themes.
@@ -227,12 +243,16 @@ fun PosterCard(
     watched: Boolean = false,
     unavailable: Boolean = false,
     coverModifier: Modifier = Modifier,
+    density: CardDensity = CardDensity.Medium,
+    meta: String? = null,
 ) {
     val dimmed = if (unavailable) Modifier.alpha(UnavailableAlpha) else Modifier
     val colors = FrameTheme.colors
+    val small = density == CardDensity.Small
     PressableGlass(
         onClick = onClick,
-        modifier = modifier,
+        // With no text under it, the card still says its title to a screen reader.
+        modifier = if (small) modifier.semantics { contentDescription = title } else modifier,
         shape = FrameShapes.Poster,
         highlight = false,
     ) {
@@ -245,7 +265,7 @@ fun PosterCard(
                     .clip(FrameShapes.Poster),
             ) {
                 CoverImage(coverPath, null, Modifier.matchParentSize())
-                if (rating != null) {
+                if (rating != null && !small) {
                     RatingBadge(rating, Modifier.align(Alignment.TopStart).padding(FrameSpacing.S8))
                 }
                 if (watched) {
@@ -268,23 +288,26 @@ fun PosterCard(
                     )
                 }
             }
+            if (small) return@Column
+            val large = density == CardDensity.Large
             Spacer(Modifier.height(FrameSpacing.S8))
             Text(
                 text = bidiIsolate(title),
-                style = FrameType.Body,
+                style = if (large) FrameType.Title else FrameType.Body,
                 color = if (unavailable) colors.secondaryContent else colors.content,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             val detail = when {
                 unavailable -> stringResource(R.string.glass_unavailable)
+                large && meta != null -> meta
                 year != null -> String.format(LocalLocale.current.platformLocale, "%d", year)
                 else -> null
             }
             if (detail != null) {
                 Text(
                     text = detail,
-                    style = FrameType.Caption,
+                    style = if (large) FrameType.Label else FrameType.Caption,
                     color = colors.secondaryContent,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -315,8 +338,16 @@ fun LandscapeCard(
     watched: Boolean = false,
     unavailable: Boolean = false,
     hideImage: Boolean = false,
+    density: CardDensity = CardDensity.Medium,
 ) {
+    val small = density == CardDensity.Small
+    // A small frame has room for its title and its progress line, and for nothing else.
     val detail = if (unavailable) stringResource(R.string.glass_unavailable) else subtitle
+    val titleStyle = when (density) {
+        CardDensity.Small -> SmallCardTitle
+        CardDensity.Medium -> CardTitle
+        CardDensity.Large -> FrameType.Title
+    }
     val colors = FrameTheme.colors
     PressableGlass(
         onClick = onClick,
@@ -333,7 +364,7 @@ fun LandscapeCard(
         ) {
             SpoilerArt(imagePath, hideImage, imageModifier.matchParentSize())
             Box(Modifier.matchParentSize().background(CardTextScrim))
-            if (rating != null) {
+            if (rating != null && !small) {
                 RatingBadge(rating, Modifier.align(Alignment.TopStart).padding(FrameSpacing.S8))
             }
             if (newEpisode) {
@@ -360,9 +391,12 @@ fun LandscapeCard(
                 Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
-                    .padding(horizontal = FrameSpacing.S12, vertical = FrameSpacing.S8),
+                    .padding(
+                        horizontal = if (small) FrameSpacing.S8 else FrameSpacing.S12,
+                        vertical = if (small) FrameSpacing.S4 else FrameSpacing.S8,
+                    ),
             ) {
-                if (episodeLabel != null) {
+                if (episodeLabel != null && !small) {
                     Text(
                         text = bidiIsolate(episodeLabel),
                         style = FrameType.Caption,
@@ -372,12 +406,12 @@ fun LandscapeCard(
                 }
                 Text(
                     text = bidiIsolate(title),
-                    style = CardTitle,
+                    style = titleStyle,
                     color = MediaColors.Content,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                if (detail != null) {
+                if (detail != null && !small) {
                     Text(
                         text = bidiIsolate(detail),
                         style = FrameType.Caption,

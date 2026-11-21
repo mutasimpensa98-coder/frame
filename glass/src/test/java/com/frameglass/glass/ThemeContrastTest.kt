@@ -186,6 +186,16 @@ class ThemeContrastTest {
             }
         }
         check(GlassKind.TabBar, 24, 0.40f, sampled = true, GlassContrast.WhiteTextLimit)
+        // The bar of actions is the tab bar wherever plain text is all the backdrop has to carry: up to the level
+        // the error colour holds on, which on the dark look is every backdrop darker than its own cards.
+        val bar = GlassKind.ActionBar.recipe(light = false)
+        val tabs = GlassKind.TabBar.recipe(light = false)
+        assertEquals(tabs.blur, bar.blur)
+        assertEquals(tabs.baseTint, bar.baseTint)
+        assertEquals(tabs.shadow!!.alpha, bar.shadow!!.alpha)
+        assertTrue(bar.sampled)
+        for (level in listOf(0f, 13f, 26f, 36f)) assertEquals(black.glassTint(tabs, level), black.glassTint(bar, level), 0f)
+        assertTrue(black.glassLimit(GlassText.Danger) < black.glassLimit(GlassText.Content))
         check(GlassKind.TopBar, 24, 0.40f, sampled = true, GlassContrast.WhiteTextLimit)
         check(GlassKind.Sheet, 32, 0.76f, sampled = false, GlassContrast.SecondaryTextLimit)
         check(GlassKind.Menu, 32, 0.76f, sampled = false, GlassContrast.SecondaryTextLimit)
@@ -311,6 +321,35 @@ class ThemeContrastTest {
     }
 
     @Test
+    fun aPickedRowKeepsItsTextUnderTheAccentWash() {
+        // Selection mode lays 12% of the accent over a whole list row, which sits on the canvas, and rims it.
+        for (palette in all) {
+            val row = palette.accent.copy(alpha = 0.12f).compositeOver(palette.canvas)
+            assertReads("${palette.name()} text on a picked row", palette.content, row)
+            assertReads("${palette.name()} secondary on a picked row", palette.secondaryContent, row)
+            // The fact chips of a row are raised surfaces of their own and keep their text.
+            assertReads("${palette.name()} chip on a picked row", palette.content, palette.elevated)
+            assertReads("${palette.name()} row rim", palette.accent.copy(alpha = 0.56f), palette.canvas, 1.7f)
+        }
+    }
+
+    @Test
+    fun theCheckOfAPickedPictureShowsOnAnyPicture() {
+        // The check is a disc of the accent fill inside a ring of the canvas colour, over a picture dimmed with 45%
+        // of the canvas. The ring is what the disc is seen against, whatever the picture holds.
+        for (palette in all) {
+            assertReads("${palette.name()} check", palette.onAccent, palette.accentFill)
+            val disc = GlassContrast.ratio(palette.accentFill, palette.canvas)
+            val glyph = GlassContrast.ratio(palette.onAccent, palette.canvas)
+            // A fill as light as a light canvas, amber on Light, is carried by its dark check.
+            assertTrue("${palette.name()} disc $disc, glyph $glyph", maxOf(disc, glyph) >= GlassContrast.MinLargeRatio)
+            // The rim of the picture has the canvas on its outer side, where it reads as text does. What it does
+            // against the picture itself depends on the picture, and no theme can promise that.
+            assertReads("${palette.name()} picture rim", palette.accent, palette.canvas)
+        }
+    }
+
+    @Test
     fun marksOnArtReadOverTheirDarkScrims() {
         val scrim = Color.Black.copy(alpha = 0.6f).compositeOver(Color(127, 127, 127))
         for (palette in all) {
@@ -353,14 +392,19 @@ class ThemeContrastTest {
         for (palette in themes) {
             for (kind in GlassKind.entries) {
                 val recipe = kind.recipe(palette.isLight)
-                val text = if (recipe.text == GlassText.Content) palette.content else palette.secondaryContent
+                val texts = when (recipe.text) {
+                    GlassText.Content -> listOf(palette.content)
+                    // The bar of selection mode: plain labels, and delete in the error colour.
+                    GlassText.Danger -> listOf(palette.content, palette.error)
+                    GlassText.Secondary, GlassText.Rows -> listOf(palette.secondaryContent)
+                }
                 for (backdrop in backdrops) {
                     val level = backdrop.red * 255f
                     // Only a sampler reads the real level. Others hold it at their worst backdrop.
                     val seen = if (recipe.sampled) level else recipe.worstLevel
                     val tint = palette.glassTint(recipe, seen)
                     val surface = palette.canvas.copy(alpha = tint).compositeOver(backdrop)
-                    assertReads("$kind ${palette.name()} over $level", text, surface)
+                    for (text in texts) assertReads("$kind ${palette.name()} over $level", text, surface)
                     if (kind == GlassKind.Sheet || kind == GlassKind.Menu) {
                         assertReads(
                             "$kind row ${palette.name()} over $level",
@@ -399,8 +443,13 @@ class ThemeContrastTest {
             val recipe = kind.recipe(light = true)
             assertTrue(!recipe.sampled)
             assertEquals(0f, recipe.worstLevel)
-            // On the plain light theme the base tint is already enough over pure black.
-            assertEquals("$kind", recipe.baseTint, light.glassTint(recipe, 0f))
+            // On the plain light theme the base tint is already enough over pure black. The bar of actions is the
+            // one surface that needs more, for its labels in the error colour, and holds that always.
+            if (kind == GlassKind.ActionBar) {
+                assertTrue(light.glassTint(recipe, 0f) > recipe.baseTint)
+            } else {
+                assertEquals("$kind", recipe.baseTint, light.glassTint(recipe, 0f))
+            }
         }
     }
 

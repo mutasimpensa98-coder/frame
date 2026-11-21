@@ -8,6 +8,10 @@ import com.frameglass.data.api.SegmentKind
 import com.frameglass.data.api.ThemeId
 import com.frameglass.data.api.ThemeMode
 import com.frameglass.data.api.TitleKind
+import com.frameglass.data.api.ViewPlace
+import com.frameglass.data.api.ViewSize
+import com.frameglass.data.api.storedViewSize
+import com.frameglass.data.api.withViewSize
 import com.frameglass.data.logic.CustomThemeValues
 import com.frameglass.data.logic.PlayableKeys
 import com.frameglass.data.logic.ThemeMigration
@@ -74,9 +78,42 @@ internal data class BackupSettings(
     val customShade: Float? = null,
     val customSurface: Float? = null,
     val customAccent: Int? = null,
+    // ---- View sizes (owner request of 2026-11-21). Keep this block last and whole. ----
+    /**
+     * A ViewSize name per place. Null in a backup written before view sizes, and for a place the owner never
+     * chose a size for: both keep what the phone holds. So does a name this build does not know.
+     */
+    val viewLibrary: String? = null,
+    val viewFolders: String? = null,
+    val viewPrivate: String? = null,
+    val viewLists: String? = null,
+    // ---- End of view sizes. ----
 ) {
     /** [current] is what the phone holds now, for the fields an older backup does not have. */
-    fun toAppSettings(fontExists: Boolean, current: AppSettings): AppSettings {
+    fun toAppSettings(fontExists: Boolean, current: AppSettings) = withViews(base(fontExists, current), current)
+
+    // ---- View sizes (owner request of 2026-11-21): restored and saved apart from the lists below. ----
+    private fun savedView(place: ViewPlace): String? = when (place) {
+        ViewPlace.LIBRARY -> viewLibrary
+        ViewPlace.FOLDERS -> viewFolders
+        ViewPlace.PRIVATE -> viewPrivate
+        ViewPlace.LISTS -> viewLists
+    }
+
+    private fun withViews(restored: AppSettings, current: AppSettings): AppSettings =
+        ViewPlace.entries.fold(restored) { settings, place ->
+            settings.withViewSize(place, ViewSize.parse(savedView(place)) ?: current.storedViewSize(place))
+        }
+
+    private fun viewsOf(s: AppSettings) = copy(
+        viewLibrary = s.viewLibrary?.name,
+        viewFolders = s.viewFolders?.name,
+        viewPrivate = s.viewPrivate?.name,
+        viewLists = s.viewLists?.name,
+    )
+    // ---- End of view sizes. ----
+
+    private fun base(fontExists: Boolean, current: AppSettings): AppSettings {
         // A backup from before the ready themes holds the old choice, which comes back as the look it was.
         val old = theme == null
         val restoredTheme =
@@ -128,7 +165,7 @@ internal data class BackupSettings(
             s.sendFileHash, s.vaultLockSeconds, s.cinemaMode, s.tmdbEnabled, s.imdbEnabled, s.autoSubtitles.name,
             s.hideUnseenStills, s.theme.name, s.followSystem, s.customHue, s.customShade, s.customSurface,
             s.customAccent,
-        )
+        ).viewsOf(s)
     }
 }
 
