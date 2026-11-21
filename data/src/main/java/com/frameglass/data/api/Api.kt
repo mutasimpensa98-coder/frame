@@ -364,8 +364,22 @@ data class AppSettings(
     val scanNomediaFolders: Boolean = false,
     val showUnavailable: Boolean = false,
     val tmdbBaseUrl: String = "https://api.themoviedb.org",
-    val themeMode: ThemeMode = ThemeMode.DARK,
-    val accent: AccentColor = AccentColor.WHITE,
+    /** Owner request of 2026-11-21. The default is the dark look the app always had. */
+    val theme: ThemeId = ThemeId.DEFAULT,
+    /**
+     * Follow the phone's dark or light setting. The side that matches [theme] shows it, and the other side shows
+     * BLACK or LIGHT.
+     */
+    val followSystem: Boolean = false,
+    val accent: AccentColor = AccentColor.DEFAULT,
+    /** The custom theme: background hue in degrees, 0 to 360. */
+    val customHue: Float = CustomThemeDefaults.HUE,
+    /** The custom theme: 0 is pure black, 1 the lightest canvas. */
+    val customShade: Float = CustomThemeDefaults.SHADE,
+    /** The custom theme: how far cards and bars sit from the canvas, 0 below it and 1 well above. */
+    val customSurface: Float = CustomThemeDefaults.SURFACE,
+    /** The "any colour" accent as ARGB, used while [accent] is CUSTOM. */
+    val customAccent: Int = CustomThemeDefaults.ACCENT,
     /** Soft colour from the cover behind Details and the hero. */
     val coverTint: Boolean = false,
     /**

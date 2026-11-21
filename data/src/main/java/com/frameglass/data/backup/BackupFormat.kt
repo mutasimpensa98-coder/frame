@@ -5,9 +5,12 @@ import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.AutoSubtitleMode
 import com.frameglass.data.api.MatchState
 import com.frameglass.data.api.SegmentKind
+import com.frameglass.data.api.ThemeId
 import com.frameglass.data.api.ThemeMode
 import com.frameglass.data.api.TitleKind
+import com.frameglass.data.logic.CustomThemeValues
 import com.frameglass.data.logic.PlayableKeys
+import com.frameglass.data.logic.ThemeMigration
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -42,7 +45,9 @@ internal data class BackupSettings(
     val onboardingDone: Boolean,
     /** Has a default so a version 2 backup written before this setting still restores. */
     val scanWholePhone: Boolean = true,
+    /** The choice before the ready themes. Still written, as the nearest old value, and read when [theme] is null. */
     val themeMode: String = ThemeMode.DARK.name,
+    /** An AccentColor name. In a backup with no [theme] it is an old accent, and ThemeMigration reads it. */
     val accent: String = AccentColor.WHITE.name,
     val coverTint: Boolean = false,
     val sendReleaseName: Boolean = true,
@@ -59,47 +64,70 @@ internal data class BackupSettings(
     val autoSubtitles: String? = null,
     /** Null in a backup written before the setting existed, which keeps what the phone holds. */
     val hideUnseenStills: Boolean? = null,
+    /**
+     * A ThemeId name. Null in a backup written before the ready themes: [themeMode] and [accent] then restore as the
+     * look they were, and the custom values below keep what the phone holds.
+     */
+    val theme: String? = null,
+    val followSystem: Boolean? = null,
+    val customHue: Float? = null,
+    val customShade: Float? = null,
+    val customSurface: Float? = null,
+    val customAccent: Int? = null,
 ) {
     /** [current] is what the phone holds now, for the fields an older backup does not have. */
-    fun toAppSettings(fontExists: Boolean, current: AppSettings) = AppSettings(
-        onlineFeatures = onlineFeatures,
-        doubleTapSeconds = doubleTapSeconds,
-        backgroundAudio = backgroundAudio,
-        autoPlayNext = autoPlayNext,
-        nightAudio = nightAudio,
-        subtitleScale = subtitleScale,
-        subtitleColor = subtitleColor,
-        subtitleBackground = subtitleBackground,
-        subtitleFontPath = subtitleFontPath.takeIf { fontExists },
-        subtitleBottomOffset = subtitleBottomOffset,
-        scanWholePhone = scanWholePhone,
-        scanHiddenFolders = scanHiddenFolders,
-        scanNomediaFolders = scanNomediaFolders,
-        showUnavailable = showUnavailable,
-        tmdbBaseUrl = tmdbBaseUrl,
-        themeMode = ThemeMode.valueOf(themeMode),
-        accent = AccentColor.valueOf(accent),
-        coverTint = coverTint,
-        cinemaMode = cinemaMode,
-        sendReleaseName = sendReleaseName,
-        sendFileHash = sendFileHash,
-        vaultLockSeconds = vaultLockSeconds,
-        neverSleepingHintDone = neverSleepingHintDone,
-        onboardingDone = onboardingDone,
-        tmdbEnabled = tmdbEnabled ?: current.tmdbEnabled,
-        imdbEnabled = imdbEnabled ?: current.imdbEnabled,
-        autoSubtitles = autoSubtitles?.let(AutoSubtitleMode::parse) ?: current.autoSubtitles,
-        hideUnseenStills = hideUnseenStills ?: current.hideUnseenStills,
-    )
+    fun toAppSettings(fontExists: Boolean, current: AppSettings): AppSettings {
+        // A backup from before the ready themes holds the old choice, which comes back as the look it was.
+        val old = theme == null
+        val restoredTheme =
+            if (theme == null) ThemeMigration.theme(themeMode) else ThemeId.valueOf(theme) to (followSystem ?: false)
+        val restoredAccent = if (old) ThemeMigration.accent(accent) else AccentColor.valueOf(accent)
+        return AppSettings(
+            onlineFeatures = onlineFeatures,
+            doubleTapSeconds = doubleTapSeconds,
+            backgroundAudio = backgroundAudio,
+            autoPlayNext = autoPlayNext,
+            nightAudio = nightAudio,
+            subtitleScale = subtitleScale,
+            subtitleColor = subtitleColor,
+            subtitleBackground = subtitleBackground,
+            subtitleFontPath = subtitleFontPath.takeIf { fontExists },
+            subtitleBottomOffset = subtitleBottomOffset,
+            scanWholePhone = scanWholePhone,
+            scanHiddenFolders = scanHiddenFolders,
+            scanNomediaFolders = scanNomediaFolders,
+            showUnavailable = showUnavailable,
+            tmdbBaseUrl = tmdbBaseUrl,
+            theme = restoredTheme.first,
+            followSystem = restoredTheme.second,
+            accent = restoredAccent,
+            customHue = customHue?.let(CustomThemeValues::hue) ?: current.customHue,
+            customShade = CustomThemeValues.unit(customShade, current.customShade),
+            customSurface = CustomThemeValues.unit(customSurface, current.customSurface),
+            customAccent = customAccent?.let(CustomThemeValues::accent) ?: current.customAccent,
+            coverTint = coverTint,
+            cinemaMode = cinemaMode,
+            sendReleaseName = sendReleaseName,
+            sendFileHash = sendFileHash,
+            vaultLockSeconds = vaultLockSeconds,
+            neverSleepingHintDone = neverSleepingHintDone,
+            onboardingDone = onboardingDone,
+            tmdbEnabled = tmdbEnabled ?: current.tmdbEnabled,
+            imdbEnabled = imdbEnabled ?: current.imdbEnabled,
+            autoSubtitles = autoSubtitles?.let(AutoSubtitleMode::parse) ?: current.autoSubtitles,
+            hideUnseenStills = hideUnseenStills ?: current.hideUnseenStills,
+        )
+    }
 
     companion object {
         fun from(s: AppSettings) = BackupSettings(
             s.onlineFeatures, s.doubleTapSeconds, s.backgroundAudio, s.autoPlayNext, s.nightAudio, s.subtitleScale,
             s.subtitleColor, s.subtitleBackground, s.subtitleFontPath, s.subtitleBottomOffset, s.scanHiddenFolders,
             s.scanNomediaFolders, s.showUnavailable, s.tmdbBaseUrl, s.neverSleepingHintDone, s.onboardingDone,
-            s.scanWholePhone, s.themeMode.name, s.accent.name, s.coverTint, s.sendReleaseName, s.sendFileHash,
-            s.vaultLockSeconds, s.cinemaMode, s.tmdbEnabled, s.imdbEnabled, s.autoSubtitles.name,
-            s.hideUnseenStills,
+            s.scanWholePhone, ThemeMigration.legacyMode(s).name, s.accent.name, s.coverTint, s.sendReleaseName,
+            s.sendFileHash, s.vaultLockSeconds, s.cinemaMode, s.tmdbEnabled, s.imdbEnabled, s.autoSubtitles.name,
+            s.hideUnseenStills, s.theme.name, s.followSystem, s.customHue, s.customShade, s.customSurface,
+            s.customAccent,
         )
     }
 }
@@ -285,6 +313,7 @@ internal object BackupCodec {
     /** Everything a restore relies on. Runs before any write, so a bad file changes nothing. */
     fun validate(doc: BackupDoc, coverEntries: Set<String>) {
         require(isEnum<ThemeMode>(doc.settings.themeMode) && isEnum<AccentColor>(doc.settings.accent), "bad appearance")
+        doc.settings.theme?.let { require(isEnum<ThemeId>(it), "bad appearance") }
         require(doc.settings.vaultLockSeconds >= 0, "bad lock time")
         doc.excluded.forEach { require(safeRelative(it.relPath), "bad folder path") }
         val titleIds = doc.titles.mapTo(HashSet()) { it.id }

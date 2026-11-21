@@ -116,7 +116,7 @@ internal class GlassSampler {
 
         // The 80th percentile keeps the bright side of the art and drops white icons and text.
         levels.sort(0, count)
-        val level = GlassContrast.backdropLevel(levels[(count - 1) * 4 / 5], tint)
+        val level = GlassContrast.backdropLevel(levels[(count - 1) * 4 / 5], tint, layer.tintLevel)
         if (abs(level - layer.level) >= LevelStep) layer.level = level
     }
 

@@ -7,7 +7,47 @@ import kotlinx.coroutines.flow.Flow
  * deletion with confirmation, the private folder and online subtitles.
  */
 
+/**
+ * The appearance choice before the ready themes of 2026-11-21. Nothing stores it any more: it is read from settings
+ * saved by an older version and from older backups, and ThemeMigration turns it into a [ThemeId].
+ */
 enum class ThemeMode { SYSTEM, DARK, LIGHT }
+
+/**
+ * The look the owner picked: one of the eight ready themes, or [CUSTOM], which is built from
+ * AppSettings.customHue, customShade and customSurface. LIGHT and PAPER are the light ones.
+ */
+enum class ThemeId {
+    BLACK,
+    PURE_BLACK,
+    MIDNIGHT,
+    VIOLET,
+    FOREST,
+    COFFEE,
+    LIGHT,
+    PAPER,
+    CUSTOM,
+    ;
+
+    companion object {
+        val DEFAULT = BLACK
+    }
+}
+
+/** What a custom theme starts from, and what "Reset to default" returns it to. */
+object CustomThemeDefaults {
+    /** Degrees, 0 to 360. */
+    const val HUE = 220f
+
+    /** 0 is pure black, 1 the lightest canvas. */
+    const val SHADE = 0.26f
+
+    /** 0 puts cards and bars below the canvas, 1 well above it. */
+    const val SURFACE = 0.8f
+
+    /** The "any colour" accent, ARGB. */
+    const val ACCENT = 0xFF3CD3E0.toInt()
+}
 
 /**
  * The automatic subtitle download of the waiver of 2026-11-08: off, Arabic only, or Arabic and then English when no
@@ -27,7 +67,27 @@ enum class AutoSubtitleMode {
     }
 }
 
-enum class AccentColor { WHITE, BLUE, RED, GREEN, AMBER, VIOLET }
+/**
+ * The colour of the primary pill, progress lines and selected chips. [THEME] is the theme's own accent, such as blue on
+ * MIDNIGHT, and [CUSTOM] is AppSettings.customAccent. Every other value holds on any theme.
+ */
+enum class AccentColor {
+    WHITE,
+    BLUE,
+    RED,
+    GREEN,
+    AMBER,
+    VIOLET,
+    PINK,
+    CYAN,
+    THEME,
+    CUSTOM,
+    ;
+
+    companion object {
+        val DEFAULT = THEME
+    }
+}
 
 data class FileFacts(
     val fileRowId: Long,

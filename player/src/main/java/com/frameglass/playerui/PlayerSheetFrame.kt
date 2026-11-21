@@ -45,12 +45,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import com.frameglass.glass.EffectsLevel
-import com.frameglass.glass.FrameAccent
 import com.frameglass.glass.FrameColors
 import com.frameglass.glass.FrameMotion
 import com.frameglass.glass.FrameSpacing
 import com.frameglass.glass.FrameTheme
-import com.frameglass.glass.FrameThemeMode
 import com.frameglass.glass.FrameType
 import com.frameglass.glass.bidiIsolate
 import com.frameglass.glass.rememberEffectsLevel
@@ -66,7 +64,7 @@ private val EnterDistance = 48.dp
 /** The player stays dark in every theme, and white is its one accent, whatever the app around it uses. */
 @Composable
 internal fun PlayerTheme(content: @Composable () -> Unit) {
-    FrameTheme(mode = FrameThemeMode.Dark, accent = FrameAccent.White, content = content)
+    FrameTheme(content = content)
 }
 
 /** Text on a sheet rests on the scrim alone, so these two numbers carry the contrast rule. See SheetLookTest. */

@@ -6,6 +6,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 
+// The tint is the theme's canvas, so glass takes the colour of its theme, and the limits of the contrast
+// rule come from that theme's own text (FramePalette.glassLimit). The recipes hold what a theme never changes.
+//
 // The worst backdrop for surfaces with no sampler to tell them better: pure white under a dark tint,
 // pure black under a light one.
 private const val BrightestLevel = 255f
@@ -13,6 +16,18 @@ private const val DarkestLevel = 0f
 
 // Tuned up from the brief's 0.52, which let bright art fight the text of a whole sheet.
 private const val PanelTint = 0.76f
+
+/** What a glass surface must keep readable. The theme turns it into a backdrop limit (FramePalette.glassLimit). */
+internal enum class GlassText {
+    /** Main text and icons, as on the bars. */
+    Content,
+
+    /** Secondary text straight on the glass. */
+    Secondary,
+
+    /** Secondary text on a row laid on the glass, as in sheets and menus. */
+    Rows,
+}
 
 internal class GlassRecipe(
     val priority: Int,
@@ -24,8 +39,7 @@ internal class GlassRecipe(
     val bottomRim: Color = Color.White.copy(alpha = 0.08f),
     val shadow: Shadow? = null,
     val refraction: Boolean = false,
-    val textLimit: Float = GlassContrast.WhiteTextLimit,
-    val tintLevel: Float = GlassContrast.TintLevel,
+    val text: GlassText = GlassText.Content,
     val worstLevel: Float = BrightestLevel,
     /** Follows the real backdrop through [GlassSampler]; other kinds assume [worstLevel]. */
     val sampled: Boolean = false,
@@ -59,7 +73,7 @@ private val SheetRecipe = GlassRecipe(
     baseTint = PanelTint,
     shadow = PanelShadow,
     refraction = true,
-    textLimit = GlassContrast.SecondaryTextLimit,
+    text = GlassText.Rows,
     solidWithoutBlur = true,
 )
 private val MenuRecipe = GlassRecipe(
@@ -68,7 +82,7 @@ private val MenuRecipe = GlassRecipe(
     baseTint = PanelTint,
     shadow = PanelShadow,
     refraction = true,
-    textLimit = GlassContrast.SecondaryTextLimit,
+    text = GlassText.Rows,
     solidWithoutBlur = true,
 )
 private val ControlRecipe = GlassRecipe(
@@ -89,8 +103,9 @@ private val BadgeRecipe = GlassRecipe(
 )
 
 // Light recipes. A bright edge at the top and a dark hairline at the bottom take the place of the white
-// rim, which would vanish on the canvas. Each base tint already clears the contrast rule over pure
-// black, so nothing here needs the sampler, and the light theme pays nothing for it.
+// rim, which would vanish on the canvas. On the plain light theme each base tint already clears the
+// contrast rule over pure black. A light theme with softer text gets a stronger tint from the same rule,
+// held at that worst case, so nothing here needs the sampler and a light theme pays nothing for it.
 private val LightRimTop = Color.White.copy(alpha = 0.72f)
 private val LightRimBottom = Color.Black.copy(alpha = 0.06f)
 private val LightEdge = Color.Black.copy(alpha = 0.10f)
@@ -113,8 +128,6 @@ private val LightTabBarRecipe = GlassRecipe(
     rimBottom = LightRimBottom,
     shadow = LightBarShadow,
     refraction = true,
-    textLimit = GlassContrast.DarkTextLimit,
-    tintLevel = GlassContrast.LightTintLevel,
     worstLevel = DarkestLevel,
 )
 private val LightTopBarRecipe = GlassRecipe(
@@ -122,8 +135,6 @@ private val LightTopBarRecipe = GlassRecipe(
     blur = 24.dp,
     baseTint = LightTopBarTint,
     bottomRim = LightBottomRim,
-    textLimit = GlassContrast.DarkTextLimit,
-    tintLevel = GlassContrast.LightTintLevel,
     worstLevel = DarkestLevel,
     bottomRimOnly = true,
 )
@@ -135,8 +146,7 @@ private val LightSheetRecipe = GlassRecipe(
     rimBottom = LightRimBottom,
     shadow = LightPanelShadow,
     refraction = true,
-    textLimit = GlassContrast.SecondaryDarkTextLimit,
-    tintLevel = GlassContrast.LightTintLevel,
+    text = GlassText.Rows,
     worstLevel = DarkestLevel,
     solidWithoutBlur = true,
 )
@@ -148,8 +158,7 @@ private val LightMenuRecipe = GlassRecipe(
     rimBottom = LightRimBottom,
     shadow = LightPanelShadow,
     refraction = true,
-    textLimit = GlassContrast.SecondaryDarkTextLimit,
-    tintLevel = GlassContrast.LightTintLevel,
+    text = GlassText.Rows,
     worstLevel = DarkestLevel,
     solidWithoutBlur = true,
 )
@@ -160,8 +169,7 @@ private val LightControlRecipe = GlassRecipe(
     rimWidth = 0.5.dp,
     rimTop = LightEdge,
     rimBottom = LightEdge,
-    textLimit = GlassContrast.SecondaryDarkTextLimit,
-    tintLevel = GlassContrast.LightTintLevel,
+    text = GlassText.Secondary,
     worstLevel = DarkestLevel,
 )
 private val LightBadgeRecipe = GlassRecipe(
@@ -171,8 +179,7 @@ private val LightBadgeRecipe = GlassRecipe(
     rimWidth = 0.5.dp,
     rimTop = LightEdge,
     rimBottom = LightEdge,
-    textLimit = GlassContrast.SecondaryDarkTextLimit,
-    tintLevel = GlassContrast.LightTintLevel,
+    text = GlassText.Secondary,
     worstLevel = DarkestLevel,
 )
 

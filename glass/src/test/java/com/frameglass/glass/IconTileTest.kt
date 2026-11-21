@@ -1,11 +1,18 @@
 package com.frameglass.glass
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class IconTileTest {
-    private val cards = listOf(false, true).map { FramePalettes.of(it, FrameAccent.White).card }
+    private val oldCards = listOf(FrameThemeId.Black, FrameThemeId.Light).map { FramePalettes.of(it).card }
+    private val everyTheme = FrameThemeId.entries.map { FramePalettes.of(it) } +
+        (0 until 360 step 60).flatMap { hue ->
+            listOf(0f, 0.3f, 0.6f, 0.7f, 1f).map { shade ->
+                FramePalettes.of(FrameLook(custom = CustomTheme(hue.toFloat(), shade, 1f)))
+            }
+        }
 
     @Test
     fun whiteGlyphReadsOnEveryHue() {
@@ -16,11 +23,24 @@ class IconTileTest {
     }
 
     @Test
-    fun everyHueStandsApartFromTheCardsOfBothThemes() {
+    fun everyHueStandsApartFromTheCardsOfThePlainDarkAndLightThemes() {
         TileHue.entries.forEach { hue ->
-            cards.forEach { card ->
+            oldCards.forEach { card ->
                 val ratio = GlassContrast.ratio(hue.fill, card)
                 assertTrue("$hue on $card is $ratio:1", ratio >= 2.5f)
+                assertFalse(tileNeedsRim(hue.fill, card))
+            }
+        }
+    }
+
+    @Test
+    fun onAnyThemeATileThatComesCloseToTheCardTakesARimThatShows() {
+        TileHue.entries.forEach { hue ->
+            everyTheme.forEach { palette ->
+                if (tileNeedsRim(hue.fill, palette.card)) {
+                    // The rim is the outline colour, which shows on a card as it does on the canvas.
+                    assertTrue("$hue rim on ${palette.look}", GlassContrast.reads(palette.outline, palette.card, 1.3f))
+                }
             }
         }
     }

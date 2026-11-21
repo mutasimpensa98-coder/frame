@@ -215,7 +215,7 @@
     <string name="app_settings_group_storage">Storage</string>
     <string name="app_settings_group_app">App</string>
     <string name="app_settings_appearance">Appearance</string>
-    <string name="app_settings_appearance_hint">Theme, accent colour and cover tint</string>
+    <string name="app_settings_appearance_hint">Themes, your own colours and cover tint</string>
     <string name="app_settings_language">Language</string>
     <string name="app_settings_language_hint">Follow the phone, Arabic or English</string>
     <string name="app_settings_library_hint">Search, excluded folders and hidden titles</string>
@@ -231,9 +231,21 @@
     <string name="app_page_backup">Backup</string>
 
     <string name="app_appearance_preview">Preview</string>
-    <string name="app_appearance_theme">Theme</string>
-    <string name="app_appearance_accent">Accent colour</string>
-    <string name="app_appearance_art">Cover art</string>
+    <string name="app_appearance_theme">Ready themes</string>
+    <string name="app_appearance_accent">Accent colour (buttons and progress)</string>
+    <string name="app_appearance_options">Options</string>
+    <string name="app_custom_theme">Custom theme</string>
+    <string name="app_custom_theme_short">Custom</string>
+    <string name="app_custom_hue">Background colour</string>
+    <string name="app_custom_shade">Darkness</string>
+    <string name="app_custom_surface">Cards and bars</string>
+    <string name="app_custom_hint">Text turns white or black by itself to stay readable on the background you pick. The colours apply when you lift your finger.</string>
+    <string name="app_custom_reset">Reset to default</string>
+    <string name="app_accent_any_title">Any colour</string>
+    <string name="app_accent_any_hint">The theme adjusts how light the colour is, so it stays readable on the background.</string>
+    <string name="app_accent_any_use">Use this colour</string>
+    <string name="app_follow_phone">Follow the phone</string>
+    <string name="app_follow_phone_hint">Dark when the phone is dark and light when it is light. Your theme shows on its own side, with Black or Light on the other.</string>
     <string name="app_cover_tint">Cover tint</string>
     <string name="app_cover_tint_hint">Spreads a soft colour from the cover behind Details and the top of Home</string>
     <string name="app_preview_title">Tonight\'s film</string>

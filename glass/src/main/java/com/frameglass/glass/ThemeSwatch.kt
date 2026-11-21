@@ -5,7 +5,9 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,9 +27,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -46,18 +46,25 @@ private val SwatchCheck = 20.dp
 private val SwatchCheckIcon = 14.dp
 private val DotSlot = 44.dp
 private val DotCheck = 18.dp
+private val AnyColourRing = 5.dp
+private const val CheckDisc = 0.36f
 
 /** The name of this theme as the owner reads it. */
 @Composable
-fun FrameThemeMode.label(): String = stringResource(
+fun FrameThemeId.label(): String = stringResource(
     when (this) {
-        FrameThemeMode.System -> R.string.glass_theme_system
-        FrameThemeMode.Dark -> R.string.glass_theme_dark
-        FrameThemeMode.Light -> R.string.glass_theme_light
+        FrameThemeId.Black -> R.string.glass_theme_black
+        FrameThemeId.PureBlack -> R.string.glass_theme_pure_black
+        FrameThemeId.Midnight -> R.string.glass_theme_midnight
+        FrameThemeId.Violet -> R.string.glass_theme_violet
+        FrameThemeId.Forest -> R.string.glass_theme_forest
+        FrameThemeId.Coffee -> R.string.glass_theme_coffee
+        FrameThemeId.Light -> R.string.glass_theme_light
+        FrameThemeId.Paper -> R.string.glass_theme_paper
     },
 )
 
-/** The name of this accent as the owner sees it: the neutral reads black on the light theme. */
+/** The name of this accent as the owner sees it: the neutral reads black on a light theme. */
 @Composable
 fun FrameAccent.label(): String = stringResource(
     when (this) {
@@ -67,23 +74,24 @@ fun FrameAccent.label(): String = stringResource(
         FrameAccent.Green -> R.string.glass_accent_green
         FrameAccent.Amber -> R.string.glass_accent_amber
         FrameAccent.Violet -> R.string.glass_accent_violet
+        FrameAccent.Pink -> R.string.glass_accent_pink
+        FrameAccent.Cyan -> R.string.glass_accent_cyan
     },
 )
 
 /**
- * A small picture of Home in a theme and accent, for the Appearance screen. It shows that theme whatever
- * the app is using now, and [FrameThemeMode.System] shows both, split corner to corner.
+ * A small picture of Home in [look], for the Appearance screen: a ready theme or a custom one, with the accent
+ * it would get. It shows that look whatever the app is using now. [name] is what a screen reader says.
  */
 @Composable
 fun ThemeSwatch(
-    mode: FrameThemeMode,
-    accent: FrameAccent,
+    look: FrameLook,
+    name: String,
     modifier: Modifier = Modifier,
     selected: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
     val colors = FrameTheme.colors
-    val name = mode.label()
     val ring by animateColorAsState(
         if (selected) colors.accent else Color.Transparent,
         FrameMotion.effects(),
@@ -95,7 +103,7 @@ fun ThemeSwatch(
     }
     val picture: @Composable () -> Unit = {
         Box(Modifier.border(RingWidth, ring, SwatchShape).padding(RingGap)) {
-            HomePicture(mode, accent)
+            HomePicture(FramePalettes.of(look.copy(followSystem = false)))
             if (selected) {
                 Box(
                     modifier = Modifier
@@ -131,9 +139,64 @@ fun AccentSwatch(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val tone = FramePalettes.withAccent(FrameTheme.colors, accent)
+    AccentDot(accent.label(), tone, selected, onClick, modifier) {
+        Box(Modifier.fillMaxSize().background(tone.accentFill, CircleShape))
+    }
+}
+
+/**
+ * The choice of the theme's own accent, such as blue on Midnight: half the theme's raised surface and half its
+ * accent, so it reads as "this theme's colour" beside the plain dots.
+ */
+@Composable
+fun ThemeAccentSwatch(
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val tone = FramePalettes.withAccent(FrameTheme.colors, accent = null)
+    AccentDot(stringResource(R.string.glass_accent_theme), tone, selected, onClick, modifier) {
+        Canvas(Modifier.fillMaxSize().clip(CircleShape)) {
+            drawRect(tone.elevated)
+            // The split leans the same way in both directions, so the accent half is always the lower one.
+            drawArc(tone.accentFill, startAngle = -45f, sweepAngle = 180f, useCenter = true)
+            // The check is drawn in the colour that reads on the accent, so it gets the accent under all of it.
+            if (selected) drawCircle(tone.accentFill, radius = size.minDimension * CheckDisc)
+        }
+    }
+}
+
+/** The "any colour" choice: a rainbow ring around [argb], the colour picked so far. A tap opens the picker. */
+@Composable
+fun AnyAccentSwatch(
+    argb: Int,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val tone = FramePalettes.withAccent(FrameTheme.colors, accent = null, accentArgb = argb)
+    AccentDot(stringResource(R.string.glass_accent_any), tone, selected, onClick, modifier) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Brush.sweepGradient(HueWheel), CircleShape)
+                .padding(AnyColourRing)
+                .background(tone.accentFill, CircleShape),
+        )
+    }
+}
+
+@Composable
+private fun AccentDot(
+    name: String,
+    tone: FramePalette,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier,
+    fill: @Composable BoxScope.() -> Unit,
+) {
     val colors = FrameTheme.colors
-    val tone = FramePalettes.of(colors.isLight, accent)
-    val name = accent.label()
     val ring by animateColorAsState(
         if (selected) tone.accent else Color.Transparent,
         FrameMotion.effects(),
@@ -155,10 +218,10 @@ fun AccentSwatch(
             modifier = Modifier
                 .border(RingWidth, ring, CircleShape)
                 .padding(RingGap)
-                .background(tone.accentFill, CircleShape)
                 .border(0.5.dp, colors.hairline, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
+            fill()
             if (selected) {
                 Icon(Icons.Rounded.Check, null, Modifier.size(DotCheck), tint = tone.onAccent)
             }
@@ -167,9 +230,7 @@ fun AccentSwatch(
 }
 
 @Composable
-private fun HomePicture(mode: FrameThemeMode, accent: FrameAccent) {
-    val dark = FramePalettes.of(light = false, accent)
-    val light = FramePalettes.of(light = true, accent)
+private fun HomePicture(palette: FramePalette) {
     val rim = FrameTheme.colors.hairline
     Canvas(
         Modifier
@@ -179,24 +240,8 @@ private fun HomePicture(mode: FrameThemeMode, accent: FrameAccent) {
             .border(0.5.dp, rim, PictureShape),
     ) {
         val rtl = layoutDirection == LayoutDirection.Rtl
-        scale(scaleX = if (rtl) -1f else 1f, scaleY = 1f) {
-            when (mode) {
-                FrameThemeMode.Dark -> miniHome(dark)
-                FrameThemeMode.Light -> miniHome(light)
-                FrameThemeMode.System -> {
-                    miniHome(dark)
-                    clipPath(lowerCorner(size)) { miniHome(light) }
-                }
-            }
-        }
+        scale(scaleX = if (rtl) -1f else 1f, scaleY = 1f) { miniHome(palette) }
     }
-}
-
-private fun lowerCorner(size: Size) = Path().apply {
-    moveTo(size.width, 0f)
-    lineTo(size.width, size.height)
-    lineTo(0f, size.height)
-    close()
 }
 
 // Home in miniature, in the same order as the real one: art fading into the canvas, title and meta
@@ -231,7 +276,7 @@ private fun DrawScope.miniHome(colors: FramePalette) {
     val posterTop = h * 0.56f
     val posterSize = Size(w * 0.26f, h * 0.2f)
     val corner = CornerRadius(unit * 0.8f)
-    // The block that stands out from this canvas: lighter than it on both themes.
+    // The block that stands out from this canvas: the cards on a light one, the raised surface on a dark one.
     val poster = if (colors.isLight) colors.card else colors.elevated
     repeat(3) { index ->
         drawRoundRect(

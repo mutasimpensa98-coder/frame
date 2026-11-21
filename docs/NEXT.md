@@ -1,5 +1,6 @@
 # Next
 
+Updated 2026-11-21, after eight ready themes and a custom theme were built on branch `themes` (waiver of 2026-11-21); nothing of it has been seen on a phone. Before that:
 Updated 2026-11-19, after branch `android10` lowered `minSdk` to 30 so the app installs on Android 11 and newer (waiver of 2026-11-19; Android 10 was built first and dropped the same day). Before that, updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else. Before that, the feature tour was built on branch `tour`; before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 Updated 2026-11-19, after the developer name on About, the episode delete on Home and "Play in pop-up" were built on branch `features`. Before that, updated 2026-11-12, after branch `android13` lowered `minSdk` to 33 so the app installs on Android 13 and newer (waiver of 2026-11-12). Before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else. Before that, the feature tour was built on branch `tour`; before that, updated 2026-11-12, after the watchlist, cleanup suggestions, stats and automatic backup were built on branch `pack-library`. Before that, updated 2026-11-08, after launcher shortcuts, a Continue watching widget, the next episode date, a trailer button and "What should I watch tonight?" were built on branch `pack-home`. Read `STATUS.md` first. R1 applies as changed by the GitHub waiver in `WAIVERS.md`: one private repository on the owner's account, and nothing else.
 
@@ -225,10 +226,34 @@ Android 11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص 
 150. من إعدادات التلفون › التطبيقات › فريم › «صورة داخل صورة» اقفلها، وجرّب «تشغيل في نافذة منبثقة». هل الفيديو اشتغل بملء الشاشة وطلعت فوقه رسالة قصيرة تقول إنها موقوفة؟ بعدها رجّع الخاصية.
 151. والنافذة المنبثقة شغّالة فوق الرئيسية، اضغط مطوّل على بطاقة نفس الفيديو اللي يشتغل واحذفه (اختار فيديو ما يهمكش). هل النافذة سكّرت وحدها أول ما خلص الحذف، والصوت وقف؟ وهل ما بقاش للفيديو بطاقة في «تابع المشاهدة»، ولا اختصار له لما تضغط مطوّل على أيقونة التطبيق؟
 
+الثيمات وتخصيص الألوان (فرع `themes`). كلها في الإعدادات › «المظهر»، وما تجرّبتش على تلفون:
+
+152. بعد التحديث وقبل ما تغيّر شي: هل شكل التطبيق زي ما كان بالضبط، بنفس الخلفية ونفس لون الأزرار اللي كنت مختاره؟ افتح الإعدادات › «المظهر»: هل الثيم المعلَّم «أسود» (أو «فاتح» لو كنت على الفاتح)، و«حسب وضع الهاتف» شغّال لو كنت مختاره قبل؟
+153. في «ثيمات جاهزة» 8 بطاقات: أسود، أسود صافي، ليلي، بنفسجي، غابة، قهوة، فاتح، ورقي. اضغط عليهم واحد واحد. هل الألوان تتبدّل بنعومة بدون ما الصفحة تتسكّر وتنفتح؟ وهل كل ثيم زي الستوري بورد اللي وافقت عليه؟ وهل البطاقات الصغيرة واضحة وأسماؤها ما تنقصّش؟
+154. في كل ثيم لفّ على الرئيسية والمكتبة والتفاصيل والبحث والإعدادات، وافتح قائمة وورقة سفلية. هل فيه نص صعب يتقرا، أو بطاقة ولا شريط مش باين من الخلفية، أو لون رمادي ما يمشيش مع الثيم؟ اكتب اسم الثيم والصفحة.
+155. في «ليلي» و«غابة» و«قهوة»: هل الشريط السفلي والعلوي لونهم من لون الثيم (كحلي، أخضر، بنّي) مش رمادي؟ وهل الكتابة فوقهم مقروءة لما يكون تحتهم غلاف فاتح؟
+156. في صفحة التفاصيل وفي الصورة الكبيرة في الرئيسية: هل الغلاف يذوب في لون الثيم بنعومة، والعنوان اللي فوقه مقروء؟ جرّبها في «ليلي» و«قهوة» و«ورقي».
+157. «فاتح» و«ورقي»: هل أيقونات شريط الحالة فوق (الساعة والبطارية) غامقة ومقروءة؟ وفي الثيمات الغامقة فاتحة؟
+158. «أسود صافي»: هل الخلفية سوداء تمامًا؟ وهل الحقول والأزرار الصغيرة (زي خانة البحث وأزرار الفلترة) لسه باينة منها؟
+159. لون التمييز: أول دائرة «لون الثيم»، نصها من لون الثيم. هل معاها كل ثيم ياخذ لونه (أزرق في ليلي، كهرماني في قهوة، بنّي في ورقي)؟ اختر الأحمر وبدّل الثيم: هل الأحمر يبقى في كل الثيمات؟ وهل الدوائر العشرة مرتّبة في سطرين ومريحة للضغط؟
+160. آخر دائرة، الملوّنة، تفتح «أي لون». حرّك إصبعك في المربع واضغط «استخدم هذا اللون». هل الأزرار وخطوط التقدّم خذت اللون؟ وهل الكتابة فوق الزر مقروءة مع لون فاتح جدًا ومع لون غامق؟ اللون ممكن يفتح أو يغمق شوية عن اللي اخترته عشان يبقى مقروء: هل الفرق مقبول؟
+161. «ثيم مخصّص»: حرّك «لون الخلفية» و«درجة الغمق» و«لون البطاقات والأشرطة». هل الصورة الصغيرة تتبع إصبعك، والتطبيق كله ياخذ الألوان لما ترفع إصبعك؟ وهل الصفحة تتمرّر عادي لما تسحب لفوق وتحت وإصبعك فوق شريط؟
+162. «درجة الغمق» من أولها لآخرها: هل تبدأ من أسود صافي وتوصل لفاتح؟ في النص تقريبًا فيه قفزة من غامق لفاتح، ومقصودة عشان الكتابة تبقى مقروءة. هل الكتابة تتحوّل وحدها من فاتحة لغامقة عندها؟ وهل القفزة مقبولة؟
+163. قريب من القفزة هذي، من الجهتين، لون التمييز يبهت أو يغمق والأشرطة تولّي شبه مصمتة. هل الشكل مقبول، ولا نقصّر مدى الشريط ونشيل الدرجات هذي؟
+164. «رجّع الافتراضي»: هل رجّع الثيم «أسود» ولون التمييز الأصلي، وخلّى باقي إعداداتك زي ما هي؟ هل هذا اللي تتوقعه من الزر، ولا تبيه يرجّع أشرطة الثيم المخصّص بس؟
+165. «حسب وضع الهاتف»: شغّله وانت مختار «ليلي»، وبدّل التلفون بين الوضع الداكن والفاتح. هل الداكن يعرض «ليلي» والفاتح يعرض «فاتح»؟ واختر «ورقي»: هل الفاتح يعرض «ورقي» والداكن «أسود»؟
+166. شغّل فيديو وانت على «ورقي» أو ثيم مخصّص فاتح. هل المشغّل وأوراقه لسه غامقين؟ وهل «جولة في المميزات» لسه غامقة، والويدجت على شاشة التلفون ما تغيّرش؟ ولما ترجع من المشغّل: هل التطبيق رجع بألوان ثيمك على طول؟
+167. في الإعدادات: هل مربعات الأيقونات الملوّنة واضحة في كل ثيم؟ في بعض الثيمات يطلع لها إطار رفيع: هل شكله مقبول؟ وشارة التقييم لسه زرقاء لـ ⁦TMDB⁩ وصفراء لـ ⁦IMDb⁩؟
+168. اعمل نسخة احتياطية وانت على ثيم مخصّص ولون من «أي لون»، غيّر الثيم، ثم استرجع النسخة. هل رجع نفس الثيم ونفس اللون؟ ولو عندك نسخة من قبل التحديث: هل استرجاعها يرجّع الشكل اللي كان فيها؟
+
 ## 3. Watch for on the phone
 
 These come from reading the code. None has been seen.
 
+- **Themes, every screen (`themes`).** The tests cover the tokens, not the screens. A screen that lays its own colour over a surface, or a fade tuned for near-black, shows only on the phone: Details and the hero are the likely places (item 156), then sheets and menus on Midnight and Paper (item 154).
+- **Themes, the fade.** A theme change hands a new palette to the whole tree on each frame for 200 ms. Watch for a stutter on Appearance, and for a surface that jumps at the first frame while the rest fades: rims, shadows and system bar icons take the new kind at once.
+- **Themes, the player behind a light app.** The player is dark and the app may be light or coloured in one process. `ThemeBridge` already handled dark over light; a custom palette is new to it. Watch for a frame of the wrong colours when leaving the player or picture-in-picture (item 166).
+- **Custom theme, the sliders.** A drag starts only once it is sideways, so the page can scroll from a finger on a slider. Watch for a slider that will not start, or one that moves while scrolling (item 161).
 - **Play in pop-up, the moment it enters (`features`).** `PlayerActivity` asks for picture-in-picture on the first size or frame of the video, which can come while the player's opening fade still runs. If the system queues the request, the full black window shows for longer than a blink; item 145 asks. The landscape request is held until the window reports it is a pop-up (`PopUpGate.holdsOrientation`); a screen that still turns sideways first means that hold does not work on this phone.
 - **Deleting what the pop-up plays.** The player closes when the delete reports the file gone, which is after the trash took it; the picture may stand still for the moment between. A pop-up that stays open on a deleted video, or a Continue card for it that comes back, means the report did not reach `PlayerSession`; item 151 asks.
 - **Play in pop-up, a second one.** A pop-up on screen takes the new video in place through `PlaybackHost.popUp`, set in `onPictureInPictureModeChanged`. A full-screen flash on the second pop-up means that callback came late or the slot was cleared.
@@ -280,6 +305,16 @@ From this round's three requests, read in the code and never run:
 - **The sites line under subtitle results** is text only. Nothing in `:app` implements `PlayerHost.subtitleKeysIntent()`, so it cannot open the keys page.
 
 ## 4. Known limits in this build
+
+Themes (`themes`, not seen on any phone). `WAIVERS.md`, "2026-11-21: More themes and custom colours":
+
+- The darkness slider of the custom theme has no shade between CIE lightness 36 and 58. No text colour keeps 4.5:1 on a selected chip there.
+- "Any colour" keeps the hue. The theme lightens or darkens it until it reads, so the shade can differ from the point picked, most of all on mid-tone custom themes.
+- With Follow the phone on, only the side of the chosen theme is the owner's choice. The other side is Black or Light and cannot be another theme.
+- A theme change while a pop-up player floats over the app has not been thought through beyond what the light theme already did: the player keeps its dark palette, and its plain colour reads follow the window in front.
+- The launch window is the dark canvas in every theme.
+- The glass rims are the white set on every dark theme and the light set on every light one. They are not tinted with the theme.
+- On Android 11 and 12 the themes are flat tint and rim, and nothing has run there.
 
 Android 11 and 12 (`android10`, not seen on any phone below Android 17). `WAIVERS.md`, "2026-11-19: Android 11 and newer", lists what each version gets instead of the full app. These are the parts nobody could check without such a phone:
 
@@ -368,6 +403,10 @@ Shortcuts, widget, next episode, trailer and tonight's pick (this round, not see
 5. **Lost recovery code.** The code is held in memory until the owner confirms it. If the app dies before that, the code is gone and only the password opens the folder, so a forgotten password then means the videos cannot be reached. A way to issue a new code while unlocked would close this, and it needs a new call beside `PrivateVault`. Build it?
 6. **Uninstalling.** Private videos live in app storage, so uninstalling or clearing the app's data deletes them unless the owner picks Keep data. `hasFragileUserData` offers that choice, and the private folder shows a warning. This cannot be solved without storing them elsewhere. Accept it?
 7. **Moving to a new phone.** `allowBackup="false"` stops cloud backup, but since Android 12 it does not stop device-to-device transfer, and lint flags this. With no `dataExtractionRules`, a transfer may copy `files/vault` and the database to the new phone. The keys are sealed to this phone, so the folder would not open there, but the files would have left it. Adding rules that exclude everything closes this, and the app's own backup zip then becomes the only way to move the library. Add them?
+8. **The mid tones of the custom theme.** The darkness slider steps over them, and the shades next to the step pass the contrast rule at the cost of colour. Keep the full range, or cut the slider back to where accents keep their colour, about lightness 0 to 25 and 75 to 97?
+9. **Reset to default.** It returns the whole look to Black with its own accent and resets the custom values. The storyboard says it "cancels the customisation". Should it leave the theme alone and reset only the three sliders?
+10. **The theme's own colour.** The accent row starts with a dot that is not on the storyboard: "Theme colour", so that Midnight is blue and Coffee amber without losing a colour the owner picked. After the update the old white accent is read as this choice. Keep it, or let a tap on a theme set its colour?
+11. **Pure black surfaces.** The storyboard's `#121214` is nearly black on black. Lift the raised surface for chips and fields, or keep it?
 
 ## 6. Gate 0, still open
 

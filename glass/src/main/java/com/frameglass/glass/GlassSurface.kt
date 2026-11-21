@@ -83,6 +83,8 @@ private val NoRefraction = RefractionProfile.Edge(0.dp)
 
 /** One surface asking for real blur. */
 internal class GlassLayer(var recipe: GlassRecipe) {
+    /** The level of the tint this layer draws, which the sampler takes back out of what it reads. */
+    var tintLevel = GlassContrast.TintLevel
     var coordinates: LayoutCoordinates? = null
     var alpha: () -> Float = FullAlpha
     var tint: State<Float>? = null
@@ -156,6 +158,7 @@ fun GlassSurface(
     // Outlives a theme change: a new layer would have no coordinates, because the bar does not move.
     val layer = remember { GlassLayer(recipe) }
     layer.recipe = recipe
+    layer.tintLevel = colors.glassLevel
     val visible by remember(alpha) { derivedStateOf { alpha() > 0f } }
     val wantsBlur = glass != null && visible && glass.sourceCount > 0
     if (glass != null) {
@@ -174,7 +177,9 @@ fun GlassSurface(
     }
 
     val level = if (sampled) layer.level else recipe.worstLevel
-    val contrastTint = GlassContrast.tintAlpha(recipe.baseTint, level, recipe.textLimit, recipe.tintLevel)
+    // Both ends of the rule come from the theme: its canvas is the tint, and its text sets the limit.
+    val contrastTint = GlassContrast
+        .tintAlpha(recipe.baseTint, level, colors.glassLimit(recipe.text), colors.glassLevel, colors.isLight)
     val wantedTint = when {
         recipe.solidWithoutBlur && !blurred -> 1f
         degraded -> max(contrastTint, DegradedTint)

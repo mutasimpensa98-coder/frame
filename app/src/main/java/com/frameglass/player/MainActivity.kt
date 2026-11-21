@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.drawable.toDrawable
@@ -21,7 +22,7 @@ import com.frameglass.glass.FrameTheme
 import com.frameglass.player.nav.AppLinks
 import com.frameglass.player.nav.FrameRoot
 import com.frameglass.player.nav.Route
-import com.frameglass.player.ui.toFrame
+import com.frameglass.player.ui.toLook
 
 /** A FragmentActivity because androidx.biometric shows BiometricPrompt through a fragment. */
 class MainActivity : FragmentActivity() {
@@ -45,12 +46,16 @@ class MainActivity : FragmentActivity() {
         setContent {
             val loaded by ui.settings.collectAsStateWithLifecycle()
             val settings = loaded ?: AppSettings()
+            // The saved look arrives a moment after the first frame. It is a plain cut: only a change the owner
+            // makes later fades.
+            var settled by remember { mutableStateOf(false) }
+            LaunchedEffect(loaded != null) { settled = loaded != null }
             FrameTheme(
-                mode = settings.themeMode.toFrame(),
-                accent = settings.accent.toFrame(),
+                look = settings.toLook(),
                 coverTint = settings.coverTint,
+                animate = settled,
             ) {
-                // Behind every screen change, so a light theme shows no dark flash between pages.
+                // Behind every screen change, so a light or coloured theme shows no dark flash between pages.
                 val canvas = FrameTheme.colors.canvas
                 LaunchedEffect(canvas) { window.setBackgroundDrawable(canvas.toArgb().toDrawable()) }
                 FrameRoot(link = link, onLinkOpened = { link = null })

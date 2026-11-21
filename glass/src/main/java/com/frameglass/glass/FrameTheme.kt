@@ -1,5 +1,7 @@
 package com.frameglass.glass
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,9 +16,13 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -25,6 +31,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 
 internal val LocalFramePalette = staticCompositionLocalOf { FramePalettes.Default }
+private val DefaultLook = FrameLook()
 internal val LocalCoverTint = staticCompositionLocalOf { false }
 
 /** The theme in force here. */
@@ -130,8 +137,8 @@ private fun TrackThemeWindow(palette: FramePalette) {
 }
 
 /**
- * The dark look with the white accent for one part of a screen, whatever the app's theme, such as the feature
- * tour. Unlike a nested [FrameTheme] it opens no theme window: it changes what [FrameTheme.colors] and Material
+ * The dark look with the white accent for one part of a screen, whatever the app's theme or accent, such as the
+ * feature tour. Unlike a nested [FrameTheme] it opens no theme window: it changes what [FrameTheme.colors] and Material
  * read below it, and plain [FrameColors] reads keep following the app. Read colours through [FrameTheme.colors]
  * inside it.
  */
@@ -153,27 +160,54 @@ fun DarkLook(content: @Composable () -> Unit) {
     }
 }
 
+private class PaletteFade(var settled: FramePalette) {
+    val progress = Animatable(1f)
+
+    /** The palette of the frame on screen while a fade runs. */
+    var frame by mutableStateOf<FramePalette?>(null)
+}
+
+// A theme change fades from the colours on screen to the new ones over the tint time, in the same window:
+// nothing is recreated. Each frame of the fade is a palette of its own, and the last one is the target itself.
+@Composable
+private fun fading(target: FramePalette, animate: Boolean): FramePalette {
+    val fade = remember { PaletteFade(target) }
+    if (!animate) {
+        fade.settled = target
+        SideEffect { fade.frame = null }
+        return target
+    }
+    LaunchedEffect(target) {
+        val from = fade.frame ?: fade.settled
+        if (from !== target) {
+            fade.progress.snapTo(0f)
+            fade.progress.animateTo(1f, tween(FrameMotion.TintMillis)) { fade.frame = from.toward(target, value) }
+        }
+        fade.settled = target
+        fade.frame = null
+    }
+    return fade.frame ?: fade.settled
+}
+
 /**
  * The Frame theme, glass state and overlay layer. It paints no background of its own.
  *
- * With no arguments it is the dark look, which is also what the player keeps in every theme. [coverTint]
+ * With no arguments it is the dark look, which is also what the player keeps in every theme. [look] is the
+ * owner's theme and accent. A change of it fades in over [FrameMotion.TintMillis] without recreating anything,
+ * unless [animate] is off or the phone is in degraded mode (brief 7.9), where it is a plain cut. [coverTint]
  * carries the cover colour of [coverGlow] down to where the art meets the canvas.
  */
 @Composable
 fun FrameTheme(
-    mode: FrameThemeMode = FrameThemeMode.Dark,
-    accent: FrameAccent = FrameAccent.White,
+    look: FrameLook = DefaultLook,
     coverTint: Boolean = false,
+    animate: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val light = when (mode) {
-        FrameThemeMode.System -> !isSystemInDarkTheme()
-        FrameThemeMode.Dark -> false
-        FrameThemeMode.Light -> true
-    }
-    val palette = FramePalettes.of(light, accent)
-    TrackThemeWindow(palette)
+    val shown = if (look.followSystem) look.shownWhen(isSystemInDarkTheme()) else look
     val effects = observeEffectsLevel()
+    val palette = fading(FramePalettes.of(shown), animate = animate && effects == EffectsLevel.Full)
+    TrackThemeWindow(palette)
     // Null below API 33: with no state no surface blurs, and Haze is never touched (GlassSupport).
     val glass = remember { if (GlassSupport.liquid) GlassState() else null }
     val overlays = remember { GlassOverlayHost() }

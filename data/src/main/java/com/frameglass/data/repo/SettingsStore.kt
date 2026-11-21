@@ -2,6 +2,7 @@ package com.frameglass.data.repo
 
 import android.content.Context
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -15,9 +16,11 @@ import com.frameglass.data.api.AccentColor
 import com.frameglass.data.api.ApiKeyKind
 import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.AutoSubtitleMode
+import com.frameglass.data.api.CustomThemeDefaults
 import com.frameglass.data.api.SettingsRepository
-import com.frameglass.data.api.ThemeMode
+import com.frameglass.data.logic.CustomThemeValues
 import com.frameglass.data.logic.ServiceUse
+import com.frameglass.data.logic.ThemeMigration
 import com.frameglass.data.secure.KeyVault
 import com.frameglass.net.ApiKey
 import com.frameglass.net.NetConfig
@@ -54,8 +57,15 @@ private object Prefs {
     val scanNomedia = booleanPreferencesKey("scanNomediaFolders")
     val showUnavailable = booleanPreferencesKey("showUnavailable")
     val tmdbBaseUrl = stringPreferencesKey("tmdbBaseUrl")
-    val themeMode = stringPreferencesKey("themeMode")
+    /** Written by versions before the ready themes. Read once to migrate, and removed by the next save. */
+    val legacyThemeMode = stringPreferencesKey("themeMode")
+    val theme = stringPreferencesKey("theme")
+    val followSystem = booleanPreferencesKey("followSystem")
     val accent = stringPreferencesKey("accent")
+    val customHue = floatPreferencesKey("customHue")
+    val customShade = floatPreferencesKey("customShade")
+    val customSurface = floatPreferencesKey("customSurface")
+    val customAccent = intPreferencesKey("customAccent")
     val coverTint = booleanPreferencesKey("coverTint")
     val cinemaMode = booleanPreferencesKey("cinemaMode")
     val hideUnseenStills = booleanPreferencesKey("hideUnseenStills")
@@ -72,6 +82,94 @@ private object Prefs {
     val clipPassDone = booleanPreferencesKey("internal.clipPassDone")
     val animePassDone = booleanPreferencesKey("internal.animePassDone")
     val imdbPausedUntil = longPreferencesKey("internal.imdbPausedUntil")
+}
+
+/** How AppSettings is laid out in the preferences file. Pure, so a round trip is tested without a phone. */
+internal object SettingsPrefs {
+    fun read(p: Preferences): AppSettings {
+        val d = AppSettings()
+        // No theme key means the file was last written before the ready themes, or never: the old choice is migrated.
+        val stored = p[Prefs.theme]
+        val (theme, followSystem) = if (stored == null) {
+            ThemeMigration.theme(p[Prefs.legacyThemeMode])
+        } else {
+            enumOf(stored, d.theme) to (p[Prefs.followSystem] ?: d.followSystem)
+        }
+        val accent = if (stored == null) ThemeMigration.accent(p[Prefs.accent]) else enumOf(p[Prefs.accent], d.accent)
+        return AppSettings(
+            onlineFeatures = p[Prefs.online] ?: d.onlineFeatures,
+            doubleTapSeconds = p[Prefs.doubleTap] ?: d.doubleTapSeconds,
+            backgroundAudio = p[Prefs.backgroundAudio] ?: d.backgroundAudio,
+            autoPlayNext = p[Prefs.autoPlayNext] ?: d.autoPlayNext,
+            nightAudio = p[Prefs.nightAudio] ?: d.nightAudio,
+            subtitleScale = p[Prefs.subtitleScale] ?: d.subtitleScale,
+            subtitleColor = p[Prefs.subtitleColor] ?: d.subtitleColor,
+            subtitleBackground = p[Prefs.subtitleBackground] ?: d.subtitleBackground,
+            subtitleFontPath = p[Prefs.subtitleFont],
+            subtitleBottomOffset = p[Prefs.subtitleOffset] ?: d.subtitleBottomOffset,
+            scanWholePhone = p[Prefs.scanWholePhone] ?: d.scanWholePhone,
+            scanHiddenFolders = p[Prefs.scanHidden] ?: d.scanHiddenFolders,
+            scanNomediaFolders = p[Prefs.scanNomedia] ?: d.scanNomediaFolders,
+            showUnavailable = p[Prefs.showUnavailable] ?: d.showUnavailable,
+            tmdbBaseUrl = p[Prefs.tmdbBaseUrl] ?: d.tmdbBaseUrl,
+            theme = theme,
+            followSystem = followSystem,
+            accent = accent,
+            customHue = CustomThemeValues.hue(p[Prefs.customHue]),
+            customShade = CustomThemeValues.unit(p[Prefs.customShade], d.customShade),
+            customSurface = CustomThemeValues.unit(p[Prefs.customSurface], d.customSurface),
+            customAccent = CustomThemeValues.accent(p[Prefs.customAccent]),
+            coverTint = p[Prefs.coverTint] ?: d.coverTint,
+            cinemaMode = p[Prefs.cinemaMode] ?: d.cinemaMode,
+            hideUnseenStills = p[Prefs.hideUnseenStills] ?: d.hideUnseenStills,
+            sendReleaseName = p[Prefs.sendReleaseName] ?: d.sendReleaseName,
+            sendFileHash = p[Prefs.sendFileHash] ?: d.sendFileHash,
+            autoSubtitles = AutoSubtitleMode.parse(p[Prefs.autoSubtitles]),
+            vaultLockSeconds = p[Prefs.vaultLockSeconds] ?: d.vaultLockSeconds,
+            neverSleepingHintDone = p[Prefs.neverSleeping] ?: d.neverSleepingHintDone,
+            onboardingDone = p[Prefs.onboarding] ?: d.onboardingDone,
+            tmdbEnabled = p[Prefs.tmdbEnabled] ?: d.tmdbEnabled,
+            imdbEnabled = p[Prefs.imdbEnabled] ?: d.imdbEnabled,
+        )
+    }
+
+    fun write(p: MutablePreferences, s: AppSettings) {
+        p[Prefs.online] = s.onlineFeatures
+        p[Prefs.doubleTap] = s.doubleTapSeconds
+        p[Prefs.backgroundAudio] = s.backgroundAudio
+        p[Prefs.autoPlayNext] = s.autoPlayNext
+        p[Prefs.nightAudio] = s.nightAudio
+        p[Prefs.subtitleScale] = s.subtitleScale
+        p[Prefs.subtitleColor] = s.subtitleColor
+        p[Prefs.subtitleBackground] = s.subtitleBackground
+        val font = s.subtitleFontPath
+        if (font == null) p.remove(Prefs.subtitleFont) else p[Prefs.subtitleFont] = font
+        p[Prefs.subtitleOffset] = s.subtitleBottomOffset
+        p[Prefs.scanWholePhone] = s.scanWholePhone
+        p[Prefs.scanHidden] = s.scanHiddenFolders
+        p[Prefs.scanNomedia] = s.scanNomediaFolders
+        p[Prefs.showUnavailable] = s.showUnavailable
+        p[Prefs.tmdbBaseUrl] = s.tmdbBaseUrl
+        p.remove(Prefs.legacyThemeMode)
+        p[Prefs.theme] = s.theme.name
+        p[Prefs.followSystem] = s.followSystem
+        p[Prefs.accent] = s.accent.name
+        p[Prefs.customHue] = CustomThemeValues.hue(s.customHue)
+        p[Prefs.customShade] = CustomThemeValues.unit(s.customShade, CustomThemeDefaults.SHADE)
+        p[Prefs.customSurface] = CustomThemeValues.unit(s.customSurface, CustomThemeDefaults.SURFACE)
+        p[Prefs.customAccent] = CustomThemeValues.accent(s.customAccent)
+        p[Prefs.coverTint] = s.coverTint
+        p[Prefs.cinemaMode] = s.cinemaMode
+        p[Prefs.hideUnseenStills] = s.hideUnseenStills
+        p[Prefs.sendReleaseName] = s.sendReleaseName
+        p[Prefs.sendFileHash] = s.sendFileHash
+        p[Prefs.autoSubtitles] = s.autoSubtitles.name
+        p[Prefs.vaultLockSeconds] = s.vaultLockSeconds
+        p[Prefs.neverSleeping] = s.neverSleepingHintDone
+        p[Prefs.onboarding] = s.onboardingDone
+        p[Prefs.tmdbEnabled] = s.tmdbEnabled
+        p[Prefs.imdbEnabled] = s.imdbEnabled
+    }
 }
 
 internal class SettingsStore(
@@ -102,73 +200,7 @@ internal class SettingsStore(
     @Volatile
     var onScanScopeChanged: () -> Unit = {}
 
-    override val settings: Flow<AppSettings> = store.data.map(::read).distinctUntilChanged()
-
-    private fun read(p: Preferences): AppSettings {
-        val d = AppSettings()
-        return AppSettings(
-            onlineFeatures = p[Prefs.online] ?: d.onlineFeatures,
-            doubleTapSeconds = p[Prefs.doubleTap] ?: d.doubleTapSeconds,
-            backgroundAudio = p[Prefs.backgroundAudio] ?: d.backgroundAudio,
-            autoPlayNext = p[Prefs.autoPlayNext] ?: d.autoPlayNext,
-            nightAudio = p[Prefs.nightAudio] ?: d.nightAudio,
-            subtitleScale = p[Prefs.subtitleScale] ?: d.subtitleScale,
-            subtitleColor = p[Prefs.subtitleColor] ?: d.subtitleColor,
-            subtitleBackground = p[Prefs.subtitleBackground] ?: d.subtitleBackground,
-            subtitleFontPath = p[Prefs.subtitleFont],
-            subtitleBottomOffset = p[Prefs.subtitleOffset] ?: d.subtitleBottomOffset,
-            scanWholePhone = p[Prefs.scanWholePhone] ?: d.scanWholePhone,
-            scanHiddenFolders = p[Prefs.scanHidden] ?: d.scanHiddenFolders,
-            scanNomediaFolders = p[Prefs.scanNomedia] ?: d.scanNomediaFolders,
-            showUnavailable = p[Prefs.showUnavailable] ?: d.showUnavailable,
-            tmdbBaseUrl = p[Prefs.tmdbBaseUrl] ?: d.tmdbBaseUrl,
-            themeMode = enumOf(p[Prefs.themeMode], d.themeMode),
-            accent = enumOf(p[Prefs.accent], d.accent),
-            coverTint = p[Prefs.coverTint] ?: d.coverTint,
-            cinemaMode = p[Prefs.cinemaMode] ?: d.cinemaMode,
-            hideUnseenStills = p[Prefs.hideUnseenStills] ?: d.hideUnseenStills,
-            sendReleaseName = p[Prefs.sendReleaseName] ?: d.sendReleaseName,
-            sendFileHash = p[Prefs.sendFileHash] ?: d.sendFileHash,
-            autoSubtitles = AutoSubtitleMode.parse(p[Prefs.autoSubtitles]),
-            vaultLockSeconds = p[Prefs.vaultLockSeconds] ?: d.vaultLockSeconds,
-            neverSleepingHintDone = p[Prefs.neverSleeping] ?: d.neverSleepingHintDone,
-            onboardingDone = p[Prefs.onboarding] ?: d.onboardingDone,
-            tmdbEnabled = p[Prefs.tmdbEnabled] ?: d.tmdbEnabled,
-            imdbEnabled = p[Prefs.imdbEnabled] ?: d.imdbEnabled,
-        )
-    }
-
-    private fun write(p: androidx.datastore.preferences.core.MutablePreferences, s: AppSettings) {
-        p[Prefs.online] = s.onlineFeatures
-        p[Prefs.doubleTap] = s.doubleTapSeconds
-        p[Prefs.backgroundAudio] = s.backgroundAudio
-        p[Prefs.autoPlayNext] = s.autoPlayNext
-        p[Prefs.nightAudio] = s.nightAudio
-        p[Prefs.subtitleScale] = s.subtitleScale
-        p[Prefs.subtitleColor] = s.subtitleColor
-        p[Prefs.subtitleBackground] = s.subtitleBackground
-        val font = s.subtitleFontPath
-        if (font == null) p.remove(Prefs.subtitleFont) else p[Prefs.subtitleFont] = font
-        p[Prefs.subtitleOffset] = s.subtitleBottomOffset
-        p[Prefs.scanWholePhone] = s.scanWholePhone
-        p[Prefs.scanHidden] = s.scanHiddenFolders
-        p[Prefs.scanNomedia] = s.scanNomediaFolders
-        p[Prefs.showUnavailable] = s.showUnavailable
-        p[Prefs.tmdbBaseUrl] = s.tmdbBaseUrl
-        p[Prefs.themeMode] = s.themeMode.name
-        p[Prefs.accent] = s.accent.name
-        p[Prefs.coverTint] = s.coverTint
-        p[Prefs.cinemaMode] = s.cinemaMode
-        p[Prefs.hideUnseenStills] = s.hideUnseenStills
-        p[Prefs.sendReleaseName] = s.sendReleaseName
-        p[Prefs.sendFileHash] = s.sendFileHash
-        p[Prefs.autoSubtitles] = s.autoSubtitles.name
-        p[Prefs.vaultLockSeconds] = s.vaultLockSeconds
-        p[Prefs.neverSleeping] = s.neverSleepingHintDone
-        p[Prefs.onboarding] = s.onboardingDone
-        p[Prefs.tmdbEnabled] = s.tmdbEnabled
-        p[Prefs.imdbEnabled] = s.imdbEnabled
-    }
+    override val settings: Flow<AppSettings> = store.data.map(SettingsPrefs::read).distinctUntilChanged()
 
     suspend fun current(): AppSettings = settings.first()
 
@@ -178,16 +210,16 @@ internal class SettingsStore(
         var switched = false
         var cameOn = false to false
         val saved = store.edit { p ->
-            val old = read(p)
+            val old = SettingsPrefs.read(p)
             val new = change(old)
             enabled = new.onlineFeatures && !old.onlineFeatures
             scopeChanged = new.scanWholePhone != old.scanWholePhone || new.scanHiddenFolders != old.scanHiddenFolders ||
                 new.scanNomediaFolders != old.scanNomediaFolders
             cameOn = ServiceUse.cameOn(old, new)
             switched = new.tmdbEnabled != old.tmdbEnabled || new.imdbEnabled != old.imdbEnabled
-            write(p, new)
+            SettingsPrefs.write(p, new)
         }
-        onSaved(read(saved))
+        onSaved(SettingsPrefs.read(saved))
         if (switched || cameOn.first || cameOn.second) {
             onServicesChanged(cameOn.first, cameOn.second)
         } else if (enabled) {

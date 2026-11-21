@@ -237,7 +237,7 @@ class BackupFormatTest {
     @Test
     fun theNewPreferencesSurviveABackup() {
         val chosen = com.frameglass.data.api.AppSettings(
-            themeMode = com.frameglass.data.api.ThemeMode.LIGHT,
+            theme = com.frameglass.data.api.ThemeId.LIGHT,
             accent = com.frameglass.data.api.AccentColor.VIOLET,
             coverTint = true,
             cinemaMode = true,
@@ -246,7 +246,7 @@ class BackupFormatTest {
             vaultLockSeconds = 30,
         )
         val back = BackupSettings.from(chosen).toAppSettings(fontExists = false, phone)
-        assertEquals(chosen.themeMode, back.themeMode)
+        assertEquals(chosen.theme, back.theme)
         assertEquals(chosen.accent, back.accent)
         assertEquals(chosen.coverTint, back.coverTint)
         assertEquals(chosen.cinemaMode, back.cinemaMode)
@@ -313,9 +313,100 @@ class BackupFormatTest {
     }
 
     @Test
+    fun theThemeAndTheCustomColoursRoundTrip() {
+        val chosen = phone.copy(
+            theme = com.frameglass.data.api.ThemeId.CUSTOM,
+            followSystem = true,
+            accent = com.frameglass.data.api.AccentColor.CUSTOM,
+            customHue = 301.5f,
+            customShade = 0.87f,
+            customSurface = 0.12f,
+            customAccent = 0xFF8A4B1F.toInt(),
+        )
+        val text = BackupCodec.encode(doc.copy(settings = BackupSettings.from(chosen)))
+        val decoded = BackupCodec.decode(text)
+        BackupCodec.validate(decoded, setOf("covers/t5.jpg"))
+        // Whatever the phone holds, the backup's look wins.
+        val other = phone.copy(theme = com.frameglass.data.api.ThemeId.PAPER, customHue = 5f, customAccent = -1)
+        assertEquals(chosen, decoded.settings.toAppSettings(fontExists = false, other))
+    }
+
+    @Test
+    fun everyThemeAndAccentRoundTrips() {
+        for (theme in com.frameglass.data.api.ThemeId.entries) {
+            for (accent in com.frameglass.data.api.AccentColor.entries) {
+                val chosen = phone.copy(theme = theme, accent = accent)
+                val text = BackupCodec.encode(doc.copy(settings = BackupSettings.from(chosen)))
+                assertEquals(chosen, BackupCodec.decode(text).settings.toAppSettings(fontExists = false, phone))
+            }
+        }
+    }
+
+    /** A backup as a version before the ready themes wrote it: the old two fields and none of the new ones. */
+    private fun olderBackup(themeMode: String, accent: String): String {
+        val old = settings.copy(themeMode = themeMode, accent = accent)
+        val json = BackupCodec.encode(doc.copy(settings = old))
+            .replace(Regex(""",?\s*"(theme|followSystem|customHue|customShade|customSurface|customAccent)": null"""), "")
+        for (name in listOf("\"theme\"", "followSystem", "customHue", "customShade", "customSurface", "customAccent")) {
+            assertTrue(name, name !in json)
+        }
+        return json
+    }
+
+    @Test
+    fun aBackupWrittenBeforeTheReadyThemesRestoresTheLookItHad() {
+        val custom = phone.copy(customHue = 77f, customShade = 0.9f, customSurface = 0.1f, customAccent = 0xFF010203.toInt())
+        fun restore(themeMode: String, accent: String) =
+            BackupCodec.decode(olderBackup(themeMode, accent)).settings.toAppSettings(fontExists = false, custom)
+
+        val dark = restore("DARK", "WHITE")
+        assertEquals(com.frameglass.data.api.ThemeId.BLACK, dark.theme)
+        assertFalse(dark.followSystem)
+        assertEquals(com.frameglass.data.api.AccentColor.THEME, dark.accent)
+
+        val light = restore("LIGHT", "GREEN")
+        assertEquals(com.frameglass.data.api.ThemeId.LIGHT, light.theme)
+        assertFalse(light.followSystem)
+        assertEquals(com.frameglass.data.api.AccentColor.GREEN, light.accent)
+
+        val follow = restore("SYSTEM", "RED")
+        assertEquals(com.frameglass.data.api.ThemeId.BLACK, follow.theme)
+        assertTrue(follow.followSystem)
+        assertEquals(com.frameglass.data.api.AccentColor.RED, follow.accent)
+
+        // The custom colours were never in such a backup, so the phone keeps the ones it has.
+        for (back in listOf(dark, light, follow)) {
+            assertEquals(77f, back.customHue)
+            assertEquals(0.9f, back.customShade)
+            assertEquals(0.1f, back.customSurface)
+            assertEquals(0xFF010203.toInt(), back.customAccent)
+        }
+    }
+
+    @Test
+    fun aNewBackupStillCarriesTheOldFieldForTheNearestOldLook() {
+        fun old(theme: com.frameglass.data.api.ThemeId, follow: Boolean = false) =
+            BackupSettings.from(phone.copy(theme = theme, followSystem = follow)).themeMode
+        assertEquals("DARK", old(com.frameglass.data.api.ThemeId.COFFEE))
+        assertEquals("LIGHT", old(com.frameglass.data.api.ThemeId.PAPER))
+        assertEquals("SYSTEM", old(com.frameglass.data.api.ThemeId.MIDNIGHT, follow = true))
+    }
+
+    @Test
+    fun customColoursFromABackupAreBroughtIntoRange() {
+        val wild = BackupSettings.from(phone).copy(customHue = 999f, customShade = -3f, customSurface = 8f, customAccent = 0x00ABCDEF)
+        val back = wild.toAppSettings(fontExists = false, phone)
+        assertEquals(360f, back.customHue)
+        assertEquals(0f, back.customShade)
+        assertEquals(1f, back.customSurface)
+        assertEquals(0xFFABCDEF.toInt(), back.customAccent)
+    }
+
+    @Test
     fun rejectsABadThemeOrLockTime() {
         invalid(doc.copy(settings = settings.copy(themeMode = "NEON")))
         invalid(doc.copy(settings = settings.copy(accent = "NEON")))
+        invalid(doc.copy(settings = settings.copy(theme = "NEON")))
         invalid(doc.copy(settings = settings.copy(vaultLockSeconds = -1)))
     }
 

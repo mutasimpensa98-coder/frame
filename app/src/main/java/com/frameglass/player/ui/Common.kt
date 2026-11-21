@@ -46,17 +46,20 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import com.frameglass.data.api.AccentColor
+import com.frameglass.data.api.AppSettings
 import com.frameglass.data.api.RatingInfo
 import com.frameglass.data.api.RatingSource
-import com.frameglass.data.api.ThemeMode
+import com.frameglass.data.api.ThemeId
 import com.frameglass.data.api.TitleKind
 import com.frameglass.glass.CardRating
+import com.frameglass.glass.CustomTheme
 import com.frameglass.glass.FrameAccent
 import com.frameglass.glass.FrameColors
 import com.frameglass.glass.FrameShapes
 import com.frameglass.glass.FrameSpacing
+import com.frameglass.glass.FrameLook
 import com.frameglass.glass.FrameTheme
-import com.frameglass.glass.FrameThemeMode
+import com.frameglass.glass.FrameThemeId
 import com.frameglass.glass.FrameType
 import com.frameglass.glass.PressableGlass
 import com.frameglass.glass.RatingBrand
@@ -309,20 +312,43 @@ internal fun dateLabel(epochMs: Long): String {
 /** The end of a path, which is the part that tells two folders apart in a one-line row. */
 internal fun shortPath(path: String): String = path.split('/').filter { it.isNotEmpty() }.takeLast(2).joinToString("/")
 
-internal fun ThemeMode.toFrame(): FrameThemeMode = when (this) {
-    ThemeMode.SYSTEM -> FrameThemeMode.System
-    ThemeMode.DARK -> FrameThemeMode.Dark
-    ThemeMode.LIGHT -> FrameThemeMode.Light
+/** The ready theme of this choice. Null for the custom one, which is built from the owner's own values. */
+internal fun ThemeId.toFrame(): FrameThemeId? = when (this) {
+    ThemeId.BLACK -> FrameThemeId.Black
+    ThemeId.PURE_BLACK -> FrameThemeId.PureBlack
+    ThemeId.MIDNIGHT -> FrameThemeId.Midnight
+    ThemeId.VIOLET -> FrameThemeId.Violet
+    ThemeId.FOREST -> FrameThemeId.Forest
+    ThemeId.COFFEE -> FrameThemeId.Coffee
+    ThemeId.LIGHT -> FrameThemeId.Light
+    ThemeId.PAPER -> FrameThemeId.Paper
+    ThemeId.CUSTOM -> null
 }
 
-internal fun AccentColor.toFrame(): FrameAccent = when (this) {
+/** One of the eight accents. Null for the theme's own colour and for "any colour", which [toLook] passes as ARGB. */
+internal fun AccentColor.toFrame(): FrameAccent? = when (this) {
     AccentColor.WHITE -> FrameAccent.White
     AccentColor.BLUE -> FrameAccent.Blue
     AccentColor.RED -> FrameAccent.Red
     AccentColor.GREEN -> FrameAccent.Green
     AccentColor.AMBER -> FrameAccent.Amber
     AccentColor.VIOLET -> FrameAccent.Violet
+    AccentColor.PINK -> FrameAccent.Pink
+    AccentColor.CYAN -> FrameAccent.Cyan
+    AccentColor.THEME, AccentColor.CUSTOM -> null
 }
+
+/** The custom theme as the owner last left it, whether or not it is the one in use. */
+internal fun AppSettings.customTheme(): CustomTheme = CustomTheme(customHue, customShade, customSurface)
+
+/** Everything the theme needs from the settings. */
+internal fun AppSettings.toLook(): FrameLook = FrameLook(
+    theme = theme.toFrame() ?: FrameThemeId.Black,
+    custom = if (theme == ThemeId.CUSTOM) customTheme() else null,
+    followSystem = followSystem,
+    accent = accent.toFrame(),
+    accentArgb = customAccent.takeIf { accent == AccentColor.CUSTOM },
+)
 
 /** Fragments joined with a dot, each isolated so its punctuation stays its own (F-A5). */
 internal fun metaLine(parts: List<String>): String = parts.joinToString("  •  ") { bidiIsolate(it) }

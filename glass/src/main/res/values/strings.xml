@@ -8,9 +8,14 @@
     <string name="glass_view_all">View all</string>
     <string name="glass_watched">Watched</string>
 
-    <string name="glass_theme_system">Follow phone</string>
-    <string name="glass_theme_dark">Dark</string>
+    <string name="glass_theme_black">Black</string>
+    <string name="glass_theme_pure_black">Pure black</string>
+    <string name="glass_theme_midnight">Midnight</string>
+    <string name="glass_theme_violet">Violet</string>
+    <string name="glass_theme_forest">Forest</string>
+    <string name="glass_theme_coffee">Coffee</string>
     <string name="glass_theme_light">Light</string>
+    <string name="glass_theme_paper">Paper</string>
     <string name="glass_accent_white">White</string>
     <string name="glass_accent_black">Black</string>
     <string name="glass_accent_blue">Blue</string>
@@ -18,6 +23,10 @@
     <string name="glass_accent_green">Green</string>
     <string name="glass_accent_amber">Amber</string>
     <string name="glass_accent_violet">Violet</string>
+    <string name="glass_accent_pink">Pink</string>
+    <string name="glass_accent_cyan">Cyan</string>
+    <string name="glass_accent_theme">Theme colour</string>
+    <string name="glass_accent_any">Any colour</string>
 
     <string name="glass_left_under_minute">Under 1 min left</string>
     <string name="glass_hours_minutes_left">%1$s %2$s left</string>

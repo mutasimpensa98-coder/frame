@@ -212,7 +212,7 @@
     <string name="app_settings_group_storage">التخزين</string>
     <string name="app_settings_group_app">التطبيق</string>
     <string name="app_settings_appearance">المظهر</string>
-    <string name="app_settings_appearance_hint">السمة واللون المميّز ولون الغلاف</string>
+    <string name="app_settings_appearance_hint">الثيمات وألوانك الخاصة ولون الغلاف</string>
     <string name="app_settings_language">اللغة</string>
     <string name="app_settings_language_hint">لغة الهاتف أو العربية أو الإنجليزية</string>
     <string name="app_settings_library_hint">البحث والمجلدات المستبعدة والعناوين المخفية</string>
@@ -228,9 +228,21 @@
     <string name="app_page_backup">النسخ الاحتياطي</string>
 
     <string name="app_appearance_preview">معاينة</string>
-    <string name="app_appearance_theme">السمة</string>
-    <string name="app_appearance_accent">اللون المميّز</string>
-    <string name="app_appearance_art">الأغلفة</string>
+    <string name="app_appearance_theme">ثيمات جاهزة</string>
+    <string name="app_appearance_accent">لون التمييز (الأزرار والتقدّم)</string>
+    <string name="app_appearance_options">خيارات</string>
+    <string name="app_custom_theme">ثيم مخصّص</string>
+    <string name="app_custom_theme_short">مخصّص</string>
+    <string name="app_custom_hue">لون الخلفية</string>
+    <string name="app_custom_shade">درجة الغمق</string>
+    <string name="app_custom_surface">لون البطاقات والأشرطة</string>
+    <string name="app_custom_hint">النص يتحوّل إلى أبيض أو أسود وحده حسب الخلفية ليبقى مقروءًا. الألوان تُطبَّق عند رفع إصبعك.</string>
+    <string name="app_custom_reset">رجّع الافتراضي</string>
+    <string name="app_accent_any_title">أي لون</string>
+    <string name="app_accent_any_hint">الثيم يعدّل درجة اللون ليبقى مقروءًا على الخلفية.</string>
+    <string name="app_accent_any_use">استخدم هذا اللون</string>
+    <string name="app_follow_phone">حسب وضع الهاتف</string>
+    <string name="app_follow_phone_hint">داكن عندما يكون الهاتف داكنًا وفاتح عندما يكون فاتحًا. الثيم الذي اخترته يظهر في وضعه، وفي الوضع الآخر يظهر «أسود» أو «فاتح».</string>
     <string name="app_cover_tint">لون الغلاف</string>
     <string name="app_cover_tint_hint">ينشر لونًا هادئًا من الغلاف خلف صفحة التفاصيل وأعلى الرئيسية</string>
     <string name="app_preview_title">فيلم الليلة</string>
