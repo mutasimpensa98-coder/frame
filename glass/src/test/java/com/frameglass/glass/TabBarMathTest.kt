@@ -129,6 +129,26 @@ class TabBarMathTest {
     }
 
     @Test
+    fun aUnitBecomesAPagePositionAndBack() {
+        val centers = rest(4)
+        assertEquals(0f, TabBarMath.positionAt(0.5f, centers), tolerance)
+        assertEquals(1.4f, TabBarMath.positionAt(1.9f, centers), tolerance)
+        assertEquals(3f, TabBarMath.positionAt(3.5f, centers), tolerance)
+        // A finger past either end is on the first or the last tab.
+        assertEquals(0f, TabBarMath.positionAt(-2f, centers), tolerance)
+        assertEquals(3f, TabBarMath.positionAt(9f, centers), tolerance)
+        // While a tab is half gone the two scales differ, and they still undo each other.
+        val uneven = TabBarMath.centers(floatArrayOf(1f, 0.5f, 1f))
+        for (step in 0..20) {
+            val position = step / 10f
+            assertEquals(position, TabBarMath.positionAt(TabBarMath.unitAt(position, uneven), uneven), tolerance)
+        }
+        // With one tab, or none, there is nowhere to go.
+        assertEquals(0f, TabBarMath.positionAt(0.7f, rest(1)), tolerance)
+        assertEquals(0f, TabBarMath.positionAt(0.7f, FloatArray(0)), tolerance)
+    }
+
+    @Test
     fun theNearestTabChangesAtTheMidpoint() {
         val centers = rest(4)
         assertEquals(0, TabBarMath.nearest(0.99f, centers))

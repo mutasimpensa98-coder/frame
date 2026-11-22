@@ -243,10 +243,13 @@ private class TabBarState(
         return TabBarMath.unitAt(page, centers())
     }
 
-    fun dragTo(x: Float, width: Int, rtl: Boolean) {
+    /** Puts the pill under a finger at [x], and returns where that is in tabs from the start. */
+    fun dragTo(x: Float, width: Int, rtl: Boolean): Float {
         val unit = TabBarMath.unit(TabBarMath.fromStart(x, width.toFloat(), rtl), slotPx, paddingPx)
+        val centers = centers()
         pendingKey = null
-        dragUnit = TabBarMath.clamp(unit, centers())
+        dragUnit = TabBarMath.clamp(unit, centers)
+        return TabBarMath.positionAt(unit, centers)
     }
 
     /** Ends a drag. With [select] it returns the index of the nearest tab, which the pill then waits on; else -1. */
@@ -263,7 +266,9 @@ private class TabBarState(
 /**
  * The floating glass tab bar, with a selection pill that slides and stretches between tabs.
  *
- * A finger dragged along the bar carries the pill with it, and the nearest tab is selected when it lets go.
+ * A finger dragged along the bar carries the pill with it, and the nearest tab is selected when it lets go. On the
+ * way [onDrag] hears where the finger is at every move, in tabs from the start, so the pages can go with it, and
+ * [onDragEnd] hears the tab it was let go on, which is the selected one when the drag was taken away.
  * [pagePosition] is where the pages behind the bar are while a hand swipes them and while they rest, in tabs from
  * the start, and null while they follow the bar: the pill is drawn where the pages are, frame for frame, and goes
  * to its tab by itself only when neither a finger nor the pages hold it. Four tabs and more span the width; two or
@@ -276,6 +281,8 @@ fun LiquidTabBar(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
     pagePosition: (() -> Float?)? = null,
+    onDrag: ((Float) -> Unit)? = null,
+    onDragEnd: ((Int) -> Unit)? = null,
 ) {
     val haptics = LocalHapticFeedback.current
     val reduced = rememberEffectsLevel() == EffectsLevel.Degraded
@@ -283,6 +290,8 @@ fun LiquidTabBar(
     val selected by rememberUpdatedState(selectedIndex)
     val select by rememberUpdatedState(onSelect)
     val page by rememberUpdatedState(pagePosition)
+    val dragged by rememberUpdatedState(onDrag)
+    val dragEnded by rememberUpdatedState(onDragEnd)
     val state = remember { TabBarState(selectedIndex, { selected }, { page?.invoke() }) }
     // Written before anything below reads it, as rememberUpdatedState does.
     state.sync(tabs)
@@ -378,13 +387,19 @@ fun LiquidTabBar(
                     // the pointer, which ends the press of the tab under it.
                     .pointerInput(state, rtl) {
                         detectHorizontalDragGestures(
-                            onDragStart = { state.dragTo(it.x, size.width, rtl) },
+                            onDragStart = { dragged?.invoke(state.dragTo(it.x, size.width, rtl)) },
                             onDragEnd = {
                                 val index = state.release(select = true)
+                                dragEnded?.invoke(if (index >= 0) index else selected)
                                 if (index >= 0 && index != selected) select(index) else state.pendingKey = null
                             },
-                            onDragCancel = { state.release(select = false) },
-                            onHorizontalDrag = { change, _ -> state.dragTo(change.position.x, size.width, rtl) },
+                            onDragCancel = {
+                                state.release(select = false)
+                                dragEnded?.invoke(selected)
+                            },
+                            onHorizontalDrag = { change, _ ->
+                                dragged?.invoke(state.dragTo(change.position.x, size.width, rtl))
+                            },
                         )
                     },
             ) { measurables, constraints ->

@@ -305,4 +305,28 @@ class PillMotionTest {
         assertTrue("overshot to $lowest", lowest > 1.49f)
         assertEquals(1.5f, pill.shown, 0f)
     }
+
+    @Test
+    fun theShareLeftToAFingerIsThePillsOwnLag() {
+        // Pages carried by a drag along the bar close their distance by FrameMotion.followLeft, in step with the pill.
+        val pill = PillMotion(0.5f)
+        pill.settle(PillTie.Finger, 0.5f, 0.5f)
+        pill.settle(PillTie.None, Float.NaN, 0.5f)
+        val finger = 0.9f
+        assertEquals(0.5f, pill.at(PillTie.Finger, finger), tolerance)
+        assertEquals(1f, FrameMotion.followLeft(0f), 0f)
+        var seconds = 0f
+        var last = 1f
+        repeat(60) {
+            pill.step(frame, PillTie.Finger, finger, 0.5f, instant = false)
+            seconds += frame
+            val left = FrameMotion.followLeft(seconds)
+            assertTrue("the share left grew", left <= last)
+            last = left
+            // Within a twenty-fifth of the starting distance at every frame: the pill is stepped in slices.
+            assertEquals((finger - pill.shown) / (finger - 0.5f), left, 0.04f)
+        }
+        assertEquals(0f, FrameMotion.followLeft(0.5f), 0f)
+        assertEquals(finger, pill.shown, tolerance)
+    }
 }

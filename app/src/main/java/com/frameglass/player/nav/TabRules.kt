@@ -97,6 +97,36 @@ internal object TabLeadRules {
         !now.led && (moving(now) || !asked || now.page == selected)
 }
 
+/**
+ * Where the pages stand while a finger drags the pill along the bar, in tabs from the start. They go with the pill:
+ * when the finger takes it, the pill is where the pages are, and it closes its distance to the finger in a few
+ * frames; the pages close theirs in step, so neither jumps. `left` is the share of that distance still to go.
+ */
+internal object BarDragRules {
+    /**
+     * Where the pages set out from when a finger at [finger] takes the pill, with the pages standing at [pages]:
+     * where they stand, or one tab from the finger when they stand further. Further than that they are cut to, so
+     * the tabs between are never drawn, as when a tap asks for a tab that is not a neighbour.
+     */
+    fun setOut(pages: Float, finger: Float): Float = finger + (pages - finger).coerceIn(-1f, 1f)
+
+    /** True when the pages stand more than one tab from the finger, and are cut to [setOut] before they move. */
+    fun cuts(pages: Float, finger: Float): Boolean = abs(pages - finger) > 1f
+
+    /**
+     * Where the pages stand with the finger now at [finger]. [ahead] is how far they were from the finger when it
+     * took the pill, [left] the share of that still to go, and [last] the last tab.
+     */
+    fun place(finger: Float, ahead: Float, left: Float, last: Int): Float =
+        (finger + ahead * left.coerceIn(0f, 1f)).coerceIn(0f, last.coerceAtLeast(0).toFloat())
+
+    /** The page and the offset from it, from -0.5 to 0.5, that [place] is: what a pager is cut to. */
+    fun cut(place: Float): Pair<Int, Float> {
+        val page = Math.round(place)
+        return page to (place - page).coerceIn(-0.5f, 0.5f)
+    }
+}
+
 /** Who a horizontal drag that began on a scroller inside a tab belongs to. */
 internal enum class SwipeOwner {
     /** Nothing has moved sideways yet. */

@@ -203,7 +203,7 @@ internal class PillMotion(start: Float) {
         private const val SpeedSmoothing = 0.06f
 
         // FrameMotion.follow(): the lag closes in a few frames and never passes the holder.
-        private const val FollowStiffness = 1600f
+        private const val FollowStiffness = FrameMotion.FollowStiffness
         private const val FollowDamping = 1f
 
         // FrameMotion.defaultSpatial(): the pill going to a tab by itself.

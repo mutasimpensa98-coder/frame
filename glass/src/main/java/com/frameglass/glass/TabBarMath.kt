@@ -87,6 +87,19 @@ internal object TabBarMath {
         return centers[before] + (centers[after] - centers[before]) * (clamped - before)
     }
 
+    /**
+     * The position of a pill at [unit] over tabs centred at [centers]: [unitAt] the other way round, so pages
+     * brought to it stand exactly where the pill is.
+     */
+    fun positionAt(unit: Float, centers: FloatArray): Float {
+        if (centers.size < 2) return 0f
+        val held = clamp(unit, centers)
+        var before = 0
+        while (before < centers.lastIndex - 1 && centers[before + 1] <= held) before++
+        val span = centers[before + 1] - centers[before]
+        return if (span > 0f) before + (held - centers[before]) / span else before.toFloat()
+    }
+
     /** A finger's unit held to where the pill can go: from the first tab's centre to the last one's. */
     fun clamp(unit: Float, centers: FloatArray): Float =
         if (centers.isEmpty()) 0f else unit.coerceIn(centers.first(), centers.last())

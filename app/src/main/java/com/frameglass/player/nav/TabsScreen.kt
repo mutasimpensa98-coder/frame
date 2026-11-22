@@ -7,6 +7,7 @@ import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.ScrollScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -61,7 +62,9 @@ import com.frameglass.player.select.LocalSelectionChrome
 import com.frameglass.player.select.SelectionChrome
 import com.frameglass.player.settings.SettingsScreen
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -138,7 +141,8 @@ internal fun SectionPage(section: BarSection) {
  * in the bar, and [selected] is the one in view.
  *
  * The pages sit in a pager, so a swipe from the middle of the screen moves between them and the bar's pill travels
- * with it; a tap or a drag on the bar moves the pages. The pager's position is the one truth for what is in view:
+ * with it; a tap on the bar moves the pages, and a finger dragged along the bar carries them with the pill
+ * ([BarDrag]). The pager's position is the one truth for what is in view:
  * [onSelect] hears of a swipe when it has settled, and a section asked for from outside is brought into view here.
  * Back on any other tab returns to the first one, then leaves the app. With one section there is no bar.
  */
@@ -162,7 +166,9 @@ internal fun TabsScreen(sections: List<BarSection>, selected: BarSection, onSele
     val rtl by rememberUpdatedState(LocalLayoutDirection.current == LayoutDirection.Rtl)
     val arbiter = remember(pager, scope) { TabSwipeArbiter(pager, scope, { locked }, { rtl }, { fling }) }
     val lead = remember(pager, arbiter) { TabLead(pager, arbiter) }
+    val reducedNow by rememberUpdatedState(reduced)
     val veil = remember { Animatable(1f) }
+    val barDrag = remember(pager, lead, scope) { BarDrag(pager, lead, scope, veil) { reducedNow } }
     // Every request made here goes through this, so it stands from the same instant the selection changes, and the
     // pages still on the tab they are leaving are never reported back as a swipe.
     val ask: (BarSection) -> Unit = remember(lead) {
@@ -189,7 +195,8 @@ internal fun TabsScreen(sections: List<BarSection>, selected: BarSection, onSele
             // A swipe that is still settling finishes first, and the pages go on from where it left them. The
             // wait has a limit: nothing a hand left behind may hold a request for good.
             withTimeoutOrNull(HandWaitMillis) { snapshotFlow { lead.handMoving() }.first { !it } }
-            bringPage(pager, selectedIndex, reduced, veil)
+            // A finger let go of the bar has brought the pages here by itself, and then there is nothing to fade.
+            if (!lead.wholeOn(selectedIndex)) bringPage(pager, selectedIndex, reduced, veil)
         } finally {
             if (lead.leader === me) {
                 lead.leader = null
@@ -306,6 +313,8 @@ internal fun TabsScreen(sections: List<BarSection>, selected: BarSection, onSele
                 onSelect = { index -> sections.getOrNull(index)?.let(ask) },
                 modifier = Modifier.align(Alignment.BottomCenter),
                 pagePosition = pagePosition,
+                onDrag = barDrag::moveTo,
+                onDragEnd = barDrag::end,
             )
         }
     }
@@ -388,6 +397,105 @@ private class TabLead(private val pager: PagerState, private val arbiter: TabSwi
 
     /** True while a scroll of any kind runs, or a handed-over drag holds the pages. */
     fun handMoving(): Boolean = pager.isScrollInProgress || arbiter.active
+}
+
+/**
+ * A finger dragged along the bar carries the pages with the pill: at every move they stand where the finger is, in
+ * tabs, as the pill stands where the pages are when a hand swipes them ([BarDragRules]). The drag leads the pages
+ * as a request does, by a token of its own in [TabLead], from its first move until they rest on the tab it was let
+ * go on. One scroll holds the pages for the whole drag and the moves come through a channel that keeps only the
+ * newest, so nothing is started again at each move, and a finger on the pages still takes them.
+ */
+@Stable
+private class BarDrag(
+    private val pager: PagerState,
+    private val lead: TabLead,
+    private val scope: CoroutineScope,
+    private val veil: Animatable<Float, AnimationVector1D>,
+    private val reduced: () -> Boolean,
+) {
+    private var places: Channel<Float>? = null
+    private var landOn = 0
+
+    /** The finger is at [place], in tabs from the start. The first move of a drag takes the pages. */
+    fun moveTo(place: Float) {
+        (places ?: begin()).trySend(place)
+    }
+
+    /** The finger let go on the tab [index]: the pages go there and rest. */
+    fun end(index: Int) {
+        landOn = index
+        places?.close()
+        places = null
+    }
+
+    private fun begin(): Channel<Float> {
+        val mine = Channel<Float>(Channel.CONFLATED)
+        val me = Any()
+        places = mine
+        lead.asked = true
+        lead.leader = me
+        lead.guard?.cancel()
+        scope.launch {
+            try {
+                // A request this drag cuts short may have left the pages behind its fade.
+                launch { veil.fadeTo(1f) }
+                val page = (pager.layoutInfo.pageSize + pager.layoutInfo.pageSpacing).toFloat()
+                // Before the first layout there are no pages to carry, and the drag is only waited out.
+                if (page > 0f) pager.scroll(MutatePriority.UserInput) { carry(mine, page) } else mine.waitOut()
+                if (reduced()) pager.scrollToPage(landOn) else pager.slideToPage(landOn, MutatePriority.UserInput)
+            } finally {
+                // A request made since has taken the lead, and then the pages are its to bring.
+                if (lead.leader === me) lead.leader = null
+            }
+        }
+        return mine
+    }
+
+    // The pages under the finger until it lets go. Where they are is counted here, from where they set out, so
+    // no rounding adds up over a long drag.
+    private suspend fun ScrollScope.carry(moves: Channel<Float>, page: Float) {
+        var finger = moves.receiveCatching().getOrNull() ?: return
+        val stood = pager.currentPage + pager.currentPageOffsetFraction
+        var at = stood
+        if (BarDragRules.cuts(stood, finger)) {
+            at = BarDragRules.setOut(stood, finger)
+            BarDragRules.cut(at).let { (whole, offset) -> with(pager) { updateCurrentPage(whole, offset) } }
+        }
+        val ahead = at - finger
+        val last = pager.pageCount - 1
+
+        fun bring(left: Float) {
+            val wanted = BarDragRules.place(finger, ahead, left, last)
+            if (wanted != at) at += scrollBy((wanted - at) * page) / page
+        }
+
+        // Frame by frame while the pages close their distance to the finger, in step with the pill.
+        if (ahead != 0f && !reduced()) {
+            var began = 0L
+            var open = true
+            do {
+                val left = withFrameNanos { now ->
+                    if (began == 0L) began = now
+                    val move = moves.tryReceive()
+                    move.getOrNull()?.let { finger = it }
+                    if (move.isClosed) open = false
+                    FrameMotion.followLeft((now - began) / 1_000_000_000f).also(::bring)
+                }
+            } while (left > 0f && open)
+        }
+        // Then move by move, with nothing to do while the finger rests.
+        for (place in moves) {
+            finger = place
+            bring(0f)
+        }
+    }
+}
+
+private suspend fun Channel<Float>.waitOut() {
+    do {
+        val move = receiveCatching()
+    } while (!move.isClosed)
 }
 
 /**
