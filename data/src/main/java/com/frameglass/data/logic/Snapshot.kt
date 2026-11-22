@@ -174,11 +174,18 @@ internal class Snapshot(
 
     val liveByRow: Map<Long, MediaFile> by lazy { liveFiles.associateBy { it.rowId } }
 
-    /** Files of titles the owner did not remove. */
+    /**
+     * What the folder views list: files of titles the owner did not remove, by the rule of [inLibrary] for each
+     * file. A row whose file has gone from the phone's own storage is kept for its progress and its match, and it
+     * is not a video in a folder: listing it showed folders deleted long ago (seen on a phone on 2026-11-22).
+     */
     val visibleFiles: List<MediaFile> by lazy {
         val shown = titleRows.mapTo(HashSet()) { it.id }
-        files.filter { it.titleId in shown }
+        files.filter { it.titleId in shown && listed(it) }
     }
+
+    private fun listed(file: MediaFile): Boolean =
+        file.available || settings.showUnavailable || volumesById[file.volumeUuid]?.isRemovable == true
 
     val playablesByKey: Map<String, Playable> by lazy {
         infos.values.flatMap { it.playables }.associateBy { it.key }

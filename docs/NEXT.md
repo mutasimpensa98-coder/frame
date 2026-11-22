@@ -1,6 +1,8 @@
 # Next
 
-Updated 2026-11-22, after the owner tried 1.0.118: the bar's pill did not follow a moving finger, and the fix is on `main` (see `STATUS.md`, "This round: the pill follows the finger"). Items 244 and 245 of section 2. The owner also saw the old test folders `FG Titles` and `FGDemo` in the new Folders tab: they are test clips pushed to the phone's storage by adb in earlier rounds, real files, so the list is right to show them. They are deleted from the phone over adb once the owner agrees, or by the owner in the app.
+Updated 2026-11-22, with the phone connected: the phone runs 1.0.120, installed over 1.0.119. The old test folders `FG Titles` and `FGDemo` the owner saw in the Folders tab were not on the phone: the app listed the rows it keeps for deleted files. Fixed and seen on the phone (see `STATUS.md`, "This round: gone files leave the folder views"). Item 246 of section 2. 1.0.120 is not published: the newest GitHub release is 1.0.119. The pill fix of 1.0.119 is on the phone and the owner has not yet said how it feels (items 244 and 245).
+
+Updated 2026-11-22, after the owner tried 1.0.118: the bar's pill did not follow a moving finger, and the fix is on `main` (see `STATUS.md`, "This round: the pill follows the finger"). Items 244 and 245 of section 2.
 
 Updated 2026-11-22, after the review fixes on `tabs`: no new owner check, and three entries in section 3. Items 229 to 243 still stand.
 
@@ -370,6 +372,7 @@ Android 11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص 
 243. شغّل توفير الطاقة وجرّب: هل الحبة تبقى تحت إصبعك بالضبط بدون ارتداد، والضغط على أيقونة يبدّل الصفحة بتلاشي بس؟ وبعدها اعمل نسخة احتياطية، غيّر الأقسام، واسترجع النسخة: هل رجعت أقسامك؟
 244. اسحب إصبعك على الشريط من «الرئيسية» لـ«الإعدادات» وارجع، ببطء وبسرعة. هل الكبسولة تحت إصبعك بالضبط طول السحب، ومش واقفة لين توقف إصبعك؟ ولو لمست قسم بعيد عن الكبسولة وسحبت: هل تجيك بسرعة وبدون قفزة؟
 245. اسحب من وسط الشاشة بين الأقسام، ووقّف إصبعك في النص ثم كمّل أو ارجع. هل الكبسولة ماشية مع الصفحة بالضبط، ولما تفلت الصفحة ما ترجعش الكبسولة لورا لحظة؟
+246. افتح «المجلدات»: هل مجلدات التيست القديمة اختفت، وباقي مجلداتك كلها موجودة بنفس عدد الفيديوات؟ ولو حذفت فيديو من تطبيق ثاني، هل مجلده يختفي من القائمة لما يفضى؟
 
 ## 3. Watch for on the phone
 

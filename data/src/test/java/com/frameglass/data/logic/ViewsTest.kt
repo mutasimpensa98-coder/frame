@@ -386,7 +386,35 @@ class FolderBuilderTest {
     @Test
     fun aGoneFileCannotPlay() {
         val gone = inside(1, "Movies/a.mkv").copy(available = false)
-        val entry = FolderBuilder.build("/storage/emulated/0/Movies", snapshot(titles, listOf(gone))).entries.single()
+        val s = snapshot(titles, listOf(gone), settings = AppSettings(showUnavailable = true))
+        val entry = FolderBuilder.build("/storage/emulated/0/Movies", s).entries.single()
+        assertTrue(entry.unavailable)
+        assertNull(entry.play)
+    }
+
+    @Test
+    fun aFileGoneFromThePhoneIsNotListed() {
+        val files = listOf(
+            inside(1, "Movies/Old/a.mkv").copy(available = false),
+            inside(2, "Movies/Old/b.mkv").copy(available = false),
+            inside(3, "Movies/Kept/c.mkv"),
+            inside(4, "Movies/Kept/d.mkv", size = 7).copy(available = false),
+            inside(5, "Movies/e.mkv").copy(available = false),
+        )
+        val s = snapshot(titles, files)
+        val kept = FolderBuilder.build("/storage/emulated/0/Movies", s).entries.single()
+        assertEquals("Kept", kept.name)
+        assertEquals(1, kept.videoCount)
+        assertEquals(10, kept.sizeBytes)
+        assertFalse(kept.unavailable)
+        assertEquals(1, FolderBuilder.roots(s).single().videoCount)
+        assertTrue(FolderBuilder.build("/storage/emulated/0/Movies/Old", s).entries.isEmpty())
+    }
+
+    @Test
+    fun aFileOfADriveThatIsOutStaysDimmed() {
+        val away = file(1, "f:1", relPath = "Films/a.mkv", volume = "usb", available = false, nameKind = NameKinds.MOVIE)
+        val entry = FolderBuilder.build("/storage/AAAA-BBBB/Films", snapshot(titles, listOf(away))).entries.single()
         assertTrue(entry.unavailable)
         assertNull(entry.play)
     }

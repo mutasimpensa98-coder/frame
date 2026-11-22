@@ -155,10 +155,28 @@ class FlatFoldersTest {
     }
 
     @Test
-    fun aFolderWhoseVideosAreAllGoneIsDimmed() {
-        val entries = flat(listOf(video("Gone/a.mp4", available = false), video("Half/b.mp4"), video("Half/c.mp4", available = false)))
+    fun aFolderOfADriveThatIsOutIsDimmed() {
+        val entries = flat(
+            listOf(
+                video("Gone/a.mp4", volume = "usb", available = false),
+                video("Half/b.mp4", volume = "usb"),
+                video("Half/c.mp4", volume = "usb", available = false),
+            ),
+        )
         assertTrue(entries.first { it.name == "Gone" }.unavailable)
         assertFalse(entries.first { it.name == "Half" }.unavailable)
+    }
+
+    @Test
+    fun videosGoneFromThePhoneAreNotListed() {
+        val files = listOf(video("Gone/old.mp4", available = false), video("Half/b.mp4"), video("Half/c.mp4", available = false))
+        val half = flat(files).single()
+        assertEquals("Half", half.name)
+        assertEquals(1, half.videoCount)
+        assertFalse(half.unavailable)
+        assertTrue(find(files, "gone").isEmpty())
+        assertTrue(find(files, "old").isEmpty())
+        assertEquals(listOf("b.mp4"), FlatFolders.videos("$internal/Half", snapshot(files)).entries.map { it.name })
     }
 
     @Test

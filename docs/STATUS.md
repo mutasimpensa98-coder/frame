@@ -1,5 +1,7 @@
 # Status
 
+Updated 2026-11-22, with the phone connected: the two test folders the owner saw in the Folders tab were not on the phone. Their files had been deleted long ago, and the folder views listed the rows the database keeps for gone files. Fixed, shipped to the phone as 1.0.120 and seen there: the two folders are no longer listed. See "This round: gone files leave the folder views".
+
 Updated 2026-11-22, after the owner tried 1.0.118 and sent a screen recording: the bar's pill stood still for as long as a finger kept moving, on the bar and on the pages, and moved only when the finger paused. Fixed on `main`: the pill is now drawn where its holder is, frame for frame. See "This round: the pill follows the finger".
 
 Updated 2026-11-22, after four gesture faults found by an independent review of the merged `tabs` (`461c95b`) were fixed on `tabs`. Not installed and not seen on a phone, and this version is published without a phone test. See "This round: tabs, review fixes".
@@ -510,6 +512,20 @@ The owner asked for a Continue watching widget and launcher shortcuts (waiver of
 Schema 5: `Title` gains `seriesStatus`, `nextAirDate`, `nextSeason`, `nextEpisode` and `trailerKey`, all nullable, through `STATEMENTS_4_5` and `MIGRATION_4_5`, registered in `FrameDb.open`. `MigrationSchemaTest` holds them against the exported `5.json`, and `tools/check_update.py` passes. The F-M11 purge clears them with the other TMDB fields. The backup format carries no TMDB text, so it is unchanged. A swipe to refresh refetches every TMDB title fetched more than 10 minutes before, which fills these fields for titles already in the library, and also every series whose announced date has passed. The TMDB details call now appends `videos` and sends `include_video_language`.
 
 `Api.kt` gained `TitleDetail.upcoming`, `TitleDetail.trailerKey`, `ContinueItem.upcoming`, `UpcomingEpisode`, `ResumeEntry`, `PickOption`, and `LibraryRepository.quickResume()`, `resumeChanges` and `tonightPool`, all with defaults.
+
+## This round: gone files leave the folder views
+
+The owner saw two old test folders in the new Folders tab and asked for them to be deleted from the phone. With the phone connected, neither folder was on its storage, and none of their videos was in the phone's media index. The app listed them from its own database, dimmed.
+
+Cause: a video deleted from storage keeps its row, marked unavailable, so that its progress and its match survive (Media Manager, waiver of 2026-11-07). The Library hides such titles by rule F-L3 (`Snapshot.inLibrary`): a title gone from the phone's own storage waits behind Settings › Library › "Show unavailable", and a title of a removable drive that is out stays, dimmed. The folder views (`FolderBuilder`, `FlatFolders`) were built from `Snapshot.visibleFiles`, which held every row, so a folder whose videos were all gone stayed in the list for ever. Before 1.0.118 the Folders view was a chip of the Library and few looked at it; as a tab of its own it showed.
+
+Fix: `Snapshot.visibleFiles` applies F-L3 to each file. A file is listed when it is on storage, or its volume is removable, or "Show unavailable" is on. A folder with no listed file is not a row, and the counts and sizes of a folder are those of its listed files. Nothing is removed from the database: the rows, the progress and the matches stay.
+
+Tests: `ViewsTest` (`aFileGoneFromThePhoneIsNotListed`, `aFileOfADriveThatIsOutStaysDimmed`, and `aGoneFileCannotPlay` now with the toggle on) and `FlatFoldersTest` (`videosGoneFromThePhoneAreNotListed`, and the dimmed folder test moved to a removable drive). All modules: 1,723 run, 1,722 passed, 0 failed, 1 skipped.
+
+Seen on the phone with 1.0.120, installed over 1.0.119 by `fg.ps1 ship`: the Folders tab was read from top to bottom with `tools/ui.py dump`, and neither test folder is in it. Not checked on the phone: a removable drive that is out, and the toggle "Show unavailable".
+
+Known limit: the rows of gone files stay in the database for good. Nothing in the app forgets them, short of "Show unavailable" and deleting or forgetting each title.
 
 ## This round: the pill follows the finger
 
