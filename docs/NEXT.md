@@ -1,6 +1,6 @@
 # Next
 
-Updated 2026-11-22: the owner said the pill and the rest are fine (items 244 to 246 answered: good), and asked that the pages change while a finger drags along the bar. Built and on the phone as 1.0.121 (see `STATUS.md`, "This round: a drag along the bar carries the pages"). Items 247 to 249 of section 2. 1.0.121 is committed on this PC and is not pushed and not published: the newest GitHub release is 1.0.120.
+Updated 2026-11-22: the owner said the pill and the rest are fine (items 244 to 246 answered: good), and asked that the pages change while a finger drags along the bar. Built and on the phone as 1.0.121 (see `STATUS.md`, "This round: a drag along the bar carries the pages"). Items 247 to 249 of section 2. The owner tried it on the phone and said to publish: 1.0.121 is the newest GitHub release.
 
 Updated 2026-11-22, with the phone connected: the phone runs 1.0.120, installed over 1.0.119. The old test folders `FG Titles` and `FGDemo` the owner saw in the Folders tab were not on the phone: the app listed the rows it keeps for deleted files. Fixed and seen on the phone (see `STATUS.md`, "This round: gone files leave the folder views"). Item 246 of section 2. 1.0.120 was then published as a GitHub release on the owner's word. The pill fix of 1.0.119 is on the phone and the owner has not yet said how it feels (items 244 and 245).
 

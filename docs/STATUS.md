@@ -1,6 +1,6 @@
 # Status
 
-Updated 2026-11-22, after the owner tried the pill fix and said the rest is fine, and asked for one more thing: the pages should change while a finger drags along the bar, not only when it lets go. Built, on the phone as 1.0.121, and one slow drag was read frame by frame from a screen recording. Not published. See "This round: a drag along the bar carries the pages".
+Updated 2026-11-22, after the owner tried the pill fix and said the rest is fine, and asked for one more thing: the pages should change while a finger drags along the bar, not only when it lets go. Built, on the phone as 1.0.121, and one slow drag was read frame by frame from a screen recording. Published on the owner's word after they tried it. See "This round: a drag along the bar carries the pages".
 
 Updated 2026-11-22, with the phone connected: the two test folders the owner saw in the Folders tab were not on the phone. Their files had been deleted long ago, and the folder views listed the rows the database keeps for gone files. Fixed, shipped to the phone as 1.0.120 and seen there: the two folders are no longer listed. See "This round: gone files leave the folder views".
 
