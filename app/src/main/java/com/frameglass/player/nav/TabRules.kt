@@ -88,11 +88,13 @@ internal object TabLeadRules {
     fun snapAfterLed(now: PagesNow, target: Int): Boolean = !now.fingerDown && !moving(now) && !wholeOn(now, target)
 
     /**
-     * True while the bar's pill travels with the pages: while something moves them, and while they rest on the
-     * selected tab. Led by a request, or standing on another tab than the selected one, the pill goes to the
-     * selected tab by itself.
+     * True while the bar's pill is drawn where the pages are: always, except while a request leads them, and from
+     * the moment a request is made until its move begins. Then the pill goes to the selected tab by itself. Pages
+     * that a swipe has just left on another tab, in the frames before the selection hears of it, still hold the
+     * pill: let go for those frames it would start back toward the tab the swipe left.
      */
-    fun pillFollowsPages(now: PagesNow, selected: Int): Boolean = !now.led && (moving(now) || now.page == selected)
+    fun pillFollowsPages(now: PagesNow, asked: Boolean, selected: Int): Boolean =
+        !now.led && (moving(now) || !asked || now.page == selected)
 }
 
 /** Who a horizontal drag that began on a scroller inside a tab belongs to. */

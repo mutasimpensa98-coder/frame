@@ -1,5 +1,7 @@
 # Next
 
+Updated 2026-11-22, after the owner tried 1.0.118: the bar's pill did not follow a moving finger, and the fix is on `main` (see `STATUS.md`, "This round: the pill follows the finger"). Items 244 and 245 of section 2. The owner also saw the old test folders `FG Titles` and `FGDemo` in the new Folders tab: they are test clips pushed to the phone's storage by adb in earlier rounds, real files, so the list is right to show them. They are deleted from the phone over adb once the owner agrees, or by the owner in the app.
+
 Updated 2026-11-22, after the review fixes on `tabs`: no new owner check, and three entries in section 3. Items 229 to 243 still stand.
 
 Updated 2026-11-22, after branch `library` was merged into branch `tabs`: the checks of `library` keep items 203 to 228 of section 2, and the checks of `tabs` are now items 229 to 243. Nothing of either has been seen on a phone.
@@ -366,6 +368,8 @@ Android 11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص 
 241. طفّي «الإعدادات» من الشريط وارجع للرئيسية. هل ظهر زر ترس جنب «+» فوق، ويفتح الإعدادات بسهم رجوع؟ ولو أول قسم عندك المجلدات أو البحث: هل الترس مع الأزرار فوق؟ ولو أول قسم المكتبة: الإعدادات تلقاها سطر في قائمة النقاط الثلاث، لأن الشريط فوق فيه أربعة أزرار. هل هذا واضح ولا تبيه زر خامس؟
 242. خلّي قسم واحد بس. هل الشريط اختفى والقائمة نزلت لآخر الشاشة؟ وزر الرجوع: من أي قسم غير الأول يرجّعك للأول، ومن الأول يطلع من التطبيق؟ وطفّي «المكتبة» وافتحها من زر «افتح المكتبة» لو ظهر في الرئيسية: هل فتحت كصفحة فيها سهم رجوع؟
 243. شغّل توفير الطاقة وجرّب: هل الحبة تبقى تحت إصبعك بالضبط بدون ارتداد، والضغط على أيقونة يبدّل الصفحة بتلاشي بس؟ وبعدها اعمل نسخة احتياطية، غيّر الأقسام، واسترجع النسخة: هل رجعت أقسامك؟
+244. اسحب إصبعك على الشريط من «الرئيسية» لـ«الإعدادات» وارجع، ببطء وبسرعة. هل الكبسولة تحت إصبعك بالضبط طول السحب، ومش واقفة لين توقف إصبعك؟ ولو لمست قسم بعيد عن الكبسولة وسحبت: هل تجيك بسرعة وبدون قفزة؟
+245. اسحب من وسط الشاشة بين الأقسام، ووقّف إصبعك في النص ثم كمّل أو ارجع. هل الكبسولة ماشية مع الصفحة بالضبط، ولما تفلت الصفحة ما ترجعش الكبسولة لورا لحظة؟
 
 ## 3. Watch for on the phone
 

@@ -135,12 +135,26 @@ class TabLeadRulesTest {
 
     @Test
     fun thePillTravelsWithThePagesUnlessTheBarLeadsThem() {
-        assertTrue(TabLeadRules.pillFollowsPages(resting(home), selected = home))
-        assertTrue(TabLeadRules.pillFollowsPages(adrift(library).copy(scrolling = true), selected = home))
-        assertTrue(TabLeadRules.pillFollowsPages(adrift(library).copy(handed = true), selected = home))
+        assertTrue(TabLeadRules.pillFollowsPages(resting(home), asked = false, selected = home))
+        assertTrue(TabLeadRules.pillFollowsPages(adrift(library).copy(scrolling = true), asked = false, selected = home))
+        assertTrue(TabLeadRules.pillFollowsPages(adrift(library).copy(handed = true), asked = false, selected = home))
         // A request under way, or one whose move has not begun: the pill goes to the selected tab by itself.
-        assertFalse(TabLeadRules.pillFollowsPages(adrift(library).copy(scrolling = true, led = true), selected = settings))
-        assertFalse(TabLeadRules.pillFollowsPages(resting(home), selected = settings))
+        val led = adrift(library).copy(scrolling = true, led = true)
+        assertFalse(TabLeadRules.pillFollowsPages(led, asked = true, selected = settings))
+        assertFalse(TabLeadRules.pillFollowsPages(resting(home), asked = true, selected = settings))
+        // A hand that takes the pages from a request has the pill too.
+        assertTrue(TabLeadRules.pillFollowsPages(adrift(library).copy(scrolling = true), asked = true, selected = settings))
+        // A request that was met.
+        assertTrue(TabLeadRules.pillFollowsPages(resting(settings), asked = true, selected = settings))
+    }
+
+    @Test
+    fun aSwipeThatHasJustSettledKeepsThePillUntilTheSelectionHearsOfIt() {
+        // The pages rest on Library, and the selection is still Home for a frame or two. Let go there, the pill
+        // would start back toward Home and be pulled forward again.
+        assertTrue(TabLeadRules.pillFollowsPages(resting(library), asked = false, selected = home))
+        // Left between two tabs with nothing moving them, until the rest guard takes them.
+        assertTrue(TabLeadRules.pillFollowsPages(adrift(library), asked = false, selected = home))
     }
 
     @Test

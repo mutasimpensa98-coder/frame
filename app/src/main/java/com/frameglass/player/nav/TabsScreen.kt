@@ -246,7 +246,7 @@ internal fun TabsScreen(sections: List<BarSection>, selected: BarSection, onSele
     // frame between a request and its start, it goes to the selected tab by itself.
     val pagePosition = remember(pager, lead) {
         {
-            if (TabLeadRules.pillFollowsPages(lead.now(), selectedNow)) {
+            if (TabLeadRules.pillFollowsPages(lead.now(), lead.asked, selectedNow)) {
                 pager.currentPage + pager.currentPageOffsetFraction
             } else {
                 null

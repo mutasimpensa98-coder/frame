@@ -1,5 +1,7 @@
 # Status
 
+Updated 2026-11-22, after the owner tried 1.0.118 and sent a screen recording: the bar's pill stood still for as long as a finger kept moving, on the bar and on the pages, and moved only when the finger paused. Fixed on `main`: the pill is now drawn where its holder is, frame for frame. See "This round: the pill follows the finger".
+
 Updated 2026-11-22, after four gesture faults found by an independent review of the merged `tabs` (`461c95b`) were fixed on `tabs`. Not installed and not seen on a phone, and this version is published without a phone test. See "This round: tabs, review fixes".
 
 Updated 2026-11-22, after branch `library` was merged into branch `tabs`: the Folders tab is the Folders screen, the gear and the back arrows are in their top bars, and an open search holds the tabs. Nothing of the merged tree is installed or seen on a phone. See "Build and tests" and "This round: tabs", whose last rows are the merge.
@@ -27,6 +29,7 @@ Updated 2026-11-19, after the developer name on About, the episode delete on Hom
 
 ## Read this first
 
+- **The pill of the bar follows the finger (2026-11-22, after 1.0.118 on the owner's phone).** In 1.0.118 every move of a finger started a new animation of the pill toward it, and an animation gives its starting value on its first frame, so a pill whose goal changed on every frame never moved. The recording shows it at rest on Home while the finger crossed two tabs, and stopping short of a finger that still trembled. The same fault held the pill back during a swipe between the pages. `PillMotion` replaces the animation: held by a finger, by the pages or by its own sliding tab, the pill is drawn at the holder's place read at the moment of drawing, plus a lag that only shrinks; free, it is on a spring stepped by one frame loop that is never started again. `TabLeadRules.pillFollowsPages` also keeps the pill on pages that a swipe has just left on another tab, in the frames before the selection hears of it. Unit tested (`PillMotionTest`, 19 tests). See "This round: the pill follows the finger".
 - **Review fixes on `tabs` (2026-11-22), after the merge.** A tab left with its search open can be swiped into again; a quick second tap on the bar is no longer undone and cannot leave the pages split; the guard that brings stray pages to rest now works; and a handed-over drag whose release was never reported cannot hold the bar's taps. The rules behind them are unit tested, and each was read against the bytecode of Compose foundation 1.12.1. None has run on a phone. See "This round: tabs, review fixes".
 - **`library` is merged into `tabs` (2026-11-22).** Both sets of settings fields are kept, the Folders tab shows `FoldersScreen()`, and what only exists with both branches was wired and read through: Back inside the Folders tab, the chip drag against the pager, an open search against a swipe. None of it has run on a device. See the last rows of "This round: tabs".
 - **Branch `tabs` (2026-11-22) reworks the main bar and puts the main pages in a pager.** Drag along the bar, swipe between the pages, Home, Folders, Library and Settings by default with Search as a section that is off, a Settings page to choose the sections, and a bar that turns into a shorter capsule for two or three and leaves for one. The numbers and the rules are unit tested. Every gesture, and the look of the bar at any count, in either language and on any theme, is unseen. The Folders tab was a stand-in on this branch until `library` was merged. See "This round: tabs".
@@ -507,6 +510,22 @@ The owner asked for a Continue watching widget and launcher shortcuts (waiver of
 Schema 5: `Title` gains `seriesStatus`, `nextAirDate`, `nextSeason`, `nextEpisode` and `trailerKey`, all nullable, through `STATEMENTS_4_5` and `MIGRATION_4_5`, registered in `FrameDb.open`. `MigrationSchemaTest` holds them against the exported `5.json`, and `tools/check_update.py` passes. The F-M11 purge clears them with the other TMDB fields. The backup format carries no TMDB text, so it is unchanged. A swipe to refresh refetches every TMDB title fetched more than 10 minutes before, which fills these fields for titles already in the library, and also every series whose announced date has passed. The TMDB details call now appends `videos` and sends `include_video_language`.
 
 `Api.kt` gained `TitleDetail.upcoming`, `TitleDetail.trailerKey`, `ContinueItem.upcoming`, `UpcomingEpisode`, `ResumeEntry`, `PickOption`, and `LibraryRepository.quickResume()`, `resumeChanges` and `tonightPool`, all with defaults.
+
+## This round: the pill follows the finger
+
+Owner report of 2026-11-22 on 1.0.118, with a screen recording at about 95 frames a second: "lag in the bar in both drag features".
+
+| What the recording shows | Cause | Now |
+|---|---|---|
+| A finger drags along the bar from Home past Folders. The pill stays on Home for about 0.3 s, then goes to a place the finger has already left, and stops there while the finger rests. | `LiquidTabBar` ran `snapshotFlow { goal }.collectLatest { pill.animateTo(goal) }`. Each new goal cancelled the animation and started another, and the first frame of an animation is its starting value. A finger that moves, or trembles at rest, gives a new goal on every frame. | `PillMotion` in `glass`: `at()` gives the holder's place plus a lag, read while drawing, and `step()` shrinks the lag and runs the free spring. `TabBarState.hold` is one derived state that the pill and the tabs' colours read. One `withFrameNanos` loop steps while there is something to do and sleeps until the hold changes. |
+| A swipe between the pages: the page moves with the finger and the pill stays on the old tab until the swipe has nearly settled. | The same animation, with the place of the pages as its goal. | The pill is tied to the pages (`PillTie.Pages`) and drawn where they are. |
+| Not in the recording, found while fixing: when a swipe settles on another tab, the pill had nothing holding it for the frames before `onSelect` came back, with the old tab as its goal. The old animation hid this by never starting. | `pillFollowsPages` let go of the pill whenever the pages stood on another tab than the selected one. | It lets go only while a request leads the pages or waits to (`asked`). |
+
+The stretch of the pill is now from its real speed: the spring's when free, the holder's, averaged over 60 ms, when held. With reduced motion a held pill has no lag and no stretch, and a free one goes to its tab on the critically damped spring.
+
+Not changed: the drag on the bar still moves the pages only when the finger lifts, and the pages still slide by `bringPage`.
+
+Not seen on a phone yet. The check is a recording of the same two gestures, read frame by frame.
 
 ## Earlier round: the owner's three requests
 

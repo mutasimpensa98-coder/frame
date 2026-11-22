@@ -28,15 +28,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -61,7 +64,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -105,17 +108,28 @@ private class TabSlot(tab: GlassTab, shown: Boolean) {
     var center by mutableFloatStateOf(0f)
 }
 
-/** Where the pill is heading. With [follow] a hand or a list change is moving it, and it keeps up without overshoot. */
-private data class PillGoal(val unit: Float, val follow: Boolean)
-
 @Stable
-private class TabBarState(selectedIndex: Int) {
+private class TabBarState(
+    selectedIndex: Int,
+    /** The selected tab and the place of the pages now, both read from state. */
+    private val selectedNow: () -> Int,
+    private val pageNow: () -> Float?,
+) {
     /** Every tab on screen in bar order, the leaving ones still in their place. */
     var slots by mutableStateOf<List<TabSlot>>(emptyList())
         private set
 
-    /** The pill's centre in units, which stay continuous while a tab arrives or leaves. */
-    val pill = Animatable(selectedIndex + 0.5f)
+    // The pill's centre in units, which stay continuous while a tab arrives or leaves. It is plain numbers, and
+    // [frame] is what tells the drawing that they have changed.
+    private val motion = PillMotion(selectedIndex + 0.5f)
+    private var frame by mutableIntStateOf(0)
+
+    /** Worked out once however many read it: the pill, and every tab for its colour, on every frame of a drag. */
+    val hold: State<PillHold> = derivedStateOf { holdNow() }
+
+    /** What the last [step] saw, so that the pill can sleep until it changes. */
+    var stepped: PillHold? = null
+        private set
 
     /** Where the finger holds the pill, or NaN while no finger drags the bar. */
     var dragUnit by mutableFloatStateOf(Float.NaN)
@@ -179,17 +193,46 @@ private class TabBarState(selectedIndex: Int) {
     fun restIndex(selected: Int): Int = indexOf(pendingKey).takeIf { it >= 0 } ?: selected
 
     /** One source of truth for the pill: the finger on the bar, then the tab just asked for, then the pages, then the selection. */
-    fun goal(selected: Int, page: Float?): PillGoal {
-        val centers = centers()
-        if (centers.isEmpty()) return PillGoal(0.5f, follow = true)
-        val drag = dragUnit
-        if (!drag.isNaN()) return PillGoal(TabBarMath.clamp(drag, centers), follow = true)
+    private fun holdNow(): PillHold {
+        val staying = present
         val pending = indexOf(pendingKey)
-        if (pending >= 0) return PillGoal(centers[pending], follow = false)
-        if (page != null) return PillGoal(TabBarMath.unitAt(page, centers), follow = true)
-        // While a tab arrives or leaves, the selected one slides, and the pill stays on it.
-        val resizing = slots.any { it.presence.isRunning }
-        return PillGoal(centers[selected.coerceIn(0, centers.lastIndex)], follow = resizing)
+        val rest = if (pending >= 0) pending else selectedNow()
+        return PillHold.of(
+            centers = centers(),
+            rest = rest,
+            restKey = staying.getOrNull(rest)?.key,
+            drag = dragUnit,
+            pending = pending >= 0,
+            page = pageNow(),
+            resizing = slots.any { it.presence.isRunning },
+        )
+    }
+
+    /**
+     * The pill's centre now, for drawing. Held by a finger or by the pages it is exactly where they are at this
+     * moment, with nothing in between ([PillMotion]).
+     */
+    fun pillUnit(): Float {
+        watchSteps()
+        return motion.at(hold.value)
+    }
+
+    /** The pill's speed in units per second, for its stretch. */
+    fun pillSpeed(): Float {
+        watchSteps()
+        return motion.speed
+    }
+
+    // Reading the count of steps is what makes a drawing follow them.
+    private fun watchSteps(): Int = frame
+
+    /** One frame of the pill. True while the next frame has more to do with nothing else changing. */
+    fun step(seconds: Float, instant: Boolean): Boolean {
+        val hold = hold.value
+        stepped = hold
+        val more = motion.step(seconds, hold.tie, hold.unit, hold.goal, instant, hold.anchor)
+        frame++
+        return more
     }
 
     /** The pill's unit while a hand moves it, by the bar or by the pages, and NaN otherwise. */
@@ -221,8 +264,9 @@ private class TabBarState(selectedIndex: Int) {
  * The floating glass tab bar, with a selection pill that slides and stretches between tabs.
  *
  * A finger dragged along the bar carries the pill with it, and the nearest tab is selected when it lets go.
- * [pagePosition] is where the pages behind the bar are while a hand swipes them, in tabs from the start, and null
- * while they rest or follow the bar: the pill then travels with the pages. Four tabs and more span the width; two or
+ * [pagePosition] is where the pages behind the bar are while a hand swipes them and while they rest, in tabs from
+ * the start, and null while they follow the bar: the pill is drawn where the pages are, frame for frame, and goes
+ * to its tab by itself only when neither a finger nor the pages hold it. Four tabs and more span the width; two or
  * three make a shorter centred capsule, and the bar changes between them as [tabs] changes.
  */
 @Composable
@@ -239,24 +283,27 @@ fun LiquidTabBar(
     val selected by rememberUpdatedState(selectedIndex)
     val select by rememberUpdatedState(onSelect)
     val page by rememberUpdatedState(pagePosition)
-    val state = remember { TabBarState(selectedIndex) }
+    val state = remember { TabBarState(selectedIndex, { selected }, { page?.invoke() }) }
     // Written before anything below reads it, as rememberUpdatedState does.
     state.sync(tabs)
     val overlays = LocalGlassOverlayHost.current
     val colors = FrameTheme.colors
     val selectedKey = tabs.getOrNull(selectedIndex)?.key
 
+    // The pill is stepped frame by frame while it has somewhere to go, and sleeps until what holds it or where it
+    // rests has changed. Nothing here is started again when a finger or a page moves: the one loop goes on.
     LaunchedEffect(state, reduced) {
-        snapshotFlow { state.goal(selected, page?.invoke()) }.collectLatest { goal ->
-            when {
-                // Reduced motion: the pill is simply where the finger is.
-                goal.follow && reduced -> state.pill.snapTo(goal.unit)
-                goal.follow -> state.pill.animateTo(goal.unit, FrameMotion.follow())
-                else -> state.pill.animateTo(
-                    goal.unit,
-                    if (reduced) FrameMotion.effects() else FrameMotion.defaultSpatial(),
-                )
-            }
+        while (true) {
+            var last = 0L
+            do {
+                val more = withFrameNanos { now ->
+                    val seconds = if (last == 0L) PillMotion.FirstStep else (now - last) / 1_000_000_000f
+                    last = now
+                    state.step(seconds, instant = reduced)
+                }
+            } while (more)
+            val seen = state.stepped
+            snapshotFlow { state.hold.value }.first { it != seen }
         }
     }
     // A light tick each time the pill, carried by a hand, comes nearer to another tab.
@@ -374,11 +421,10 @@ fun LiquidTabBar(
                 layout(width, height) {
                     // place is raw and ignores the layout direction, so the offset is flipped by hand.
                     pill.placeWithLayer(0, inset) {
-                        val fromStart = TabBarMath.pixel(state.pill.value, slot, padding)
+                        val fromStart = TabBarMath.pixel(state.pillUnit(), slot, padding)
                         val center = TabBarMath.fromStart(fromStart, width.toFloat(), mirrored)
                         translationX = center - pillWidth / 2f
-                        val speed = if (state.pill.isRunning && !reduced) state.pill.velocity else 0f
-                        scaleX = 1f + TabBarMath.stretch(speed)
+                        scaleX = 1f + if (reduced) 0f else TabBarMath.stretch(state.pillSpeed())
                     }
                     placed.forEachIndexed { index, item ->
                         val start = TabBarMath.pixel(centers[index], slot, padding) - itemWidth / 2f
@@ -398,7 +444,7 @@ private fun TabItem(slot: TabSlot, state: TabBarState, selected: Boolean, onClic
     // Read while drawing: the colour travels with the pill, by how much of the tab the pill covers, and a move
     // recomposes nothing.
     val tint = remember(colors, slot, state) {
-        { lerp(colors.content, colors.onTabPill, TabBarMath.coverage(state.pill.value, slot.center)) }
+        { lerp(colors.content, colors.onTabPill, TabBarMath.coverage(state.pillUnit(), slot.center)) }
     }
     PressableGlass(
         onClick = onClick,
