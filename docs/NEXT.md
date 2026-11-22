@@ -1,5 +1,7 @@
 # Next
 
+Updated 2026-11-22: the owner said the pill and the rest are fine (items 244 to 246 answered: good), and asked that the pages change while a finger drags along the bar. Built and on the phone as 1.0.121 (see `STATUS.md`, "This round: a drag along the bar carries the pages"). Items 247 to 249 of section 2. 1.0.121 is committed on this PC and is not pushed and not published: the newest GitHub release is 1.0.120.
+
 Updated 2026-11-22, with the phone connected: the phone runs 1.0.120, installed over 1.0.119. The old test folders `FG Titles` and `FGDemo` the owner saw in the Folders tab were not on the phone: the app listed the rows it keeps for deleted files. Fixed and seen on the phone (see `STATUS.md`, "This round: gone files leave the folder views"). Item 246 of section 2. 1.0.120 was then published as a GitHub release on the owner's word. The pill fix of 1.0.119 is on the phone and the owner has not yet said how it feels (items 244 and 245).
 
 Updated 2026-11-22, after the owner tried 1.0.118: the bar's pill did not follow a moving finger, and the fix is on `main` (see `STATUS.md`, "This round: the pill follows the finger"). Items 244 and 245 of section 2.
@@ -373,6 +375,9 @@ Android 11 و12 (فرع `android10`، تنازل 2026-11-19). هذه للشخص 
 244. اسحب إصبعك على الشريط من «الرئيسية» لـ«الإعدادات» وارجع، ببطء وبسرعة. هل الكبسولة تحت إصبعك بالضبط طول السحب، ومش واقفة لين توقف إصبعك؟ ولو لمست قسم بعيد عن الكبسولة وسحبت: هل تجيك بسرعة وبدون قفزة؟
 245. اسحب من وسط الشاشة بين الأقسام، ووقّف إصبعك في النص ثم كمّل أو ارجع. هل الكبسولة ماشية مع الصفحة بالضبط، ولما تفلت الصفحة ما ترجعش الكبسولة لورا لحظة؟
 246. افتح «المجلدات»: هل مجلدات التيست القديمة اختفت، وباقي مجلداتك كلها موجودة بنفس عدد الفيديوات؟ ولو حذفت فيديو من تطبيق ثاني، هل مجلده يختفي من القائمة لما يفضى؟
+247. اسحب الكبسولة على الشريط ببطء من أول قسم لآخر قسم: هل الصفحات تتحرك معها طول السحب، ولما تفلت تستقر على القسم الأقرب؟
+248. نفس السحب بسرعة، وسحب قصير ترجع فيه لنفس القسم: هل في تقطيع أو قفزة في الصفحة؟
+249. حط إصبعك على قسم بعيد عن الكبسولة واسحب من هناك: هل الصفحة تجي لمكان إصبعك بشكل مقبول؟
 
 ## 3. Watch for on the phone
 

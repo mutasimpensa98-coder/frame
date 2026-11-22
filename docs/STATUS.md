@@ -1,5 +1,7 @@
 # Status
 
+Updated 2026-11-22, after the owner tried the pill fix and said the rest is fine, and asked for one more thing: the pages should change while a finger drags along the bar, not only when it lets go. Built, on the phone as 1.0.121, and one slow drag was read frame by frame from a screen recording. Not published. See "This round: a drag along the bar carries the pages".
+
 Updated 2026-11-22, with the phone connected: the two test folders the owner saw in the Folders tab were not on the phone. Their files had been deleted long ago, and the folder views listed the rows the database keeps for gone files. Fixed, shipped to the phone as 1.0.120 and seen there: the two folders are no longer listed. See "This round: gone files leave the folder views".
 
 Updated 2026-11-22, after the owner tried 1.0.118 and sent a screen recording: the bar's pill stood still for as long as a finger kept moving, on the bar and on the pages, and moved only when the finger paused. Fixed on `main`: the pill is now drawn where its holder is, frame for frame. See "This round: the pill follows the finger".
@@ -512,6 +514,29 @@ The owner asked for a Continue watching widget and launcher shortcuts (waiver of
 Schema 5: `Title` gains `seriesStatus`, `nextAirDate`, `nextSeason`, `nextEpisode` and `trailerKey`, all nullable, through `STATEMENTS_4_5` and `MIGRATION_4_5`, registered in `FrameDb.open`. `MigrationSchemaTest` holds them against the exported `5.json`, and `tools/check_update.py` passes. The F-M11 purge clears them with the other TMDB fields. The backup format carries no TMDB text, so it is unchanged. A swipe to refresh refetches every TMDB title fetched more than 10 minutes before, which fills these fields for titles already in the library, and also every series whose announced date has passed. The TMDB details call now appends `videos` and sends `include_video_language`.
 
 `Api.kt` gained `TitleDetail.upcoming`, `TitleDetail.trailerKey`, `ContinueItem.upcoming`, `UpcomingEpisode`, `ResumeEntry`, `PickOption`, and `LibraryRepository.quickResume()`, `resumeChanges` and `tonightPool`, all with defaults.
+
+## This round: a drag along the bar carries the pages
+
+The owner tried 1.0.119 and 1.0.120 and said the pill is right now. One request: while a finger drags the pill along the bar, the pages should change with it. Before, they moved only when the finger let go.
+
+What it does now: from the first move of a drag on the bar, the pages stand where the finger is, in tabs, at every move. It is the mirror of a swipe on the pages, where the pill stands where the pages are. On letting go, the nearest tab is selected as before and the pages slide the rest of the way to it. A drag taken away by the system returns the pages to the selected tab.
+
+How:
+
+- `LiquidTabBar` has two new callbacks: `onDrag` with the finger's place in tabs at every move (`TabBarMath.positionAt`, the inverse of `unitAt`), and `onDragEnd` with the tab it was let go on.
+- `BarDrag` in `TabsScreen.kt` leads the pages for the whole drag by a token of its own in `TabLead`, as a request does, so the rest guard, the report of a swipe and the pill's tie to the pages all stand down. One `pager.scroll` at `MutatePriority.UserInput` holds the pages from the first move to the last, and the moves come through a conflated channel. Nothing is started again at each move, which is the lesson of the pill fault of the same day.
+- The first touch is rarely on the centre of the pill, so the finger and the pages start up to half a tab apart. The pill closes that distance on the follow spring; the pages close theirs by `FrameMotion.followLeft`, the same curve in closed form, frame by frame. Neither jumps. `PillMotionTest.theShareLeftToAFingerIsThePillsOwnLag` holds the two within a twenty-fifth of the starting distance.
+- A drag that begins more than one tab from where the pages stand cuts them to one tab from the finger (`BarDragRules.setOut`, `PagerState.updateCurrentPage`), so the tabs between are never drawn, as a tap on a far tab already did.
+- After the drag the selection effect finds the pages already on the tab, and skips its own move and its fade.
+- With reduced motion the pages are under the finger with no catching up, and go to the tab at once on letting go.
+
+Tests: `BarDragRulesTest` (5), `TabBarMathTest.aUnitBecomesAPagePositionAndBack`, `PillMotionTest.theShareLeftToAFingerIsThePillsOwnLag`. All modules: 1,730 run, 1,729 passed, 0 failed, 1 skipped.
+
+On the phone, 1.0.121 installed over 1.0.120 by `fg.ps1 ship`. A screen recording of one slow drag from the first tab to the last, 2.5 s, was read frame by frame: the page behind the bar moves on every frame with the pill, through the two tabs between, and rests on the last tab when the finger lets go.
+
+Not seen on the phone: a fast drag, a short drag that returns to its own tab, a drag that begins on a far tab, right-to-left, and reduced motion. The scripted check stopped after its second drag because the app was no longer on screen; the recording shows the window going to the launcher while that drag was under way. Why is not known: the owner had the phone in hand at the time, and a fast sideways stroke 100 px above the bottom edge may also be read by the system. `tools/ui.py` stopped by its guard and touched nothing outside the app.
+
+Known limit, unchanged: only the page in view is composed while the tabs rest (`PagesKeptBeyondView = 0`), so a drag composes each tab as it comes into view. No hitch showed in the slow drag; a fast one is not measured.
 
 ## This round: gone files leave the folder views
 
