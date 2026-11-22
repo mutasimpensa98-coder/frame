@@ -1,6 +1,6 @@
 # Next
 
-Updated 2026-11-22, with the phone connected: the phone runs 1.0.120, installed over 1.0.119. The old test folders `FG Titles` and `FGDemo` the owner saw in the Folders tab were not on the phone: the app listed the rows it keeps for deleted files. Fixed and seen on the phone (see `STATUS.md`, "This round: gone files leave the folder views"). Item 246 of section 2. 1.0.120 is not published: the newest GitHub release is 1.0.119. The pill fix of 1.0.119 is on the phone and the owner has not yet said how it feels (items 244 and 245).
+Updated 2026-11-22, with the phone connected: the phone runs 1.0.120, installed over 1.0.119. The old test folders `FG Titles` and `FGDemo` the owner saw in the Folders tab were not on the phone: the app listed the rows it keeps for deleted files. Fixed and seen on the phone (see `STATUS.md`, "This round: gone files leave the folder views"). Item 246 of section 2. 1.0.120 was then published as a GitHub release on the owner's word. The pill fix of 1.0.119 is on the phone and the owner has not yet said how it feels (items 244 and 245).
 
 Updated 2026-11-22, after the owner tried 1.0.118: the bar's pill did not follow a moving finger, and the fix is on `main` (see `STATUS.md`, "This round: the pill follows the finger"). Items 244 and 245 of section 2.
 
