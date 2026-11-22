@@ -28,6 +28,73 @@ internal object TabRules {
     }
 }
 
+/** The pages of the tabs at one moment, as [TabLeadRules] needs them. */
+internal data class PagesNow(
+    /** The tab nearest to where the pages stand. */
+    val page: Int,
+    /** True when the pages stand whole on [page], and not between two tabs. */
+    val whole: Boolean,
+    /** True while the pager runs a scroll of any kind: a finger's drag, a fling, a slide. */
+    val scrolling: Boolean,
+    /** True while a drag handed over by a scroller inside a tab holds the pages, until they have settled. */
+    val handed: Boolean,
+    /** True while a finger is down on the pages. */
+    val fingerDown: Boolean,
+    /** True while a move the bar or a link asked for is under way. */
+    val led: Boolean,
+)
+
+/**
+ * Who the pages follow, and who is told what. Two things can move them: a hand, and a request from the bar, Back or
+ * a link. The pages are the truth of what is in view, so a hand's swipe is reported when it rests. A request is the
+ * other way round: from the moment it is made until the pages stand whole on the tab it named, or a hand takes them,
+ * the selection is the truth, nothing is reported, and whatever cut the move short, the pages are brought there.
+ * That time is `asked` below.
+ */
+internal object TabLeadRules {
+    private fun moving(now: PagesNow): Boolean = now.scrolling || now.handed
+
+    private fun wholeOn(now: PagesNow, page: Int): Boolean = now.whole && now.page == page
+
+    /** A hand has taken the pages: a finger is down and they move, and no request is driving them. */
+    fun handTook(now: PagesNow): Boolean = !now.led && now.fingerDown && moving(now)
+
+    /** Whether a request made earlier still stands. It ends when a hand takes the pages, or when it is met. */
+    fun stillAsked(asked: Boolean, now: PagesNow, selected: Int): Boolean =
+        asked && !handTook(now) && !(!now.led && !moving(now) && wholeOn(now, selected))
+
+    /**
+     * The tab the caller should hear of, or null. Only pages standing whole with nothing moving them are a tab in
+     * view, and never while a request stands: pages still on the tab they were asked to leave are not news.
+     */
+    fun report(now: PagesNow, asked: Boolean, selected: Int): Int? =
+        now.page.takeIf { !asked && !now.led && !moving(now) && now.whole && it != selected }
+
+    /**
+     * Where the pages must be brought by the rest guard, or null while all is well or it must stand down. It stands
+     * down while a request is under way, while a finger is down, and while anything moves the pages. Otherwise pages
+     * between two tabs go to the nearer one, and pages a request never reached go to the tab that was asked for.
+     */
+    fun guard(now: PagesNow, asked: Boolean, selected: Int): Int? {
+        if (now.led || now.fingerDown || moving(now)) return null
+        val target = if (asked) selected else now.page
+        return target.takeIf { !wholeOn(now, it) }
+    }
+
+    /**
+     * True when the last move the bar asked for has ended, by itself or cut short, and the pages are neither whole on
+     * [target] nor in a hand: they are set there at once, so no sequence of taps leaves the app between two tabs.
+     */
+    fun snapAfterLed(now: PagesNow, target: Int): Boolean = !now.fingerDown && !moving(now) && !wholeOn(now, target)
+
+    /**
+     * True while the bar's pill travels with the pages: while something moves them, and while they rest on the
+     * selected tab. Led by a request, or standing on another tab than the selected one, the pill goes to the
+     * selected tab by itself.
+     */
+    fun pillFollowsPages(now: PagesNow, selected: Int): Boolean = !now.led && (moving(now) || now.page == selected)
+}
+
 /** Who a horizontal drag that began on a scroller inside a tab belongs to. */
 internal enum class SwipeOwner {
     /** Nothing has moved sideways yet. */
@@ -80,6 +147,30 @@ internal object TabSwipeRules {
         val on = if (offset > 0f) page - offset else -page - offset
         return wanted.coerceIn(minOf(back, on), maxOf(back, on))
     }
+
+    /**
+     * True while a handed-over drag holds the pages: from the move that gave it to them until their settle has
+     * ended. Nothing else is remembered, so this cannot stay true by itself: an owner of Pages always ends in a
+     * settle, by the scroller's report of the release, by the watchdog after it, or by the next touch.
+     */
+    fun handActive(owner: SwipeOwner, settling: Boolean): Boolean = owner == SwipeOwner.Pages || settling
+
+    /**
+     * True when a new touch finds the pages still owned by the last gesture with no settle running: the scroller
+     * that held that gesture never reported its release, as when its row left the screen in mid-drag. The pages
+     * settle now, before the new gesture is looked at.
+     */
+    fun settlesOnDown(owner: SwipeOwner, settling: Boolean): Boolean = owner == SwipeOwner.Pages && !settling
+
+    /**
+     * A mode of a tab, such as an open search, holds the tabs only while its tab is the one in view. A tab that is
+     * on screen because a swipe toward it is passing must not stop that swipe.
+     */
+    fun modeHolds(open: Boolean, tabInView: Boolean): Boolean = open && tabInView
+
+    /** A search field asks for the keyboard only on the tab in view, and only while it is empty. */
+    fun raisesKeyboard(autoFocus: Boolean, tabInView: Boolean, query: String): Boolean =
+        autoFocus && tabInView && query.isEmpty()
 
     /** True when what an inner scroller left over may move the pages. Otherwise it is dropped. */
     fun passesToPages(owner: SwipeOwner): Boolean = owner == SwipeOwner.Pages

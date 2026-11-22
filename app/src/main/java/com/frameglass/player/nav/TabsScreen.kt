@@ -24,6 +24,7 @@ import androidx.compose.material.icons.rounded.VideoLibrary
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,16 +60,26 @@ import com.frameglass.player.search.SearchScreen
 import com.frameglass.player.select.LocalSelectionChrome
 import com.frameglass.player.select.SelectionChrome
 import com.frameglass.player.settings.SettingsScreen
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
 
-// How long the pages may stand between two tabs with nothing moving them before they are brought to rest. A fling
-// that follows a drag starts within this, and then nothing is done.
+// How long the pages may stand between two tabs, or short of a tab that was asked for, with nothing moving them
+// before they are brought to rest. A fling that follows a drag starts within this, and then nothing is done.
 private const val AdriftMillis = 150L
+
+// How long a request from the bar waits for a hand's swipe to settle before it takes the pages anyway. A settle is
+// done in a third of this; the limit is there so that nothing a hand left behind can hold a request for good.
+private const val HandWaitMillis = 1_500L
 
 // Closer to a whole tab than this, in tabs, is at rest.
 private const val AtRest = 0.001f
@@ -150,41 +161,70 @@ internal fun TabsScreen(sections: List<BarSection>, selected: BarSection, onSele
     val locked by rememberUpdatedState(TabSwipeRules.locked(chrome.active, isGlassOverlayOpen(), swipeLock.held))
     val rtl by rememberUpdatedState(LocalLayoutDirection.current == LayoutDirection.Rtl)
     val arbiter = remember(pager, scope) { TabSwipeArbiter(pager, scope, { locked }, { rtl }, { fling }) }
-    // True while the pages follow the bar or a link, and the pill leads them with its own spring.
-    var led by remember(pager) { mutableStateOf(false) }
+    val lead = remember(pager, arbiter) { TabLead(pager, arbiter) }
     val veil = remember { Animatable(1f) }
+    // Every request made here goes through this, so it stands from the same instant the selection changes, and the
+    // pages still on the tab they are leaving are never reported back as a swipe.
+    val ask: (BarSection) -> Unit = remember(lead) {
+        { section ->
+            lead.asked = true
+            select(section)
+        }
+    }
 
     // The section in view changed by something other than a swipe: a tap on the bar, Back, a link.
     LaunchedEffect(pager, selectedIndex) {
         // A swipe that settled here was reported below, and that is how this ran: there is nothing to bring.
-        if (pager.currentPage == selectedIndex && abs(pager.currentPageOffsetFraction) < AtRest) return@LaunchedEffect
-        led = true
+        if (lead.wholeOn(selectedIndex)) {
+            lead.asked = false
+            return@LaunchedEffect
+        }
+        // This move owns the pages by a token of its own. A move it replaced ends after this one has begun, and
+        // must find that it is no longer the leader, so it touches neither the token nor the veil.
+        val me = Any()
+        lead.asked = true
+        lead.leader = me
+        lead.guard?.cancel()
         try {
-            // A swipe that is still settling finishes first, and the pages go on from where it left them.
-            snapshotFlow { pager.isScrollInProgress || arbiter.active }.first { !it }
+            // A swipe that is still settling finishes first, and the pages go on from where it left them. The
+            // wait has a limit: nothing a hand left behind may hold a request for good.
+            withTimeoutOrNull(HandWaitMillis) { snapshotFlow { lead.handMoving() }.first { !it } }
             bringPage(pager, selectedIndex, reduced, veil)
         } finally {
-            led = false
-            if (veil.value < 1f) scope.launch { veil.animateTo(1f, FrameMotion.effects()) }
+            if (lead.leader === me) {
+                lead.leader = null
+                // A finger on the pages took them from this move: where they rest is its to say.
+                if (arbiter.fingerDown) lead.asked = false
+                // The veil is the leader's while there is one: a move that begins before this runs keeps it.
+                if (veil.value < 1f) scope.launch { if (lead.leader == null) veil.fadeTo(1f) }
+                // Whatever cut the move short, the pages do not stay between two tabs or short of the one asked
+                // for. Not while this effect is being replaced or leaves: then the next one, or nobody, has them.
+                if (coroutineContext.isActive && TabLeadRules.snapAfterLed(lead.now(), selectedIndex)) {
+                    runCatching { pager.scrollToPage(selectedIndex) }
+                }
+            }
         }
     }
-    // A swipe ended on another tab. Only pages standing whole are reported: a move cut short in mid-flight, such as
-    // by a second tap on the bar, names no tab.
-    LaunchedEffect(pager, sections) {
-        snapshotFlow {
-            val resting = !led && !pager.isScrollInProgress && !arbiter.active &&
-                abs(pager.currentPageOffsetFraction) < AtRest
-            if (resting) pager.currentPage else -1
-        }.collect { page -> if (page >= 0 && page != selectedNow) sections.getOrNull(page)?.let { select(it) } }
+    // A swipe ended on another tab, a hand took the pages from a request, or a request was met. It follows the
+    // pages alone: a change of the selection is never by itself a reason to report where they stand.
+    LaunchedEffect(lead, sections) {
+        snapshotFlow { lead.now() }.collect { now ->
+            lead.asked = TabLeadRules.stillAsked(lead.asked, now, selectedNow)
+            TabLeadRules.report(now, lead.asked, selectedNow)?.let { page -> sections.getOrNull(page)?.let { select(it) } }
+        }
     }
-    // Whatever interrupted a move, the pages never stay between two tabs.
-    LaunchedEffect(pager, reduced) {
-        snapshotFlow {
-            !led && !pager.isScrollInProgress && !arbiter.active && abs(pager.currentPageOffsetFraction) >= AtRest
-        }.collectLatest { adrift ->
-            if (adrift) {
-                delay(AdriftMillis)
-                if (reduced) pager.scrollToPage(pager.currentPage) else pager.slideToPage(pager.currentPage)
+    // The rest guard: with nothing moving them, the pages never stay between two tabs, and never short of a tab
+    // that was asked for. It stands down while a request is under way or a finger is down.
+    LaunchedEffect(lead, reduced) {
+        snapshotFlow { TabLeadRules.guard(lead.now(), lead.asked, selectedNow) }.collectLatest { target ->
+            if (target == null) return@collectLatest
+            delay(AdriftMillis)
+            // In a job of its own. The slide changes what this flow reads, and inside this block it would be
+            // cancelled by its own first step. It runs below the priority of a request and of a finger, so it
+            // can interrupt neither.
+            lead.guard?.cancel()
+            lead.guard = scope.launch {
+                if (reduced) pager.scrollToPage(target) else pager.slideToPage(target, MutatePriority.Default)
             }
         }
     }
@@ -193,9 +233,9 @@ internal fun TabsScreen(sections: List<BarSection>, selected: BarSection, onSele
         BarSection.entries.filter { it !in sections }.forEach { saved.removeState(it.id) }
     }
 
-    val open: (BarSection) -> Unit = remember(sections, navigator) {
+    val open: (BarSection) -> Unit = remember(sections, navigator, ask) {
         { section ->
-            if (TabRules.opensAsPage(section, sections)) navigator.push(Route.Section(section)) else select(section)
+            if (TabRules.opensAsPage(section, sections)) navigator.push(Route.Section(section)) else ask(section)
         }
     }
     // While Settings has no tab, its gear goes to the first tab's top bar.
@@ -204,19 +244,18 @@ internal fun TabsScreen(sections: List<BarSection>, selected: BarSection, onSele
     val tabs = sections.map { GlassTab(stringResource(it.label), it.icon, key = it.id) }
     // The pill follows the pages while a hand moves them and while they rest. While they are led, and for the one
     // frame between a request and its start, it goes to the selected tab by itself.
-    val pagePosition = remember(pager, arbiter) {
+    val pagePosition = remember(pager, lead) {
         {
-            val moving = pager.isScrollInProgress || arbiter.active
-            if (led || (!moving && pager.currentPage != selectedNow)) {
-                null
-            } else {
+            if (TabLeadRules.pillFollowsPages(lead.now(), selectedNow)) {
                 pager.currentPage + pager.currentPageOffsetFraction
+            } else {
+                null
             }
         }
     }
 
     val back = TabRules.backTarget(selected, sections)
-    BackHandler(enabled = back != null) { back?.let(onSelect) }
+    BackHandler(enabled = back != null) { back?.let(ask) }
 
     Box(Modifier.fillMaxSize()) {
         CompositionLocalProvider(
@@ -264,7 +303,7 @@ internal fun TabsScreen(sections: List<BarSection>, selected: BarSection, onSele
             LiquidTabBar(
                 tabs = tabs,
                 selectedIndex = selectedIndex,
-                onSelect = { index -> sections.getOrNull(index)?.let(onSelect) },
+                onSelect = { index -> sections.getOrNull(index)?.let(ask) },
                 modifier = Modifier.align(Alignment.BottomCenter),
                 pagePosition = pagePosition,
             )
@@ -287,32 +326,81 @@ private suspend fun bringPage(
     val runUp = TabRules.runUp(from, target)
     when {
         reduced -> {
-            veil.animateTo(0f, FrameMotion.effects())
+            veil.fadeTo(0f)
             pager.scrollToPage(target)
-            veil.animateTo(1f, FrameMotion.effects())
+            veil.fadeTo(1f)
         }
-        runUp == from -> pager.slideToPage(target)
+        // The move before this one may have been cut short behind its fade, so every branch ends with the veil up.
+        runUp == from -> coroutineScope {
+            launch { veil.fadeTo(1f) }
+            pager.slideToPage(target, MutatePriority.UserInput)
+        }
         else -> {
-            veil.animateTo(0f, FrameMotion.effects())
+            veil.fadeTo(0f)
             pager.scrollToPage(runUp)
             coroutineScope {
-                launch { veil.animateTo(1f, FrameMotion.effects()) }
-                pager.slideToPage(target)
+                launch { veil.fadeTo(1f) }
+                pager.slideToPage(target, MutatePriority.UserInput)
             }
         }
     }
 }
 
 /**
- * Slides the pages to [target] and leaves them exactly on it. The slide holds the pages as firmly as a finger does:
- * when a fling inside a tab ends, the pager snaps by itself, and that must not cut a slide short. A finger on the
- * pages still takes them.
+ * Fades the veil over the pages. An animation on it that something else starts ends this one with a cancellation
+ * that is not this caller's own, and that must not end the move the caller is making: only the caller's own
+ * cancellation goes on up.
  */
-private suspend fun PagerState.slideToPage(target: Int) {
+private suspend fun Animatable<Float, AnimationVector1D>.fadeTo(alpha: Float) {
+    if (value == alpha && !isRunning) return
+    try {
+        animateTo(alpha, FrameMotion.effects())
+    } catch (interrupted: CancellationException) {
+        currentCoroutineContext().ensureActive()
+    }
+}
+
+/**
+ * What moves the pages besides a hand, kept in one place: the request under way, whether one still stands, and the
+ * rest guard's own slide. The rules that read it are [TabLeadRules].
+ */
+@Stable
+private class TabLead(private val pager: PagerState, private val arbiter: TabSwipeArbiter) {
+    /** The token of the move the bar or a link asked for, while one is under way. Only its owner clears it. */
+    var leader by mutableStateOf<Any?>(null)
+
+    /** True from a request until the pages stand whole on the tab it named, or a hand takes them. */
+    var asked by mutableStateOf(false)
+
+    /** The slide of the rest guard, so that a request can end it before it takes the pages. */
+    var guard: Job? = null
+
+    fun now() = PagesNow(
+        page = pager.currentPage,
+        whole = abs(pager.currentPageOffsetFraction) < AtRest,
+        scrolling = pager.isScrollInProgress,
+        handed = arbiter.active,
+        fingerDown = arbiter.fingerDown,
+        led = leader != null,
+    )
+
+    fun wholeOn(page: Int): Boolean = pager.currentPage == page && abs(pager.currentPageOffsetFraction) < AtRest
+
+    /** True while a scroll of any kind runs, or a handed-over drag holds the pages. */
+    fun handMoving(): Boolean = pager.isScrollInProgress || arbiter.active
+}
+
+/**
+ * Slides the pages to [target] and leaves them exactly on it. A request slides at [MutatePriority.UserInput], and
+ * holds the pages as firmly as a finger does: when a fling inside a tab ends, the pager snaps by itself, and that
+ * must not cut the slide short; a finger on the pages still takes them. The rest guard slides at
+ * [MutatePriority.Default], which gives way to both.
+ */
+private suspend fun PagerState.slideToPage(target: Int, priority: MutatePriority) {
     val page = layoutInfo.pageSize + layoutInfo.pageSpacing
     if (page > 0) {
         val distance = (target - currentPage - currentPageOffsetFraction) * page
-        scroll(MutatePriority.UserInput) {
+        scroll(priority) {
             var done = 0f
             animate(0f, distance, animationSpec = FrameMotion.page()) { value, _ -> done += scrollBy(value - done) }
         }

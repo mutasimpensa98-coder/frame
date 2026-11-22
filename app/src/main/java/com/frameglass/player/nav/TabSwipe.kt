@@ -48,29 +48,40 @@ internal class TabSwipeArbiter(
     /** The pager's own fling, which settles the pages the same way after either kind of swipe. */
     private val fling: () -> FlingBehavior,
 ) : NestedScrollConnection {
-    private var owner = SwipeOwner.Undecided
+    private var owner by mutableStateOf(SwipeOwner.Undecided)
     private var settling: Job? = null
+    private var settlingNow by mutableStateOf(false)
     private var gesture = 0
+
+    /** True while a finger is down on the pages, whatever it is doing there. */
+    var fingerDown by mutableStateOf(false)
+        private set
 
     /**
      * True from the moment an inner drag starts to move the pages until they have settled. The pager does not
      * count such a drag as a scroll in progress, so whoever needs to know that a hand is moving the pages asks here.
+     * It is worked out from the owner and the settle, and every path out of an owner of Pages ends in a settle, so
+     * it cannot stay true. Whoever waits on it still waits with a time limit.
      */
-    var active by mutableStateOf(false)
-        private set
+    val active: Boolean get() = TabSwipeRules.handActive(owner, settlingNow)
 
     fun onDown() {
         gesture++
+        fingerDown = true
+        // The last gesture moved the pages and its scroller never said the finger had left: the watchdog below
+        // only covers a pause, and this touch came inside it.
+        if (TabSwipeRules.settlesOnDown(owner, settling?.isActive == true)) settle(0f)
         owner = SwipeOwner.Undecided
     }
 
     /** The finger left. A scroller that never reports it must not leave the pages between two tabs. */
     fun onUp() {
+        fingerDown = false
         if (owner != SwipeOwner.Pages || settling?.isActive == true) return
         val lifted = gesture
         scope.launch {
             delay(LostReleaseMillis)
-            if (gesture == lifted && owner == SwipeOwner.Pages && settling?.isActive != true) settle(0f)
+            if (gesture == lifted && TabSwipeRules.settlesOnDown(owner, settling?.isActive == true)) settle(0f)
         }
     }
 
@@ -97,7 +108,7 @@ internal class TabSwipeArbiter(
             // A settle still running from the last swipe would hold the pages against the finger.
             settling?.cancel()
             settling = null
-            active = true
+            settlingNow = false
         }
         // Zero lets the pager behind this connection take what is left; anything else is dropped here.
         return if (TabSwipeRules.passesToPages(owner)) Offset.Zero else Offset(available.x, 0f)
@@ -117,6 +128,7 @@ internal class TabSwipeArbiter(
         val flingNow = fling()
         val velocity = TabSwipeRules.pageward(fingerVelocity, rtl())
         settling?.cancel()
+        settlingNow = true
         settling = scope.launch {
             try {
                 // Held as firmly as a finger holds the pages. When the scroller's own fling ends, the pager snaps by
@@ -129,7 +141,7 @@ internal class TabSwipeArbiter(
     }
 
     private fun finish() {
-        active = false
+        settlingNow = false
         if (owner == SwipeOwner.Pages) owner = SwipeOwner.Undecided
     }
 }

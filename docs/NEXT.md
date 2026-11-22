@@ -1,5 +1,7 @@
 # Next
 
+Updated 2026-11-22, after the review fixes on `tabs`: no new owner check, and three entries in section 3. Items 229 to 243 still stand.
+
 Updated 2026-11-22, after branch `library` was merged into branch `tabs`: the checks of `library` keep items 203 to 228 of section 2, and the checks of `tabs` are now items 229 to 243. Nothing of either has been seen on a phone.
 
 Updated 2026-11-22, after the tabs were reworked on branch `tabs` (waiver of 2026-11-22): items 229 to 243 of section 2 since the merge, and entries in sections 3, 4, 5 and 7. Nothing of it has been seen on a phone.
@@ -374,6 +376,9 @@ These come from reading the code. None has been seen.
 - **Tabs, three blurred layers.** While two pages slide, two top bars and the tab bar want blur at once, which is the cap. A selection bar or a control over art on top of that falls back to tint and rim for the length of the swipe.
 - **Tabs, the pill and its ticks.** One tick each time the pill, under a finger or a swipe, passes 8% of a slot beyond the midpoint between two tabs. Across the whole bar that is three or four ticks (item 230).
 - **Tabs, a fling inside a row** is stopped where the row ends, as in any pager. The stretch a row shows at its end is gone inside the tabs.
+- **Tabs, two quick taps on the bar (review fix).** Tap one tab and at once another, also with battery saver on. The pages must end whole on the second tab with the pill on it. If they ever stop between two tabs, they should move to the tapped one within a moment by themselves.
+- **Tabs, a swipe into a tab whose search was left open (review fix).** Open the search of Library, tap Home on the bar, then swipe back toward Library. The swipe must go through, the keyboard must stay down until it has settled, and only then is the tab held by its search.
+- **Tabs, a touch on the pages during a move the bar asked for (review fix).** It catches the pages, as in any pager, and where the finger lets go is the tab in view.
 - **Tabs with Library, the chip drag (merged).** A lifted chip consumes its moves before the pager sees them and holds the lock. Watch for a page that starts to slide in the instant between the long press and the lift, and for the tabs staying locked after a drop: leaving the tab frees the lock (item 236).
 - **Tabs with Library, Back (merged).** Inside the Folders tab Back steps out of an opened folder first, and an open search closes before that. A page that is on screen only while a swipe passes takes no Back. Watch for Back jumping to the first tab from inside a folder (item 237).
 - **Tabs with Library, search and the keyboard (merged).** While a search is open in a tab's bar the tabs do not swipe. A tap on the bar still leaves the tab, the keyboard should go down with it, and the search should be as it was on return.

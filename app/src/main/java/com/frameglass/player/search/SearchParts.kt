@@ -60,6 +60,7 @@ import com.frameglass.player.nav.HoldTabSwipe
 import com.frameglass.player.nav.LocalNavigator
 import com.frameglass.player.nav.LocalTabInView
 import com.frameglass.player.nav.Route
+import com.frameglass.player.nav.TabSwipeRules
 import com.frameglass.player.ui.CenteredMessage
 import com.frameglass.player.ui.FrameTextField
 import com.frameglass.player.ui.TitleGrid
@@ -114,12 +115,15 @@ internal fun rememberSearchMode(): SearchMode = rememberSaveable(saver = SearchM
  * a newer handler than the one of the tabs, and an older one than selection mode, which closes first.
  *
  * Inside the tabs an open search is a mode of its tab, like selection: the tabs do not swipe until it is closed, and
- * a tab that is not the one in view leaves Back alone.
+ * a tab that is not the one in view leaves Back alone. It holds the tabs only while its tab is the one in view. A
+ * tab left with its search open, by a tap on the bar, lets go at once, and can be swiped back into: it takes the
+ * hold again when the swipe has settled on it.
  */
 @Composable
 internal fun SearchBack(mode: SearchMode) {
-    HoldTabSwipe(mode.open)
-    if (mode.open) BackHandler(enabled = LocalTabInView.current, onBack = mode::close)
+    val inView = LocalTabInView.current
+    HoldTabSwipe(TabSwipeRules.modeHolds(mode.open, inView))
+    if (mode.open) BackHandler(enabled = inView, onBack = mode::close)
 }
 
 /** The button of a top bar that opens [mode]. */
@@ -169,10 +173,13 @@ internal fun SearchBar(
     val focus = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
     // Only an empty field asks for the keyboard. A field that comes back with its words, as after selection mode
-    // or after a page opened from a result, leaves the results in full view.
-    if (autoFocus) {
+    // or after a page opened from a result, leaves the results in full view. And only on the tab in view: a tab
+    // that shows because a swipe is passing must not raise the keyboard under the finger. It asks when the swipe
+    // has settled on it.
+    val inView = LocalTabInView.current
+    if (autoFocus && inView) {
         LaunchedEffect(focus) {
-            if (query.isEmpty()) {
+            if (TabSwipeRules.raisesKeyboard(autoFocus, inView, query)) {
                 focus.requestFocus()
                 keyboard?.show()
             }
